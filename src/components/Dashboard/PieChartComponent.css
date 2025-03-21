@@ -1,0 +1,34 @@
+
+/* Grafico Circular*/
+
+.recharts-pie .recharts-layer tspan {
+    font-size: 18px;
+    fill: #4d4d4d;
+    font-weight: 600;
+    white-space: normal;
+    word-wrap: break-word;
+    width: 100px;
+}
+
+.recharts-legend-wrapper {
+    display: none;
+}
+
+/* ************************** */
+
+/* Grafico de barras horizontal */
+.div3 .recharts-layer text {
+    font-size: 11px;
+    fill: #4d4d4d;
+    white-space: normal;
+    word-wrap: break-word;
+    width: 100px;
+}
+.div3 .recharts-layer tspan {
+    font-size: 12px;
+    fill: #4d4d4d;
+    font-weight: 600;
+    white-space: normal;
+    word-wrap: break-word;
+    width: 100px;
+}

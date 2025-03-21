@@ -1,0 +1,31 @@
+.cabezal-sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 14px 30px 14px;
+    padding-bottom: 12px;
+    height: fit-content;
+    border-radius: 8px;
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.0) 40%, rgba(0, 0, 0, 0) 100%);
+}
+
+.cabezal-sidebar span {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    color: #e6f4ff;
+    width: 100%;
+    font-family: 'JetBrains Mono', monospace; /* Letra tipo código más moderna */
+    font-size: 1rem !important; /* Letras grandes */
+    text-transform: uppercase; /* Para que se vean más altas */
+    letter-spacing: .5px; /* Espaciado para ese look más tech */
+}
+.cabezal-icon svg {
+    display: flex;
+    color: #e6f4ff;
+    font-size: 40px;
+    height: fit-content;
+    margin: 10px;
+    margin-bottom: 4px;
+}

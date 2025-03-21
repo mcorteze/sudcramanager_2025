@@ -1,0 +1,30 @@
+.monitor-container {
+  margin: 0px auto;
+  width: fit-content;
+  max-width: 1000px;
+}
+
+.link-acceder {
+    display: flex;
+    align-items: center;
+    padding: 4px 12px;
+    border: 1px solid hsla(210, 100%, 42%, 0.5);
+    border-radius: 4px;
+    background-color: #fff;
+    text-decoration: none;
+    color: var(--color-primario);
+  }
+  
+  .link-acceder:hover {
+    border: 1px solid var(--color-warning);
+    color: var(--color-warning);
+  }
+  
+  .link-acceder .icono {
+    margin-right: 8px;
+  }
+  
+  .seccion-sede h3 {
+    color: rgb(13, 113, 146);
+    margin: 12px 0px 6px 0px;
+  }

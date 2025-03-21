@@ -1,0 +1,13 @@
+ver commiteadas
+git log
+
+volver a commit especifico (ejemplo)
+git checkout 2e8580c66f2055288cced5daf9d868e339552d88
+
+descartar cambios para asegurarse que el proyecto esta limpio
+git reset --hard
+
+desde ahora se pueden hacer cambios y crear nuevos commits
+
+
+
