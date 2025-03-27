@@ -12,7 +12,8 @@ import {
   DropboxOutlined,
   SlidersOutlined,
   DashboardOutlined,
-  TableOutlined
+  TableOutlined,
+  SendOutlined
 } from '@ant-design/icons';
 import { SlNote } from "react-icons/sl";
 import { Layout, Menu, theme } from 'antd';
@@ -46,7 +47,8 @@ import DashboardPage from './pages/DashboardPage.js';
 import AccesosPage from './pages/AccesosPage.js';
 import ArchivoLeidoPage from './pages/ArchivoLeidoPage.js';
 import SharepointPage from './pages/SharepointPage.js';
-
+import LecturasPage from './pages/LecturasPage.js';
+import LecturasMasivoPage from './pages/LecturasMasivoPage.js';
 import './App.css';
 
 import EnlacesFlotante from './components/EnlacesFlotante.js';
@@ -87,6 +89,12 @@ const AppContent = () => {
           </Menu.Item>
           <Menu.Item key="5" icon={<DropboxOutlined />}>
             <Link to="/secciones">ID Sección</Link>
+          </Menu.Item>
+          <Menu.Item key="6" icon={<SendOutlined />}>
+            <Link to="/lecturas">Reprocesar</Link>
+          </Menu.Item>
+          <Menu.Item key="7" icon={<SendOutlined />}>
+            <Link to="/lecturas_masivo">Reprocesar Masivo</Link>
           </Menu.Item>
           <Menu.Item key="13" icon={<ExclamationOutlined />}>
             <Link to="/pendientes">Pendientes</Link>
@@ -145,8 +153,8 @@ const AppContent = () => {
             <Route path="/monitorsede/:programa/:sede" element={<MonitorSedePage />} />
             <Route path="/extraernotas" element={<ExtraerNotasPage />} />
             <Route path="/pendientes" element={<SeccionesPendientesPage />} />
-            <Route path="/imagen" element={<ImagenPage />} />
-            <Route path="/imagen/:id_lista" element={<ImagenPage />} />
+            <Route path="/imagenes" element={<ImagenPage />} />
+            <Route path="/imagenes/:id_lista" element={<ImagenPage />} />
             <Route path="/secciones" element={<BuscarSeccion />} />
             <Route path="/secciones/:id_seccion" element={<BuscarSeccion />} />
             <Route path="/pruebas" element={<Pruebas />} />
@@ -156,6 +164,8 @@ const AppContent = () => {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/accesos" element={<AccesosPage />} />
             <Route path="/listasharepoint" element={<SharepointPage />} />
+            <Route path="/lecturas" element={<LecturasPage />} />
+            <Route path="/lecturas_masivo" element={<LecturasMasivoPage />} />
           </Routes>
         </Content>
       </Layout>

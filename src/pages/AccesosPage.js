@@ -25,7 +25,7 @@ export default function AccesosPage() {
       subtitle: "Hojas de respuestas",
       description: "Ver registros de imágenes a partir id de subida en la lista de sharepoint.",
       icon: <FileImageOutlined />,
-      link: "/imagen",
+      link: "/imagenes",
     },
     {
       title: "Apps",

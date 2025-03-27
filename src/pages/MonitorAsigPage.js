@@ -116,36 +116,45 @@ export default function MonitorPage() {
           rut_docente: item.rut_docente,
           nombre_sede: item.nombre_sede,
           seccion: item.seccion,
-          pruebasRegistradas: 0, // Inicializamos el contador de pruebas registradas
+          pruebasRegistradas: 0, // Ahora contará solo las evaluaciones tomadas
+          totalEvaluaciones: 0, // Contador de evaluaciones programadas
           ...Array.from({ length: 15 }, (_, i) => ({ [`E${i}`]: null })).reduce((acc, curr) => ({ ...acc, ...curr }), {}),
         };
       }
-
+    
       if (item.num_prueba >= 0 && item.num_prueba <= 14) {
-        // Registramos el valor para esa prueba
+        // Guardamos el nombre de la evaluación
         seccionesMap[item.id_seccion][`E${item.num_prueba}`] = item.nombre_prueba;
-
-        // Contamos cuántas pruebas tienen datos (no son null)
+        // Guardamos el ID de la evaluación (si existe)
+        seccionesMap[item.id_seccion][`E${item.num_prueba}_id_eval`] = item.id_seccion_eval;
+        
+        // Contamos cuántas evaluaciones están programadas
         if (item.nombre_prueba) {
+          seccionesMap[item.id_seccion].totalEvaluaciones += 1;
+        }
+    
+        // Solo contamos evaluaciones tomadas (cuando id_seccion_eval tiene un valor)
+        if (item.id_seccion_eval) {
           seccionesMap[item.id_seccion].pruebasRegistradas += 1;
         }
+    
         evalsPresent.add(item.num_prueba);
         pruebaNames[`E${item.num_prueba}`] = item.nombre_prueba; // Guardamos el nombre de la prueba
       }
     });
-
-    // Calculamos el porcentaje de avance
+    
+    // Ahora calculamos el porcentaje de avance correctamente
     const seccionesArray = Object.values(seccionesMap).map((seccion) => {
-      const totalEvaluaciones = evalsPresent.size; // El total de evaluaciones es el número único de pruebas
-      const porcentajeAvance = totalEvaluaciones > 0
-        ? Math.round((seccion.pruebasRegistradas / totalEvaluaciones) * 100)
+      const porcentajeAvance = seccion.totalEvaluaciones > 0
+        ? Math.round((seccion.pruebasRegistradas / seccion.totalEvaluaciones) * 100)
         : 0;
-
+    
       return {
         ...seccion,
-        porcentajeAvance, // Añadimos el porcentaje de avance
+        porcentajeAvance,
       };
     });
+    
 
     // Ordenamos evalsPresent numéricamente y generamos las columnas dinámicas
     const sortedEvals = Array.from(evalsPresent).sort((a, b) => a - b);  // Ordenación numérica
@@ -159,8 +168,11 @@ export default function MonitorPage() {
       dataIndex: `E${num}`,
       key: `E${num}`,
       render: (text, record) => (
-        record[`E${num}`] ? <MailOutlined style={{ fontSize: '15px', background: 'yellow', color: '#1890ff' }} /> : <MailTwoTone twoToneColor="#ccc" style={{ fontSize: '15px' }} />
-      ),
+        record[`E${num}`] && record[`E${num}_id_eval`] // Verificamos si tiene un ID de evaluación
+          ? <MailOutlined style={{ fontSize: '15px', background: 'yellow', color: '#1890ff' }} />
+          : <MailTwoTone twoToneColor="#ccc" style={{ fontSize: '15px' }} />
+      )
+      ,
     }));
 
     return { seccionesArray, dynamicColumns };
@@ -203,21 +215,25 @@ export default function MonitorPage() {
     ...dynamicColumns,
     {
       title: 'Avance (%)',
+      dataIndex: 'porcentajeAvance',
       key: 'avance',
-      render: (text, record) => {
-        const isBelow100 = record.porcentajeAvance < 100;
+      sorter: (a, b) => a.porcentajeAvance - b.porcentajeAvance,
+      sortDirections: ['descend', 'ascend'],
+      render: (porcentajeAvance) => {
+        const isBelow100 = porcentajeAvance < 100;
         return (
           <span
             style={{
-              color: isBelow100 ? 'red' : 'black',   // Rojo si es menor a 100%
+              color: isBelow100 ? 'red' : 'black', // Rojo si es menor a 100%
               fontWeight: isBelow100 ? 'bold' : 'normal' // Negrita si es menor a 100%
             }}
           >
-            {record.porcentajeAvance}%
+            {porcentajeAvance}%
           </span>
         );
       },
     }
+    
     
   ];
 

@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  //host: '192.168.0.103',
-  //database: 'sudcra',
+  host: '10.12.1.235',
+  database: 'sudcra',
   // ******* bases de datos estáticas *******
-  host: 'localhost',
-  database: 'sudcra_0318', // final primer semestre
+  //host: 'localhost',
+  //database: 'sudcra_0318', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -734,53 +734,40 @@ app.get('/api/monitorasig/:programa/:asignatura', async (req, res) => {
   const { asignatura } = req.params;
   try {
     const query = `
-SELECT 
+SELECT
     (si.id_seccion || '_' || si.id_eval::text) AS id_seccion_eval,
-    si.id_seccion,
-    si.id_eval,
-    asig.cod_asig,
+    s.id_seccion,
+    e.id_eval,
+    e.cod_asig,
     asig.asig,
     asig.programa,
     asig.cod_programa,
     e.num_prueba,
-	  e.nombre_prueba,
+    e.nombre_prueba,
     s.seccion,
-	  doc.apellidos_doc || ' ' || doc.nombre_doc as nombre_docente,
+    doc.apellidos_doc || ' ' || doc.nombre_doc AS nombre_docente,
     doc.rut_docente,
     sd.nombre_sede,
-    MAX(si.marca_temp_mail) AS enviado
-FROM 
-    informes_secciones si
-JOIN 
-    secciones s ON s.id_seccion = si.id_seccion
-JOIN
-	docentes doc ON doc.rut_docente = s.rut_docente
-JOIN 
-    eval e ON si.id_eval = e.id_eval
-JOIN 
-    asignaturas asig ON asig.cod_asig = s.cod_asig
-JOIN 
-    sedes sd ON s.id_sede = sd.id_sede
-WHERE
-    asig.cod_asig = $1
+    -- Convertimos a TEXT para manejar '-1' en caso de NULL
+    COALESCE(TO_CHAR(MAX(si.marca_temp_mail), 'YYYY-MM-DD HH24:MI:SS'), '-1') AS marca_temporal,
+    -- Se mantiene el mismo valor para enviado
+    CASE 
+        WHEN MAX(si.marca_temp_mail) IS NOT NULL 
+        THEN TO_CHAR(MAX(si.marca_temp_mail), 'YYYY-MM-DD HH24:MI:SS') 
+        ELSE '-1' 
+    END AS enviado
+FROM eval e
+JOIN asignaturas asig ON asig.cod_asig = e.cod_asig
+JOIN secciones s ON s.cod_asig = asig.cod_asig
+JOIN docentes doc ON doc.rut_docente = s.rut_docente
+JOIN sedes sd ON sd.id_sede = s.id_sede
+LEFT JOIN informes_secciones si ON si.id_seccion = s.id_seccion
+WHERE asig.cod_asig = $1 
 GROUP BY 
-    sd.nombre_sede,
-    asig.cod_asig,
-    s.seccion,
-	  nombre_docente,
-    doc.rut_docente,
-    e.num_prueba,
-	  e.nombre_prueba,
-    (si.id_seccion || '_' || si.id_eval::text), 
-    si.id_seccion, 
-    si.id_eval, 
-    asig.asig, 
-    asig.programa, 
-    asig.cod_programa
-ORDER BY 
-    sd.nombre_sede ASC,
-    asig.cod_asig ASC,
-    s.seccion ASC;
+    si.id_seccion, si.id_eval, s.id_seccion, e.id_eval, e.cod_asig, 
+    asig.asig, asig.programa, asig.cod_programa, e.num_prueba, 
+    e.nombre_prueba, s.seccion, doc.apellidos_doc, doc.nombre_doc, 
+    doc.rut_docente, sd.nombre_sede;
     `;
 
     const result = await pool.query(query, [asignatura]);
@@ -885,6 +872,125 @@ app.get('/api/monitorasig/evaluaciones', async (req, res) => {
     res.status(500).json({ error: 'Error en la consulta SQL' });
   }
 });
+
+// LecturasPage: sirve para listar las lecturas en tabla lecturas y pasarlas a lectura_temp para reprocesar(para casos de inscripcion tardía)
+app.get('/api/lecturas', async (req, res) => {
+  try {
+    const { rut, id_archivoleido } = req.query;
+
+    if (!rut && !id_archivoleido) {
+      return res.status(400).json({ error: 'Debe proporcionar rut o id_archivoleido' });
+    }
+
+    let query = `
+      SELECT 
+        l.rut, l.id_itemresp, l.id_archivoleido, l.linea_leida, 
+        l.reproceso, l.imagen, l.instante_forms, l.num_prueba, 
+        l.forma, l.grupo, l.cod_interno, l.registro_leido,
+        a.apellidos || ' ' || a.nombres AS nombre_alumno
+      FROM lectura AS l
+      JOIN alumnos AS a ON l.rut = a.rut
+      WHERE 1=1
+    `;
+
+    const params = [];
+
+    if (rut) {
+      query += ` AND l.rut = $${params.length + 1}`;
+      params.push(rut);
+    }
+
+    if (id_archivoleido) {
+      query += ` AND l.id_archivoleido = $${params.length + 1}`;
+      params.push(id_archivoleido);
+    }
+
+    const result = await pool.query(query, params);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+// Endpoint para insertar en `lectura_temp`
+app.post('/api/lectura-temp', async (req, res) => {
+  const { rut, id_archivoleido } = req.body;
+
+  if (!rut || !id_archivoleido) {
+    return res.status(400).json({ success: false, message: 'RUT y ID Archivo son requeridos' });
+  }
+
+  // SQL de inserción para PostgreSQL
+  const sql = `
+    INSERT INTO lectura_temp (rut, id_itemresp, id_archivoleido, linea_leida, reproceso, imagen, instante_forms, num_prueba, forma, grupo, cod_interno, registro_leido)
+    SELECT l.rut, l.id_itemresp, l.id_archivoleido, l.linea_leida, l.reproceso, l.imagen, l.instante_forms, l.num_prueba, l.forma, l.grupo, l.cod_interno, l.registro_leido
+    FROM lectura AS l
+    WHERE l.rut = $1 AND l.id_archivoleido = $2
+  `;
+
+  try {
+    const result = await pool.query(sql, [rut, id_archivoleido]);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error al insertar en lectura_temp:', error);
+    res.status(500).json({ success: false, message: 'Error al realizar el reproceso' });
+  }
+});
+
+// Endpoint para obtener los datos
+app.get('/lecturas_masivo', async (req, res) => {
+  try {
+    // Consulta SQL
+    const query = `
+      SELECT e.rut,
+             mt.id_matricula,
+             e.cod_interno,
+             max(e.id_archivoleido) AS id_archivoleido
+        FROM errores e
+        JOIN matricula mt ON mt.rut::text = e.rut::text
+        LEFT JOIN matricula_eval me ON me.id_matricula::text = mt.id_matricula::text
+       WHERE e.valida_inscripcion = false 
+         AND e.valida_rut = true 
+         AND me.id_matricula IS NULL 
+         AND e.cod_interno::text <> '000'::text
+       GROUP BY e.rut, mt.id_matricula, e.cod_interno;
+    `;
+
+    const result = await pool.query(query);
+    res.json(result.rows); // Respondemos con los datos de la consulta
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error al ejecutar la consulta');
+  }
+});
+
+// Endpoint para mover datos a lectura_temp (cambiado a /lectura-temp-masivo)
+app.post('/lectura-temp-masivo', async (req, res) => {
+  const { records } = req.body;
+
+  // Iterar sobre los registros recibidos y ejecutar la consulta
+  const query = `
+    INSERT INTO lectura_temp (rut, id_itemresp, id_archivoleido, linea_leida, reproceso, imagen, instante_forms, num_prueba, forma, grupo, cod_interno, registro_leido)
+    SELECT l.rut, l.id_itemresp, l.id_archivoleido, l.linea_leida, l.reproceso, l.imagen, l.instante_forms, l.num_prueba, l.forma, l.grupo, l.cod_interno, l.registro_leido
+    FROM lectura l
+    WHERE l.rut = ANY($1) AND l.id_archivoleido = ANY($2);
+  `;
+  
+  const rutArray = records.map(record => record.rut);
+  const idArchivoleidoArray = records.map(record => record.id_archivoleido);
+
+  try {
+    await pool.query(query, [rutArray, idArchivoleidoArray]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error al mover los datos:', err);
+    res.status(500).json({ success: false, message: 'Error al mover los datos' });
+  }
+});
+
 
 // ***** ENDPOINTS PARA MONITOR POR SEDE ******
 // ********************************************
@@ -1280,11 +1386,11 @@ app.get('/api/archivosleidosconcalificacion', async (req, res) => {
 
 
 // Endpoint para obtener imágenes con campos específicos
-app.get('/api/imagenes/:num_imagen', async (req, res) => {
-  const { num_imagen } = req.params; // Obtener el parámetro de la URL
+app.get('/api/imagenes/:id_lista', async (req, res) => {
+  const { id_lista } = req.params; // Obtener el parámetro de la URL
 
   try {
-    // Consulta SQL con escape para el guion bajo
+    // Consulta SQL con LEFT JOIN y el parámetro id_lista
     const query = `
       SELECT
           s.id_seccion,
@@ -1297,19 +1403,16 @@ app.get('/api/imagenes/:num_imagen', async (req, res) => {
           i.imagen, 
           i.url_imagen 
       FROM imagenes AS i
-      JOIN secciones AS s 
+      LEFT JOIN secciones AS s
       ON s.id_sede = i.id_sede 
         AND s.cod_asig = i.cod_asig 
         AND s.num_seccion = i.num_seccion
-      WHERE i.id_imagen LIKE $1 ESCAPE '\\'
+      WHERE i.id_lista = $1  -- Usamos el parámetro id_lista
       ORDER BY i.id_imagen ASC;
     `;
-
-    // Escapar el patrón para LIKE
-    const values = [`${num_imagen}\\_%`]; // Escape del guion bajo
-
-    // Ejecutar la consulta con valores parametrizados
-    const result = await pool.query(query, values);
+    
+    // Ejecutar la consulta con el parámetro id_lista
+    const result = await pool.query(query, [id_lista]);
 
     // Manejo de resultados vacíos
     if (result.rows.length === 0) {
@@ -1323,6 +1426,7 @@ app.get('/api/imagenes/:num_imagen', async (req, res) => {
     res.status(500).json({ error: 'Error al obtener las imágenes.' });
   }
 });
+
 
 // Endpoint para obtener lecturas con los campos específicos
 app.get('/api/lectura/:num_imagen', async (req, res) => {
@@ -1768,7 +1872,7 @@ app.get('/api/listado_calificaciones_obtenidas_planilla', async (req, res) => {
     JOIN sedes AS sd ON sd.id_sede = m.id_sede
     JOIN eval AS e ON me.id_eval = e.id_eval
     JOIN asignaturas AS a ON a.cod_asig = e.cod_asig
-    WHERE me.id_archivoleido IS NOT NULL
+    WHERE me.id_archivoleido IS NOT NULL and me.imagen = ''
     GROUP BY
         EXTRACT(MONTH FROM co.lectura_fecha),
         EXTRACT(DAY FROM co.lectura_fecha),

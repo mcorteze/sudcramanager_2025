@@ -6,6 +6,7 @@ const ImagenesTable = ({ imagenesData, loading }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMaxHeightFull, setIsMaxHeightFull] = useState(false); // Estado para alternar el tamaño de la imagen
+  const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
 
   // Mostrar modal para visualizar la imagen
   const openModal = (index) => {
@@ -51,16 +52,17 @@ const ImagenesTable = ({ imagenesData, loading }) => {
 
   // Función para descargar la imagen
   const downloadImage = (url) => {
-    const downloadUrl = `https://duoccl0.sharepoint.com/sites/SUDCRA2/_layouts/15/download.aspx?SourceUrl=${encodeURIComponent(url)}`;
-
-    // Abrir la URL de descarga en una nueva pestaña
-    window.open(downloadUrl, '_blank');
-
+    window.open(url, '_blank');
   };
 
   // Alternar el tamaño de la imagen entre '80vh' y '100%'
   const toggleImageSize = () => {
     setIsMaxHeightFull((prev) => !prev);
+  };
+
+  // Calcula el índice absoluto según la página
+  const getAbsoluteIndex = (index) => {
+    return (currentPage - 1) * 10 + index;
   };
 
   const imagenesColumns = [
@@ -77,7 +79,7 @@ const ImagenesTable = ({ imagenesData, loading }) => {
           <Button 
             type="link" 
             icon={<CopyOutlined />} 
-            onClick={() => copyToClipboard(imagenesData[index].url_imagen)} 
+            onClick={() => copyToClipboard(imagenesData[getAbsoluteIndex(index)].url_imagen)} 
           >
             Copiar URL
           </Button>
@@ -86,7 +88,7 @@ const ImagenesTable = ({ imagenesData, loading }) => {
           <Button 
             type="link" 
             icon={<DownloadOutlined />} 
-            onClick={() => downloadImage(imagenesData[index].url_imagen)} 
+            onClick={() => downloadImage(imagenesData[getAbsoluteIndex(index)].url_imagen)} 
           >
             Descargar
           </Button>
@@ -95,7 +97,7 @@ const ImagenesTable = ({ imagenesData, loading }) => {
           <Button 
             type="link" 
             icon={<EyeOutlined />} 
-            onClick={() => openModal(index)}
+            onClick={() => openModal(getAbsoluteIndex(index))}
           >
             Ver Imagen
           </Button>
@@ -113,7 +115,11 @@ const ImagenesTable = ({ imagenesData, loading }) => {
         dataSource={imagenesData}
         loading={loading}
         rowKey="id_imagen"
-        pagination={{ pageSize: 10 }}
+        pagination={{
+          pageSize: 10,
+          current: currentPage, // Página actual
+          onChange: (page) => setCurrentPage(page), // Actualiza la página
+        }}
       />
 
       {/* Modal para el visor de imágenes */}
@@ -126,23 +132,21 @@ const ImagenesTable = ({ imagenesData, loading }) => {
         width="90%" // Ocupa el 90% del ancho de la pantalla
         style={{ top: 0 }} // Espaciado superior reducido
       >
-        <div style={{ position: 'relative', textAlign: 'center' }}>
-          {/* Imagen */}
+        <div style={{ position: 'relative', textAlign: 'center' }} >
           <img
             src={imagenesData[currentImageIndex]?.url_imagen}
             alt={imagenesData[currentImageIndex]?.imagen}
-            style={{ maxWidth: '100%', maxHeight: isMaxHeightFull ? '100%' : '80vh' }} // Cambia el tamaño según el estado
+            style={{ maxWidth: '100%', maxHeight: isMaxHeightFull ? '100%' : '80vh' }}
           />
         </div>
 
-        {/* Nombre de la imagen flotante */}
         <div
           style={{
             position: 'fixed',
-            bottom: 80, // Ubicamos el nombre 40px por encima de los botones
+            bottom: 80,
             left: '50%',
             transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo semi-transparente
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
             color: 'white',
             padding: '10px 20px',
             borderRadius: '5px',
@@ -152,43 +156,27 @@ const ImagenesTable = ({ imagenesData, loading }) => {
           {imagenesData[currentImageIndex]?.imagen || 'Sin nombre'}
         </div>
 
-        {/* Contenedor de botones flotantes en la parte inferior */}
         <div
           style={{
             position: 'fixed',
-            bottom: 20, // Separación desde la parte inferior de la pantalla
+            bottom: 20,
             left: 0,
             right: 0,
             display: 'flex',
             justifyContent: 'center',
-            gap: '10px', // Separación entre los botones
-            zIndex: 1000, // Asegura que estén por encima del contenido
+            gap: '10px',
+            zIndex: 1000,
           }}
         >
-          {/* Botón "Anterior" */}
-          <Button
-            onClick={previousImage}
-            disabled={currentImageIndex === 0}
-            type="primary"
-          >
+          <Button onClick={previousImage} disabled={currentImageIndex === 0} type="primary">
             Anterior
           </Button>
 
-          {/* Botón "Siguiente" */}
-          <Button
-            onClick={nextImage}
-            disabled={currentImageIndex === imagenesData.length - 1}
-            type="primary"
-          >
+          <Button onClick={nextImage} disabled={currentImageIndex === imagenesData.length - 1} type="primary">
             Siguiente
           </Button>
 
-          {/* Botón para cambiar el tamaño de la imagen */}
-          <Button
-            onClick={toggleImageSize}
-            type="primary"
-            icon={<ArrowsAltOutlined />}
-          >
+          <Button onClick={toggleImageSize} type="primary" icon={<ArrowsAltOutlined />}>
             Cambiar Tamaño
           </Button>
         </div>
