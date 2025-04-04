@@ -15,6 +15,7 @@ import {
   TableOutlined,
   SendOutlined
 } from '@ant-design/icons';
+import { BiSolidError } from "react-icons/bi";
 import { SlNote } from "react-icons/sl";
 import { Layout, Menu, theme } from 'antd';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
@@ -49,6 +50,7 @@ import ArchivoLeidoPage from './pages/ArchivoLeidoPage.js';
 import SharepointPage from './pages/SharepointPage.js';
 import LecturasPage from './pages/LecturasPage.js';
 import LecturasMasivoPage from './pages/LecturasMasivoPage.js';
+import ErroresPage from './pages/ErroresPage.js';
 import './App.css';
 
 import EnlacesFlotante from './components/EnlacesFlotante.js';
@@ -95,6 +97,9 @@ const AppContent = () => {
           </Menu.Item>
           <Menu.Item key="7" icon={<SendOutlined />}>
             <Link to="/lecturas_masivo">Reprocesar Masivo</Link>
+          </Menu.Item>
+          <Menu.Item key="8" icon={<BiSolidError />}>
+            <Link to="/errores_lista">Errores</Link>
           </Menu.Item>
           <Menu.Item key="13" icon={<ExclamationOutlined />}>
             <Link to="/pendientes">Pendientes</Link>
@@ -166,6 +171,7 @@ const AppContent = () => {
             <Route path="/listasharepoint" element={<SharepointPage />} />
             <Route path="/lecturas" element={<LecturasPage />} />
             <Route path="/lecturas_masivo" element={<LecturasMasivoPage />} />
+            <Route path="/errores_lista" element={<ErroresPage />} />
           </Routes>
         </Content>
       </Layout>

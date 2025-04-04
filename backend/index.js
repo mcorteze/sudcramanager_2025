@@ -945,18 +945,32 @@ app.get('/lecturas_masivo', async (req, res) => {
   try {
     // Consulta SQL
     const query = `
-      SELECT e.rut,
-             mt.id_matricula,
-             e.cod_interno,
-             max(e.id_archivoleido) AS id_archivoleido
-        FROM errores e
-        JOIN matricula mt ON mt.rut::text = e.rut::text
-        LEFT JOIN matricula_eval me ON me.id_matricula::text = mt.id_matricula::text
-       WHERE e.valida_inscripcion = false 
-         AND e.valida_rut = true 
-         AND me.id_matricula IS NULL 
-         AND e.cod_interno::text <> '000'::text
-       GROUP BY e.rut, mt.id_matricula, e.cod_interno;
+SELECT e.rut,
+       al.nombres || al.apellidos AS nombre,
+       mt.id_matricula,
+       e.cod_interno,
+       asig.cod_asig,
+       MAX(e.id_archivoleido) AS id_archivoleido,
+       e.num_prueba,
+       e.imagen,
+       e.instante_forms,
+       e.valida_rut,
+       e.valida_matricula,
+       e.valida_inscripcion,
+       e.valida_eval,
+       e.valida_forma,
+       e.mail_enviado
+FROM errores e
+JOIN matricula mt ON mt.rut::text = e.rut::text
+JOIN alumnos al ON al.rut = mt.rut
+JOIN asignaturas asig ON e.cod_interno = asig.cod_interno
+LEFT JOIN matricula_eval me ON me.id_matricula::text = mt.id_matricula::text
+WHERE e.valida_inscripcion = false 
+  AND e.valida_rut = true 
+  AND me.id_matricula IS NULL 
+  AND e.cod_interno::text <> '000'::text
+GROUP BY e.rut, al.nombres, al.apellidos, mt.id_matricula, e.cod_interno, asig.cod_asig, e.num_prueba, e.imagen, e.instante_forms, e.valida_rut, e.valida_matricula, e.valida_inscripcion, e.valida_eval, e.valida_forma, e.mail_enviado;
+
     `;
 
     const result = await pool.query(query);
@@ -1060,7 +1074,7 @@ app.get('/api/notas/:cod_asig/', async (req, res) => {
   JOIN docentes as doc ON s.rut_docente = doc.rut_docente
   JOIN alumnos as a ON mt.rut = a.rut
   JOIN sedes as sd ON s.id_sede = sd.id_sede
-  WHERE s.id_sede IN (4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 16, 18, 19, 29, 74, 75, 76, 77, 79)
+  WHERE s.id_sede IN (4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 16, 18, 19, 29, 74, 75, 76, 77, 79, 80)
   AND mte.id_eval IN (${idEvalPlaceholders})
   AND s.cod_asig = $1
   GROUP BY sd.nombre_sede, s.cod_asig, s.seccion, s.rut_docente, doc.nombre_doc, doc.apellidos_doc, s.jornada, a.rut, a.nombres, a.apellidos, a.sexo
@@ -1077,6 +1091,146 @@ app.get('/api/notas/:cod_asig/', async (req, res) => {
   }
 });
 
+app.get('/api/notas/:cod_asig/:cod_sede/', async (req, res) => {
+  const { cod_asig, cod_sede } = req.params; // Obtener ambos parámetros de la ruta
+
+  // Validar que ambos parámetros existen
+  if (!cod_asig || !cod_sede) {
+    return res.status(400).json({ error: 'Faltan parámetros: cod_asig o cod_sede' });
+  }
+
+  // Generar dinámicamente los valores para mte.id_eval basados en cod_asig
+  const idEvals = [
+    `${cod_asig}-${anio_periodo}-0`,
+    `${cod_asig}-${anio_periodo}-1`,
+    `${cod_asig}-${anio_periodo}-2`,
+    `${cod_asig}-${anio_periodo}-3`,
+    `${cod_asig}-${anio_periodo}-4`,
+    `${cod_asig}-${anio_periodo}-5`,
+    `${cod_asig}-${anio_periodo}-6`,
+    `${cod_asig}-${anio_periodo}-7`,
+    `${cod_asig}-${anio_periodo}-8`,
+    `${cod_asig}-${anio_periodo}-9`,
+    `${cod_asig}-${anio_periodo}-10`
+  ];
+
+  // Crear una cadena con los valores para la cláusula IN
+  const idEvalPlaceholders = idEvals.map((_, index) => `$${index + 3}`).join(', ');  // Ajustado el índice
+
+  // Definir la consulta SQL
+  const query = `
+  SELECT
+      sd.nombre_sede,
+      s.cod_asig,
+      s.seccion,
+      s.rut_docente,
+      doc.nombre_doc,
+      doc.apellidos_doc,
+      s.jornada,
+      a.rut,
+      a.nombres,
+      a.apellidos,
+      a.sexo,
+    MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '0' THEN c.nota END) AS nota_0,
+    MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '1' THEN c.nota END) AS nota_1,
+    MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '2' THEN c.nota END) AS nota_2,
+    MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '3' THEN c.nota END) AS nota_3,
+    MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '4' THEN c.nota END) AS nota_4,
+    MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '5' THEN c.nota END) AS nota_5,
+    MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '6' THEN c.nota END) AS nota_6,
+    MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '7' THEN c.nota END) AS nota_7,
+    MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '8' THEN c.nota END) AS nota_8,
+    MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '9' THEN c.nota END) AS nota_9,
+    MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '10' THEN c.nota END) AS nota_10
+  FROM calificaciones_obtenidas as co
+  JOIN calificaciones as c ON co.id_calificacion = c.id_calificacion
+  JOIN matricula_eval as mte ON co.id_matricula_eval = mte.id_matricula_eval
+  JOIN matricula as mt ON mte.id_matricula = mt.id_matricula
+  JOIN inscripcion as i ON mt.id_matricula = i.id_matricula
+  JOIN secciones as s ON i.id_seccion = s.id_seccion
+  JOIN docentes as doc ON s.rut_docente = doc.rut_docente
+  JOIN alumnos as a ON mt.rut = a.rut
+  JOIN sedes as sd ON s.id_sede = sd.id_sede
+  WHERE s.id_sede = $1
+  AND mte.id_eval IN (${idEvalPlaceholders})
+  AND s.cod_asig = $2
+  GROUP BY sd.nombre_sede, s.cod_asig, s.seccion, s.rut_docente, doc.nombre_doc, doc.apellidos_doc, s.jornada, a.rut, a.nombres, a.apellidos, a.sexo
+  ORDER BY sd.nombre_sede ASC, s.seccion ASC, a.apellidos ASC;
+  `;
+
+  try {
+    // Ejecutar la consulta SQL con los parámetros proporcionados
+    const result = await pool.query(query, [cod_sede, cod_asig, ...idEvals]);  // Cambié el orden y pasé cod_sede primero
+    res.json(result.rows); // Devolver los resultados en formato JSON
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+// Endpoint para cuando se escoge un programa y se escoge todas las sedes y todas las asignaturas
+app.get('/api/notas/programa/:cod_programa', async (req, res) => {
+  const { cod_programa } = req.params; // Obtener el código del programa desde la ruta
+
+  // Validar que el parámetro cod_programa existe
+  if (!cod_programa) {
+    return res.status(400).json({ error: 'Falta el parámetro: cod_programa' });
+  }
+
+  // Definir la consulta SQL para obtener las notas de todos los sedes y asignaturas
+  const query = `
+    SELECT
+        sd.nombre_sede,
+        s.cod_asig,
+        s.seccion,
+        s.rut_docente,
+        doc.nombre_doc,
+        doc.apellidos_doc,
+        s.jornada,
+        a.rut,
+        a.nombres,
+        a.apellidos,
+        a.sexo,
+      MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '0' THEN c.nota END) AS nota_0,
+      MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '1' THEN c.nota END) AS nota_1,
+      MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '2' THEN c.nota END) AS nota_2,
+      MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '3' THEN c.nota END) AS nota_3,
+      MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '4' THEN c.nota END) AS nota_4,
+      MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '5' THEN c.nota END) AS nota_5,
+      MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '6' THEN c.nota END) AS nota_6,
+      MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '7' THEN c.nota END) AS nota_7,
+      MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '8' THEN c.nota END) AS nota_8,
+      MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '9' THEN c.nota END) AS nota_9,
+      MAX(CASE WHEN RIGHT(mte.id_eval, 1) = '10' THEN c.nota END) AS nota_10
+    FROM calificaciones_obtenidas as co
+    JOIN calificaciones as c ON co.id_calificacion = c.id_calificacion
+    JOIN matricula_eval as mte ON co.id_matricula_eval = mte.id_matricula_eval
+    JOIN matricula as mt ON mte.id_matricula = mt.id_matricula
+    JOIN inscripcion as i ON mt.id_matricula = i.id_matricula
+    JOIN secciones as s ON i.id_seccion = s.id_seccion
+    JOIN docentes as doc ON s.rut_docente = doc.rut_docente
+    JOIN alumnos as a ON mt.rut = a.rut
+    JOIN sedes as sd ON s.id_sede = sd.id_sede
+    WHERE s.id_sede IN (4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 16, 18, 19, 29, 74, 75, 76, 77, 79, 80)
+    AND s.cod_asig IN (
+      SELECT cod_asig FROM asignaturas where cod_programa = $1
+    )
+    GROUP BY sd.nombre_sede, s.cod_asig, s.seccion, s.rut_docente, doc.nombre_doc, doc.apellidos_doc, s.jornada, a.rut, a.nombres, a.apellidos, a.sexo
+    ORDER BY sd.nombre_sede ASC, s.seccion ASC, a.apellidos ASC;
+  `;
+
+  try {
+    // Ejecutar la consulta SQL con el parámetro del programa
+    const result = await pool.query(query, [cod_programa]);
+    res.json(result.rows); // Devolver los resultados en formato JSON
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+// -----------------------------------------------------------
+// -----------------------------------------------------------
 
 // Endpoint para capturar errores usando parámetros en la ruta
 app.get('/imagenes-errores/:id_sede/:cod_asig/:num_seccion/:jornada', async (req, res) => {
@@ -1169,6 +1323,8 @@ app.get('/api/informes/pendientes-mail', async (req, res) => {
         sd.nombre_sede,
         s.cod_asig,
         s.seccion,
+        s.id_seccion,
+        s.rut_docente,
         iss.id_informeseccion,
         iss.id_eval,
         iss.marca_temporal,
@@ -1665,6 +1821,47 @@ app.get('/api/informes-enviados-alumno/:id_matricula', async (req, res) => {
   } catch (err) {
     console.error('Error en la consulta SQL:', err);
     res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+// Endpoint para obtener todos los errores (sin filtros)
+app.get('/api/errores_lista', async (req, res) => {
+  try {
+    const query = `
+    select 
+    im.id_imagen,
+    im.id_lista,
+    sd.nombre_sede,
+    asig.programa,
+    im.cod_asig,
+    im.num_seccion,
+    im.url_imagen,
+    e.rut,
+    e.num_prueba,
+    e.forma,
+    e.instante_forms,
+    e.valida_rut,
+    e.valida_matricula,
+    e.valida_inscripcion,
+    e.valida_eval,
+    e.valida_forma,
+    arl.id_archivoleido,
+    e.linea_leida,
+    arl.archivoleido
+
+    from errores e
+    join archivosleidos arl on arl.id_archivoleido = e.id_archivoleido
+    join imagenes im on im.id_imagen = e.imagen
+    join sedes sd on sd.id_lista = im.id_sede
+    join asignaturas asig on im.cod_asig = asig.cod_asig
+    ORDER BY e.id_error desc;
+    `;
+
+    const result = await pool.query(query); // usamos pool en lugar de client
+    res.json(result.rows); // devolvemos los datos en formato JSON
+  } catch (err) {
+    console.error('Error al ejecutar la consulta:', err);
+    res.status(500).json({ error: 'Hubo un error al obtener los datos' });
   }
 });
 

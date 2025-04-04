@@ -76,23 +76,38 @@ export default function ExtraerNotasPage() {
   };
 
   const handleSearchClick = async () => {
-    if (selectedPrograma && selectedSede && selectedAsignatura) {
-      setLoading(true);
-      try {
-        const url = selectedSede === 'all' 
-          ? `http://localhost:3001/api/notas/${selectedAsignatura}` 
-          : `http://localhost:3001/api/notas/${selectedAsignatura}/${selectedSede}`;
-        const response = await axios.get(url);
-        setNotas(response.data);
-        setRecordCount(response.data.length);
-      } catch (error) {
-        console.error('Error fetching notas:', error);
-        message.error('Error al obtener las calificaciones');
-      } finally {
-        setLoading(false);
+    // Validamos que se haya seleccionado un programa
+    if (!selectedPrograma) {
+      message.warning('Por favor, seleccione un programa');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      let url = '';
+
+      // Si se selecciona "todas las sedes" y "todas las asignaturas"
+      if (selectedSede === 'all' && selectedAsignatura === 'all') {
+        url = `http://localhost:3001/api/notas/programa/${selectedPrograma}`;
       }
-    } else {
-      message.warning('Por favor, complete todas las selecciones');
+      // Si se selecciona solo "todas las sedes"
+      else if (selectedSede === 'all') {
+        url = `http://localhost:3001/api/notas/${selectedAsignatura}`;
+      }
+      // Si se seleccionan ambos, asignatura y sede
+      else {
+        url = `http://localhost:3001/api/notas/${selectedAsignatura}/${selectedSede}`;
+      }
+
+      const response = await axios.get(url);
+      setNotas(response.data);
+      setRecordCount(response.data.length);
+
+    } catch (error) {
+      console.error('Error fetching notas:', error);
+      message.error(`Error al obtener las calificaciones: ${error.response?.data?.details || error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -146,12 +161,14 @@ export default function ExtraerNotasPage() {
         style={{ width: '200px', marginBottom: 16 }}
         value={selectedAsignatura}
       >
+        <Option value="all">Todas las asignaturas</Option> {/* Opción de "Todas las asignaturas" */}
         {asignaturas.map(asignatura => (
           <Option key={asignatura.cod_asig} value={asignatura.cod_asig}>
             {asignatura.cod_asig}
           </Option>
         ))}
       </Select>
+
       <Space style={{ marginTop: 16 }}>
         <Button
           type="primary"

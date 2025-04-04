@@ -12,7 +12,8 @@ const LecturasMasivoPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/lecturas_masivo');
+        const response = await axios.get('http://localhost:3001/lecturas_masivo'); // Corregir aquí la URL
+        console.log('Datos obtenidos:', response.data);  // Verificar que los datos llegan correctamente
         setData(response.data);
         setLoading(false);
       } catch (error) {
@@ -32,6 +33,11 @@ const LecturasMasivoPage = () => {
       key: 'rut',
     },
     {
+      title: 'Nombre',
+      dataIndex: 'nombre',
+      key: 'nombre',
+    },
+    {
       title: 'ID Matrícula',
       dataIndex: 'id_matricula',
       key: 'id_matricula',
@@ -42,9 +48,59 @@ const LecturasMasivoPage = () => {
       key: 'cod_interno',
     },
     {
+      title: 'Código Asignatura',
+      dataIndex: 'cod_asig',
+      key: 'cod_asig',
+    },
+    {
       title: 'ID Archivo Leído',
       dataIndex: 'id_archivoleido',
       key: 'id_archivoleido',
+    },
+    {
+      title: 'Número Prueba',
+      dataIndex: 'num_prueba',
+      key: 'num_prueba',
+    },
+    {
+      title: 'Imagen',
+      dataIndex: 'imagen',
+      key: 'imagen',
+    },
+    {
+      title: 'Instante Forms',
+      dataIndex: 'instante_forms',
+      key: 'instante_forms',
+    },
+    {
+      title: 'Valida Rut',
+      dataIndex: 'valida_rut',
+      key: 'valida_rut',
+    },
+    {
+      title: 'Valida Matrícula',
+      dataIndex: 'valida_matricula',
+      key: 'valida_matricula',
+    },
+    {
+      title: 'Valida Inscripción',
+      dataIndex: 'valida_inscripcion',
+      key: 'valida_inscripcion',
+    },
+    {
+      title: 'Valida Evaluación',
+      dataIndex: 'valida_eval',
+      key: 'valida_eval',
+    },
+    {
+      title: 'Valida Forma',
+      dataIndex: 'valida_forma',
+      key: 'valida_forma',
+    },
+    {
+      title: 'Mail Enviado',
+      dataIndex: 'mail_enviado',
+      key: 'mail_enviado',
     },
   ];
 
@@ -89,7 +145,12 @@ const LecturasMasivoPage = () => {
         <Spin size="large" />
       ) : (
         <>
-          <Table dataSource={data} columns={columns} rowKey="id_archivoleido" />
+          <Table 
+            dataSource={data} 
+            columns={columns} 
+            rowKey="id_archivoleido" 
+            scroll={{ x: 'max-content' }}  // Permite desplazamiento horizontal
+          />
           <Button type="primary" onClick={handleMoveToTemp} style={{ marginTop: 20 }}>
             Mover todo a lectura temp
           </Button>

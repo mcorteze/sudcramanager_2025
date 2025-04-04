@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Spin, Alert } from 'antd';
+import { Table, Spin, Alert, Button, message } from 'antd';
+import { CopyOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
 import moment from 'moment';
 import './formato_tabla.css';
@@ -30,30 +31,64 @@ export default function SeccionesMailPendientes() {
     }
   };
 
+  const handleCopy = (id_seccion) => {
+    navigator.clipboard.writeText(id_seccion).then(() => {
+      message.success('ID Sección copiado al portapapeles!');
+    }).catch(() => {
+      message.error('Error al copiar al portapapeles');
+    });
+  };
+
   const columns = [
-    { title: 'Programa', dataIndex: 'programa', key: 'programa' },
-    { title: 'Sede', dataIndex: 'nombre_sede', key: 'nombre_sede' },
-    { title: 'Asignatura', dataIndex: 'cod_asig', key: 'cod_asig' },
-    { title: 'Sección', dataIndex: 'seccion', key: 'seccion' },
-    { title: 'ID Informe Sección', dataIndex: 'id_informeseccion', key: 'id_informeseccion' },
-    { title: 'ID Evaluación', dataIndex: 'id_eval', key: 'id_eval' },
+    { title: 'Programa', dataIndex: 'programa', key: 'programa', width: 'auto', ellipsis: true },
+    { title: 'Sede', dataIndex: 'nombre_sede', key: 'nombre_sede', width: 'auto', ellipsis: true },
+    { title: 'Sección', dataIndex: 'seccion', key: 'seccion', width: 'auto', ellipsis: true },
+    {
+      title: 'ID Sección',
+      dataIndex: 'id_seccion',
+      key: 'id_seccion',
+      width: 'auto',
+      ellipsis: true,
+      render: (id_seccion) => (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <a href={`/secciones/${id_seccion}`} target="_blank" rel="noopener noreferrer" style={{ marginRight: '8px' }}>
+            {id_seccion}
+          </a>
+          <Button 
+            type="text"
+            icon={<CopyOutlined />} 
+            onClick={() => handleCopy(id_seccion)}
+            size="small"
+          />
+        </div>
+      ),
+    },
+    { title: 'RUT Docente', dataIndex: 'rut_docente', key: 'rut_docente', width: 'auto', ellipsis: true },
+    { title: 'ID Informe Sección', dataIndex: 'id_informeseccion', key: 'id_informeseccion', width: 'auto', ellipsis: true },
+    { title: 'ID Evaluación', dataIndex: 'id_eval', key: 'id_eval', width: 'auto', ellipsis: true },
     {
       title: 'Marca Temporal',
       dataIndex: 'marca_temporal',
       key: 'marca_temporal',
-      render: (fecha) => fecha ? moment(fecha).format('DD/MM/YYYY HH:mm:ss') : '-', // Formatea la fecha o muestra 'Sin fecha'
+      width: 'auto',
+      ellipsis: true,
+      render: (fecha) => fecha ? moment(fecha).format('DD/MM/YYYY HH:mm:ss') : '-',
     },
     {
       title: 'Marca Temporal Mail',
       dataIndex: 'marca_temp_mail',
       key: 'marca_temp_mail',
-      render: (fecha) => fecha ? moment(fecha).format('DD/MM/YYYY HH:mm:ss') : '-', // Formatea la fecha o muestra 'Sin fecha'
+      width: 'auto',
+      ellipsis: true,
+      render: (fecha) => fecha ? moment(fecha).format('DD/MM/YYYY HH:mm:ss') : '-',
     },
     {
       title: 'Mail Enviado',
       dataIndex: 'mail_enviado',
       key: 'mail_enviado',
-      render: (enviado) => (enviado ? 'Sí' : 'No'), // Muestra 'Sí' si es true, 'No' si es false
+      width: 'auto',
+      ellipsis: true,
+      render: (enviado) => (enviado ? 'Sí' : 'No'),
     },
   ];
 
