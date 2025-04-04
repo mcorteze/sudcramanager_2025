@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Table } from 'antd';
+import { Table, Tooltip, message } from 'antd';
 import { Link } from 'react-router-dom';
+import { CopyOutlined } from '@ant-design/icons';
 
 export default function CargaDocente() {
   const { rut } = useParams();
@@ -16,7 +17,7 @@ export default function CargaDocente() {
         const response = await fetch(`http://localhost:3001/api/docente/${rut}`);
         const result = await response.json();
         if (result.length > 0) {
-          setDocenteInfo(result[0]); // Tomamos la primera entrada como información del docente
+          setDocenteInfo(result[0]);
           setData(result);
         }
       } catch (err) {
@@ -28,6 +29,16 @@ export default function CargaDocente() {
 
     fetchData();
   }, [rut]);
+
+  const copiarAlPortapapeles = (texto, label) => {
+    navigator.clipboard.writeText(texto)
+      .then(() => {
+        message.success(`${label} copiado al portapapeles`);
+      })
+      .catch(() => {
+        message.error(`Error al copiar ${label}`);
+      });
+  };
 
   const columns = [
     {
@@ -49,13 +60,32 @@ export default function CargaDocente() {
       title: 'Sección',
       dataIndex: 'seccion',
       key: 'seccion',
+      render: (seccion) => (
+        <>
+          {seccion}{' '}
+          <Tooltip title="Copiar Sección">
+            <CopyOutlined
+              style={{ cursor: 'pointer', marginLeft: 8 }}
+              onClick={() => copiarAlPortapapeles(seccion, 'Sección')}
+            />
+          </Tooltip>
+        </>
+      ),
     },
     {
       title: 'ID Sección',
       dataIndex: 'id_seccion',
       key: 'id_seccion',
       render: (id_seccion) => (
-        <Link to={`/secciones/${id_seccion}`}>{id_seccion}</Link>
+        <>
+          <Link to={`/secciones/${id_seccion}`}>{id_seccion}</Link>{' '}
+          <Tooltip title="Copiar ID Sección">
+            <CopyOutlined
+              style={{ cursor: 'pointer', marginLeft: 8 }}
+              onClick={() => copiarAlPortapapeles(id_seccion, 'ID Sección')}
+            />
+          </Tooltip>
+        </>
       ),
     },
   ];
@@ -67,11 +97,27 @@ export default function CargaDocente() {
     <div className='page-full'>
       <h1>Información del Docente</h1>
       <div>
-        <p><strong>RUT:</strong> {docenteInfo.rut_docente}</p>
+        <p>
+          <strong>RUT:</strong> {docenteInfo.rut_docente}{' '}
+          <Tooltip title="Copiar RUT">
+            <CopyOutlined
+              style={{ cursor: 'pointer', marginLeft: 8 }}
+              onClick={() => copiarAlPortapapeles(docenteInfo.rut_docente, 'RUT')}
+            />
+          </Tooltip>
+        </p>
         <p><strong>Nombre:</strong> {docenteInfo.nombre_doc}</p>
         <p><strong>Apellidos:</strong> {docenteInfo.apellidos_doc}</p>
         <p><strong>Username:</strong> {docenteInfo.username_doc}</p>
-        <p><strong>Email:</strong> {docenteInfo.mail_doc}</p>
+        <p>
+          <strong>Email:</strong> {docenteInfo.mail_doc}{' '}
+          <Tooltip title="Copiar Correo">
+            <CopyOutlined
+              style={{ cursor: 'pointer', marginLeft: 8 }}
+              onClick={() => copiarAlPortapapeles(docenteInfo.mail_doc, 'Correo')}
+            />
+          </Tooltip>
+        </p>
       </div>
       <Table dataSource={data} columns={columns} />
     </div>

@@ -443,12 +443,11 @@ app.get('/api/docente/:rut_docente', async (req, res) => {
   try {
     const query = `
       SELECT * 
-      FROM seccion_docente as sdoc
-      JOIN secciones as s ON sdoc.id_seccion = s.id_seccion
+      FROM secciones as s
       JOIN asignaturas as a ON a.cod_asig = s.cod_asig
       JOIN sedes as sd ON s.id_sede = sd.id_sede
-      JOIN docentes as d ON sdoc.rut_docente = d.rut_docente
-      WHERE sdoc.rut_docente = $1;
+      JOIN docentes as d ON s.rut_docente = d.rut_docente
+      WHERE s.rut_docente = $1;
     `;
     
     const result = await pool.query(query, [rut_docente]);

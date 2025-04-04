@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Table, Button, Input, Space, Tooltip } from 'antd';
-import { FileTextOutlined, SearchOutlined } from '@ant-design/icons';
+import { Table, Button, Input, Space, Tooltip, message } from 'antd';
+import { FileTextOutlined, SearchOutlined, CopyOutlined } from '@ant-design/icons';
 import { LuUser, LuMailCheck, LuMailX } from 'react-icons/lu';
 import { IoExpand } from 'react-icons/io5';
 import axios from 'axios';
@@ -24,6 +24,14 @@ const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, no
   const [imagenesModalVisible, setImagenesModalVisible] = useState(false); // Estado para el modal de imágenes con errores
   const [seccionInfo, setSeccionInfo] = useState(null); // Estado para almacenar la información de la sección
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(idSeccion).then(() => {
+      message.success('ID Sección copiado al portapapeles');
+    }).catch(err => {
+      message.error('Error al copiar');
+    });
+  };
+  
   // Contar enlaces activos para cada prueba
   const countActiveLinks = (data, pruebaNum) => {
     return data.filter(entry => entry[`enlace_eval_${pruebaNum}`]).length;
@@ -219,6 +227,9 @@ const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, no
           >
             {idSeccion}
           </a> 
+          <Tooltip title="Copiar ID sección">
+            <CopyOutlined style={{ cursor: 'pointer', color: '#1890ff' }} onClick={copyToClipboard} />
+          </Tooltip>
           | Asignatura: {asignatura} | Docente : 
           {seccionInfo ? 
             `${seccionInfo.nombre_doc} ${seccionInfo.apellidos_doc} | RUT: ${seccionInfo.rut_docente} | mail: ${seccionInfo.mail_doc}` 
