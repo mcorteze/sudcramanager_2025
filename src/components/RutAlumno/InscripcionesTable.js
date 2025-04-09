@@ -184,10 +184,10 @@ const InscripcionesTable = ({ inscripciones, setInscripciones }) => {
   if (inscripciones.length === 0) return null;
 
   return (
-    <div style={{ margin: '20px 0px' }}>
+    <div style={{ margin: '20px 0px 10px 0px' }}>
       <Typography.Title level={4}>Inscripciones</Typography.Title>
       <Table
-        className="formato-table1"
+        className=""
         columns={columnsInscripciones(showDeleteConfirm)}
         dataSource={inscripciones}
         rowKey="id_inscripcion"

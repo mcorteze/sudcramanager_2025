@@ -16,6 +16,7 @@ import {
   SendOutlined
 } from '@ant-design/icons';
 import { BiSolidError } from "react-icons/bi";
+import { RiRadarLine } from "react-icons/ri";
 import { SlNote } from "react-icons/sl";
 import { Layout, Menu, theme } from 'antd';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
@@ -51,6 +52,12 @@ import SharepointPage from './pages/SharepointPage.js';
 import LecturasPage from './pages/LecturasPage.js';
 import LecturasMasivoPage from './pages/LecturasMasivoPage.js';
 import ErroresPage from './pages/ErroresPage.js';
+import UploadListaPage from './pages/UploadListaPage.js';
+import UploadIdPage from './pages/UploadIdPage.js';
+import LecturaPage from './pages/LecturaPage.js';
+import ErroresIDPage from './pages/ErroresIDPage.js';
+import RutLecturas from './components/RutAlumno/RutLecturas.js';
+
 import './App.css';
 
 import EnlacesFlotante from './components/EnlacesFlotante.js';
@@ -104,17 +111,11 @@ const AppContent = () => {
           <Menu.Item key="13" icon={<ExclamationOutlined />}>
             <Link to="/pendientes">Pendientes</Link>
           </Menu.Item>
-          <Menu.Item key="16" icon={<SlNote />}>
-            <Link to="/tareas">Tareas</Link>
-          </Menu.Item>
-          <Menu.Item key="17" icon={<DashboardOutlined />}>
-            <a href="/dashboard" target="_blank" rel="noopener noreferrer">Dashboard</a>
+          <Menu.Item key="14" icon={<RiRadarLine />}>
+            <Link to="/monitoreo_lista">Monitoreo</Link>
           </Menu.Item>
           <Menu.Item key="18" icon={<TableOutlined />}>
             <Link to="/accesos">Recursos</Link>
-          </Menu.Item>
-          <Menu.Item key="19" icon={<TableOutlined />}>
-            <Link to="/listasharepoint">SharePoint</Link>
           </Menu.Item>
         </Menu>
       </Sider>
@@ -172,6 +173,13 @@ const AppContent = () => {
             <Route path="/lecturas" element={<LecturasPage />} />
             <Route path="/lecturas_masivo" element={<LecturasMasivoPage />} />
             <Route path="/errores_lista" element={<ErroresPage />} />
+            <Route path="/monitoreo_lista" element={<UploadListaPage />} />
+            <Route path="/upload/:id_upload" element={<UploadIdPage />} />
+            <Route path="/lectura" element={<LecturaPage />} />
+            <Route path="/lectura/:id_archivoleido/:linea_leida" element={<LecturaPage />} />
+            <Route path="/errores/:id_archivoleido/:linea_leida" element={<ErroresIDPage />} />
+            <Route path="/rut_lecturas/:rut" element={<RutLecturas />} />
+
           </Routes>
         </Content>
       </Layout>

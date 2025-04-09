@@ -70,6 +70,20 @@ export default function AccesosPage() {
       link: "/estadisticas",
     },
     {
+      title: "Dashboard",
+      subtitle: "Visualización",
+      description: "Dashboard de monitoreo.",
+      icon: <SlidersOutlined />,
+      link: "/dashboard",
+    },
+    {
+      title: "Tareas",
+      subtitle: "Gestión",
+      description: "Gestion de tareas.",
+      icon: <FormOutlined />,
+      link: "/tareas",
+    },
+    {
       title: "Zona de pruebas",
       subtitle: "Desarrollo",
       description: "Seccion para desarrollar nuevos componentes.",

@@ -96,7 +96,7 @@ export default function ImagenPage() {
             )}
             {idEval && uniqueSecciones.length > 0 && (
               <a
-                href={`https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/2024002/secciones/${idEval}_${uniqueSecciones[0]}.html`}
+                href={`https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/2025001/secciones/${idEval}_${uniqueSecciones[0]}.html`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ display: 'flex', alignItems: 'center', fontSize: '14px', textDecoration: 'none' }}

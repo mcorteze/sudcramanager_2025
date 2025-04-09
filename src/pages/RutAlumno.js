@@ -8,7 +8,8 @@ import InscripcionesTable from '../components/RutAlumno/InscripcionesTable';
 import EvaluacionesTable from '../components/RutAlumno/EvaluacionesTable';
 import DrawerSection from '../components/RutAlumno/DrawerSection';
 import ModalBuscarIdSeccion from '../components/RutAlumno/ModalBuscarIdSeccion';
-import InformesTable from '../components/RutAlumno/InformesTable'; // Importa InformesTable
+import InformesTable from '../components/RutAlumno/InformesTable';
+import RutLecturas from '../components/RutAlumno/RutLecturas'; // Importamos RutLecturas
 import './RutAlumno.css';
 
 export default function RutAlumno() {
@@ -25,7 +26,7 @@ export default function RutAlumno() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSeccion, setSelectedSeccion] = useState(null);
 
-  const { rut: rutParam } = useParams();
+  const { rut: rutParam } = useParams();  // Obtenemos el rut desde la URL
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -83,13 +84,15 @@ export default function RutAlumno() {
       <SearchForm onSearch={handleSearch} />
       {error && <Typography.Text type="danger">{error}</Typography.Text>}
       <AlumnoInfo alumnoInfo={alumnoInfo} />
-      <InscripcionesTable inscripciones={inscripciones} setInscripciones={setInscripciones} />
       
-      <Button type="primary" onClick={() => setModalVisible(true)} style={{ marginTop: '20px' }}>
+      <InscripcionesTable inscripciones={inscripciones} setInscripciones={setInscripciones} />
+      <Button type="primary" onClick={() => setModalVisible(true)} style={{ marginBottom: '20px' }}>
         Inscribir alumno
       </Button>
       
-      <EvaluacionesTable alumnos={alumnos} />
+      
+      {rut && <RutLecturas rut={rut} />}
+
       <DrawerSection 
         visible={drawerVisible} 
         onClose={() => setDrawerVisible(false)} 
@@ -98,10 +101,8 @@ export default function RutAlumno() {
         idMatricula={idMatricula}
       />
       
-      {/* Llamada al componente InformesTable y pasando idMatricula como prop */}
       {idMatricula && <InformesTable idMatricula={idMatricula} />}
-
-
+      
       <ModalBuscarIdSeccion
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

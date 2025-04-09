@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  host: '10.12.1.235',
-  database: 'sudcra',
+  //host: '10.12.1.235',
+  //database: 'sudcra',
   // ******* bases de datos estáticas *******
-  //host: 'localhost',
-  //database: 'sudcra_0318', // final primer semestre
+  host: 'localhost',
+  database: 'sudcra_0404', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -458,7 +458,27 @@ app.get('/api/docente/:rut_docente', async (req, res) => {
   }
 });
 
-
+app.get('/api/seccion_docente/:rut_docente', async (req, res) => {
+  const { rut_docente } = req.params;
+  try {
+    const query = `
+      select 
+      sde.nombre_sede,
+      s.seccion,
+      s.id_seccion
+      from seccion_docente sd
+      join secciones s on sd.id_seccion = s.id_seccion
+      join sedes sde on sde.id_sede = s.id_sede
+      where sd.rut_docente = $1;
+    `;
+    
+    const result = await pool.query(query, [rut_docente]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
 
 // Endpoint de listado de ultimo proceso, por programa, para Home
 app.get('/api/ultimas-calificaciones', async (req, res) => {
@@ -1864,6 +1884,267 @@ app.get('/api/errores_lista', async (req, res) => {
   }
 });
 
+// API PARA MONITOREO DE LA LISTA CON FILTRO DE RANGO DE ID_UPLOAD
+app.get('/api/upload_lista', async (req, res) => {
+  const client = await pool.connect();
+
+  const { desde, hasta } = req.query;
+
+  try {
+    let filtros = '';
+    const valores = [];
+
+    if (desde && hasta) {
+      filtros = `WHERE CAST(SUBSTRING(l.imagen FROM 1 FOR POSITION('_' IN l.imagen) - 1) AS INTEGER) BETWEEN $1 AND $2`;
+      valores.push(desde, hasta);
+    }
+
+    const query = `
+      SELECT DISTINCT 
+          l.id_archivoleido,
+          SUBSTRING(l.imagen FROM 1 FOR POSITION('_' IN l.imagen) - 1) AS id_upload,
+          l.linea_leida,
+          CASE
+              WHEN me.id_archivoleido IS NOT NULL AND me.linea_leida IS NOT NULL THEN TRUE
+              ELSE FALSE
+          END AS tiene_calificacion
+      FROM lectura l
+      LEFT JOIN matricula_eval me 
+          ON l.id_archivoleido = me.id_archivoleido 
+          AND l.linea_leida = me.linea_leida
+      ${filtros}
+      ORDER BY id_upload DESC, l.id_archivoleido, l.linea_leida;
+    `;
+
+    const result = await client.query(query, valores);
+
+    console.log("Resultado de la consulta de monitoreo:", result.rows);
+
+    res.status(200).json({
+      message: 'Datos obtenidos correctamente.',
+      data: result.rows,
+    });
+  } catch (err) {
+    console.error('Error en el servidor:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// API PARA MONITOREO DE LA LISTA CON FILTRO DE UN ID_UPLOAD EXACTO
+app.get('/api/upload/:id_upload', async (req, res) => {
+  const client = await pool.connect();
+
+  const { id_upload } = req.params;  // Obtener id_upload de la URL
+
+  try {
+    // Validar que id_upload es un número entero
+    if (isNaN(id_upload)) {
+      return res.status(400).json({ error: 'El id_upload debe ser un número válido.' });
+    }
+
+    // Definir filtros
+    const filtros = `WHERE CAST(SUBSTRING(l.imagen FROM 1 FOR POSITION('_' IN l.imagen) - 1) AS INTEGER) = $1`;
+
+    // Realizar la consulta
+    const query = `
+      SELECT DISTINCT 
+          l.id_archivoleido,
+          SUBSTRING(l.imagen FROM 1 FOR POSITION('_' IN l.imagen) - 1) AS id_upload,
+          l.linea_leida,
+          CASE
+              WHEN me.id_archivoleido IS NOT NULL AND me.linea_leida IS NOT NULL THEN TRUE
+              ELSE FALSE
+          END AS tiene_calificacion
+      FROM lectura l
+      LEFT JOIN matricula_eval me 
+          ON l.id_archivoleido = me.id_archivoleido 
+          AND l.linea_leida = me.linea_leida
+      ${filtros}
+      ORDER BY id_upload DESC, l.id_archivoleido, l.linea_leida;
+    `;
+
+    const result = await client.query(query, [id_upload]);  // Pasar id_upload como parámetro
+
+    console.log("Resultado de la consulta de monitoreo:", result.rows);
+
+    res.status(200).json({
+      message: 'Datos obtenidos correctamente.',
+      data: result.rows,
+    });
+  } catch (err) {
+    console.error('Error en el servidor:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// API PARA OBTENER LOS DATOS DE LA LECTURA POR ID_ARCHIVO Y LINEA LEIDA
+app.get('/api/lectura/:id_archivoleido/:linea_leida', async (req, res) => {
+  const client = await pool.connect();  // Usando la conexión de tu pool de base de datos
+
+  const { id_archivoleido, linea_leida } = req.params;  // Obtener los parámetros de la URL
+
+  try {
+    // Validar que los parámetros sean números enteros
+    if (isNaN(id_archivoleido) || isNaN(linea_leida)) {
+      return res.status(400).json({ error: 'El id_archivoleido y linea_leida deben ser números válidos.' });
+    }
+
+    // Definir los filtros de la consulta
+    const filtros = `WHERE l.id_archivoleido = $1 AND l.linea_leida = $2`;
+
+    // Realizar la consulta
+    const query = `
+      SELECT
+          l.id_lectura,
+          l.rut,
+          l.id_itemresp,
+          l.id_archivoleido,
+          l.linea_leida,
+          l.reproceso,
+          l.imagen,
+          l.instante_forms,
+          l.num_prueba,
+          l.forma,
+          l.grupo,
+          l.cod_interno,
+          l.registro_leido
+      FROM lectura l
+      ${filtros}
+      ORDER BY id_lectura ASC; 
+    `;
+
+    const result = await client.query(query, [id_archivoleido, linea_leida]);  // Pasar los parámetros a la consulta
+
+    console.log("Resultado de la consulta de lectura:", result.rows);
+
+    res.status(200).json({
+      message: 'Datos obtenidos correctamente.',
+      data: result.rows,
+    });
+  } catch (err) {
+    console.error('Error en el servidor:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();  // Liberar la conexión
+  }
+});
+
+// API PARA OBTENER LOS DATOS DE LOS ERRORES POR ID_ARCHIVO Y LINEA LEIDA
+app.get('/api/errores/:id_archivoleido/:linea_leida', async (req, res) => {
+  const client = await pool.connect();  // Usando la conexión de tu pool de base de datos
+
+  const { id_archivoleido, linea_leida } = req.params;  // Obtener los parámetros de la URL
+
+  try {
+    // Validar que los parámetros sean números enteros
+    if (isNaN(id_archivoleido) || isNaN(linea_leida)) {
+      return res.status(400).json({ error: 'El id_archivoleido y linea_leida deben ser números válidos.' });
+    }
+
+    // Definir los filtros de la consulta
+    const filtros = `WHERE id_archivoleido = $1 AND linea_leida = $2`;
+
+    // Realizar la consulta con los nuevos campos SQL
+    const query = `
+      SELECT
+          id_error,
+          rut,
+          num_prueba,
+          cod_interno,
+          forma,
+          grupo,
+          id_archivoleido,
+          linea_leida,
+          imagen,
+          instante_forms,
+          valida_rut,
+          valida_matricula,
+          valida_inscripcion,
+          valida_eval,
+          valida_forma,
+          mail_enviado,
+          marca_temp_mail
+      FROM errores
+      ${filtros}
+      ORDER BY id_error ASC;
+    `;
+
+    const result = await client.query(query, [id_archivoleido, linea_leida]);  // Pasar los parámetros a la consulta
+
+    console.log("Resultado de la consulta de errores:", result.rows);
+
+    res.status(200).json({
+      message: 'Datos obtenidos correctamente.',
+      data: result.rows,
+    });
+  } catch (err) {
+    console.error('Error en el servidor:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();  // Liberar la conexión
+  }
+});
+
+app.get('/rut_lecturas/:rut', async (req, res) => {
+  const client = await pool.connect();  // Obtener una conexión del pool
+
+  const { rut } = req.params;  // Obtener el parámetro rut de la URL
+
+  // Validar que el rut no esté vacío y sea un valor adecuado
+  if (!rut) {
+    return res.status(400).json({ error: 'El parámetro rut es obligatorio' });
+  }
+
+  try {
+    // Si el rut tiene un formato específico, podemos validarlo aquí (por ejemplo, un número o un string con ciertos caracteres)
+    if (isNaN(rut)) {
+      return res.status(400).json({ error: 'El parámetro rut debe ser un número válido' });
+    }
+
+    // Definir la consulta SQL con el parámetro rut
+    const query = `
+      SELECT DISTINCT
+        asig.programa,
+        asig.cod_asig,
+        l.id_archivoleido,
+        l.linea_leida,
+        l.num_prueba,
+        l.reproceso,
+        l.imagen,
+        l.instante_forms
+      FROM lectura l
+      JOIN asignaturas asig ON asig.cod_interno = l.cod_interno
+      WHERE rut = $1  -- Usar parámetros posicionales para evitar SQL injection
+      ORDER BY asig.programa ASC, l.id_archivoleido ASC;
+    `;
+
+    // Ejecutar la consulta con el parámetro rut
+    const result = await client.query(query, [rut]);
+
+    console.log("Resultado de la consulta de lecturas:", result.rows);
+
+    // Devolver los datos obtenidos
+    res.status(200).json({
+      message: 'Datos obtenidos correctamente.',
+      data: result.rows,
+    });
+  } catch (err) {
+    console.error('Error en el servidor:', err.message);
+    res.status(500).json({ error: 'Error en la consulta de la base de datos' });
+  } finally {
+    client.release();  // Liberar la conexión después de ejecutar la consulta
+  }
+});
+
+
+
+
+// ------------------------------------------------------
+
 // API PARA ESCRIBIR
 app.put('/api/rehacerinformealumno', async (req, res) => {
   const { idMatriculaEval } = req.body; // Recibimos el id_matricula_eval
@@ -2107,22 +2388,10 @@ app.put('/api/reemplazar-docente', async (req, res) => {
       throw new Error('No se encontró ninguna sección para actualizar en "secciones".');
     }
 
-    const query2 = `
-      UPDATE public.seccion_docente
-      SET rut_docente = $1
-      WHERE id_seccion = $2
-      RETURNING *;`;
-
-    const result2 = await client.query(query2, [rutNuevoDocente, seccion]);
-
-    if (result2.rowCount === 0) {
-      throw new Error('No se encontró ninguna sección para actualizar en "seccion_docente".');
-    }
-
     await client.query('COMMIT');
 
     res.status(200).json({
-      message: 'Docente reemplazado exitosamente en ambas tablas.'
+      message: 'Docente reemplazado exitosamente en la tabla secciones.'
     });
   } catch (err) {
     await client.query('ROLLBACK');
@@ -2131,6 +2400,7 @@ app.put('/api/reemplazar-docente', async (req, res) => {
     client.release();
   }
 });
+
 
 
 // Endpoint para obtener las evaluaciones ordenadas
