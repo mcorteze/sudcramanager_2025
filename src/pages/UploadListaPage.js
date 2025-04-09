@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Input, Button, message, Space, Row, Col, Select, Statistic } from 'antd';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
@@ -76,8 +76,15 @@ const UploadListaPage = () => {
     }
   };
 
+  // Función para manejar el clic en el botón de buscar
   const handleBuscar = () => {
-    fetchMonitoreo();
+    // Si 'hasta' tiene valor y 'desde' está vacío, establecer 'desde' restándole 100
+    if (hasta && !desde) {
+      const nuevoDesde = parseInt(hasta) - 100;
+      setDesde(nuevoDesde.toString()); // Actualizamos el valor de "desde"
+    } else {
+      fetchMonitoreo(); // Si ambos valores están listos, buscar
+    }
   };
 
   // Filtrar las filas con calificaciones "0"
@@ -170,6 +177,13 @@ const UploadListaPage = () => {
   const formatNumber = (number) => {
     return new Intl.NumberFormat('de-CL').format(number);
   };
+
+  // Usar useEffect para ejecutar fetchMonitoreo cuando se actualizan los valores de "desde" y "hasta"
+  useEffect(() => {
+    if (desde && hasta) {
+      fetchMonitoreo();
+    }
+  }, [desde, hasta]);
 
   return (
     <div className="page-full">

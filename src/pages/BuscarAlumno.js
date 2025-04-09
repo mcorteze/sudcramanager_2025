@@ -11,6 +11,11 @@ const BuscarAlumno = () => {
   const { keyword } = useParams(); // Obtiene el parámetro de la URL
   const navigate = useNavigate(); // Para redirigir
 
+    // Función para limpiar el RUT (eliminar espacios, puntos y guiones)
+    const formatRut = (rut) => {
+      return rut.replace(/\s+/g, '').replace(/[.-]/g, '');
+    };
+
   // Función para manejar la búsqueda
   const fetchAlumnos = async (searchKeyword) => {
     if (!searchKeyword) {
@@ -33,7 +38,7 @@ const BuscarAlumno = () => {
   // Ejecutar la búsqueda al cargar si hay un parámetro en la URL
   useEffect(() => {
     if (keyword) {
-      fetchAlumnos(keyword);
+      fetchAlumnos(formatRut(keyword));
     }
   }, [keyword]);
 
