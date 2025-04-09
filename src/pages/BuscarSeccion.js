@@ -100,7 +100,7 @@ const BuscarSeccion = () => {
       
       {loading ? <Spin tip="Cargando..." /> : <SectionDetails data={data} />}
       
-      <h2>Listado total de docentes asociados a la sección</h2>
+      <h2>Docentes remitentes</h2>
       <DocenteTable data={docenteData} loading={loadingDocentes} onDelete={handleDeleteDocente} />
 
       <ImagenesTable idSeccion={idSeccion} /> {/* Añadir el componente de imágenes aquí */}
