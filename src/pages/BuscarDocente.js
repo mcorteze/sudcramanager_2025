@@ -27,9 +27,26 @@ const BuscarDocente = () => {
     }
   };
 
-  const onSearch = (value) => {
-    navigate(`/buscar-docente/${value}`);
+  const esCorreoElectronico = (texto) => {
+    const regexCorreo = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regexCorreo.test(texto.trim()); // trim por si viene con espacios
   };
+  
+  const limpiarTexto = (texto) => {
+    const textoLimpio = texto.trim(); // Siempre eliminar espacios iniciales/finales
+    if (esCorreoElectronico(textoLimpio)) {
+      return textoLimpio; // Si es correo, lo dejamos como está (solo sin espacios)
+    } else {
+      // Si no es correo, quitamos puntos y guiones además de los espacios
+      return textoLimpio.replace(/\./g, '').replace(/-/g, '');
+    }
+  };
+  
+  const onSearch = (value) => {
+    const cleanedValue = limpiarTexto(value);
+    navigate(`/buscar-docente/${cleanedValue}`);
+  };
+  
 
   const handleCargaAcademica = (record) => {
     window.open(`/carga-docente/${record.rut_docente}`, '_blank');

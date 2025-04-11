@@ -55,9 +55,9 @@ const UploadListaPage = () => {
 
       // Asegurarse de que todos los IDs entre "desde" y "hasta" estén presentes en la lista
       const calificacionesArray = [];
-      for (let i = desdeNum; i <= hastaNum; i++) {
+      for (let i = hastaNum; i >= desdeNum; i--) {
         if (!calificacionesPorUpload[i]) {
-          calificacionesPorUpload[i] = { si: 0, no: 0 }; // Si no tiene calificaciones, poner 0
+          calificacionesPorUpload[i] = { si: 0, no: 0 };
         }
         calificacionesArray.push({
           id_upload: i,
@@ -66,6 +66,7 @@ const UploadListaPage = () => {
           total_calificaciones_completas: calificacionesPorUpload[i].si + calificacionesPorUpload[i].no,
         });
       }
+      
 
       setCalificacionesTotales(calificacionesArray);
     } catch (error) {
