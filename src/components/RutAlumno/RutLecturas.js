@@ -73,20 +73,31 @@ const RutLecturas = ({ rut }) => {
         return `${formattedDate}, ${formattedTime}`;
       }
     },
-    { 
-      title: 'Acciones', 
-      key: 'acciones',
-      render: (text, record) => (
-        <div>
-          <a onClick={() => handleVerLectura(record.id_archivoleido, record.linea_leida)} style={{ marginRight: 10 }}>
-            Ver lectura
-          </a>
-          <a onClick={() => handleVerErrores(record.id_archivoleido, record.linea_leida)}>
-            Ver errores
-          </a>
-        </div>
-      )
-    },
+    { title: 'ID Upload', dataIndex: 'id_upload', key: 'id_upload' },
+
+    {
+  title: 'Acciones',
+  key: 'acciones',
+  render: (text, record) => {
+    const [idUpload, codigo] = record.imagen.split('_');
+    const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20251/Attachments/${idUpload}/${codigo}`;
+    
+    return (
+      <div>
+        <a onClick={() => handleVerLectura(record.id_archivoleido, record.linea_leida)} style={{ marginRight: 10 }}>
+          Ver lectura
+        </a>
+        <a onClick={() => handleVerErrores(record.id_archivoleido, record.linea_leida)} style={{ marginRight: 10 }}>
+          Ver errores
+        </a>
+        <a href={url} target="_blank" rel="noopener noreferrer">
+          Ver imagen
+        </a>
+      </div>
+    );
+  }
+}
+
   ];
 
   return (
@@ -100,7 +111,7 @@ const RutLecturas = ({ rut }) => {
           columns={lecturasColumns}
           dataSource={lecturasData}
           rowKey="id_archivoleido"  // Definimos el identificador único de la fila
-          pagination={{ pageSize: 10 }}  // Paginación para las filas
+          pagination={false}  // Paginación para las filas
         />
       )}
     </div>

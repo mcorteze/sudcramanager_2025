@@ -76,31 +76,37 @@ const LecturasMasivoPage = () => {
       title: 'Valida Rut',
       dataIndex: 'valida_rut',
       key: 'valida_rut',
+      render: (val) => (val ? 'Sí' : 'No'),
     },
     {
       title: 'Valida Matrícula',
       dataIndex: 'valida_matricula',
       key: 'valida_matricula',
+      render: (val) => (val ? 'Sí' : 'No'),
     },
     {
       title: 'Valida Inscripción',
       dataIndex: 'valida_inscripcion',
       key: 'valida_inscripcion',
+      render: (val) => (val ? 'Sí' : 'No'),
     },
     {
       title: 'Valida Evaluación',
       dataIndex: 'valida_eval',
       key: 'valida_eval',
+      render: (val) => (val ? 'Sí' : 'No'),
     },
     {
       title: 'Valida Forma',
       dataIndex: 'valida_forma',
       key: 'valida_forma',
+      render: (val) => (val ? 'Sí' : 'No'),
     },
     {
       title: 'Mail Enviado',
       dataIndex: 'mail_enviado',
       key: 'mail_enviado',
+      render: (val) => (val ? 'Sí' : 'No'),
     },
   ];
 
@@ -119,7 +125,7 @@ const LecturasMasivoPage = () => {
   // Función para confirmar la acción y mover los registros
   const handleConfirmMove = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/lectura-temp-masivo', { records: recordsToMove });
+      const response = await axios.post('http://localhost:3001/lectura-temp-masivo', { records: recordsToMove });
       if (response.data.success) {
         message.success(`Se han movido ${recordsToMove.length} registros a lectura temporal.`);
       } else {

@@ -4,13 +4,16 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './UploadListaPage.css';
 
+import InfoBox from '../components/InfoBox/InfoBox';
+import UploadListaList from '../components/InfoBox/UploadListaList';
+
 const UploadListaPage = () => {
   const [monitoreoData, setMonitoreoData] = useState([]);
   const [calificacionesTotales, setCalificacionesTotales] = useState([]);
   const [loading, setLoading] = useState(false);
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
-  const [filtro0, setFiltro0] = useState(false); // Estado para el filtro 0 calificaciones
+  const [filtro0, setFiltro0] = useState(false);
 
   const fetchMonitoreo = async () => {
     const desdeNum = parseInt(desde);
@@ -18,7 +21,7 @@ const UploadListaPage = () => {
 
     if (desde && !hasta) {
       hastaNum = desdeNum;
-      setHasta(desde); // sincroniza input hasta también
+      setHasta(desde);
     }
 
     if (!desde || isNaN(desdeNum)) {
@@ -36,7 +39,6 @@ const UploadListaPage = () => {
 
       setMonitoreoData(data);
 
-      // Calcular las calificaciones por ID Upload
       const calificacionesPorUpload = data.reduce((acc, item) => {
         const idUpload = parseInt(item.id_upload);
         if (item.tiene_calificacion) {
@@ -53,7 +55,6 @@ const UploadListaPage = () => {
         return acc;
       }, {});
 
-      // Asegurarse de que todos los IDs entre "desde" y "hasta" estén presentes en la lista
       const calificacionesArray = [];
       for (let i = hastaNum; i >= desdeNum; i--) {
         if (!calificacionesPorUpload[i]) {
@@ -66,7 +67,6 @@ const UploadListaPage = () => {
           total_calificaciones_completas: calificacionesPorUpload[i].si + calificacionesPorUpload[i].no,
         });
       }
-      
 
       setCalificacionesTotales(calificacionesArray);
     } catch (error) {
@@ -77,88 +77,56 @@ const UploadListaPage = () => {
     }
   };
 
-  // Función para manejar el clic en el botón de buscar
   const handleBuscar = () => {
-    // Si 'hasta' tiene valor y 'desde' está vacío, establecer 'desde' restándole 100
     if (hasta && !desde) {
       const nuevoDesde = parseInt(hasta) - 100;
-      setDesde(nuevoDesde.toString()); // Actualizamos el valor de "desde"
+      setDesde(nuevoDesde.toString());
     } else {
-      fetchMonitoreo(); // Si ambos valores están listos, buscar
+      fetchMonitoreo();
     }
   };
 
-  // Filtrar las filas con calificaciones "0"
   const filteredData = filtro0
     ? calificacionesTotales.filter((item) => item.total_calificaciones_si === 0)
     : calificacionesTotales;
 
-  // Agregar una columna "Forms"
-  const dataWithForms = filteredData.map((item) => ({
-    ...item,
-    forms: item.id_upload % 2 === 0 ? 'Forms Ingles' : 'Forms Lenguaje',
-  }));
+  const calculateStatsByCategory = () => {
+    let sinDescarga = 0;
+    let conErrores = 0;
+    let conCalificaciones = 0;
 
-  // Calcular estadísticas por Forms
-  const calculateStatistics = () => {
-    const total = dataWithForms.length;
-    const formsStats = {
-      'Forms Lenguaje': {
-        totalCalificaciones: 0,
-        count0: 0,
-      },
-      'Forms Ingles': {
-        totalCalificaciones: 0,
-        count0: 0,
-      },
-    };
+    calificacionesTotales.forEach((item) => {
+      const total = item.total_calificaciones_completas;
+      const si = item.total_calificaciones_si;
 
-    let totalCalificaciones = 0; // Variable para almacenar el total de calificaciones
-
-    dataWithForms.forEach((item) => {
-      const formsType = item.forms;
-      if (item.total_calificaciones_si > 0) {
-        formsStats[formsType].totalCalificaciones += item.total_calificaciones_si;
-        totalCalificaciones += item.total_calificaciones_si;
+      if (total === 0) {
+        sinDescarga++;
+      } else if (si === 0) {
+        conErrores++;
       } else {
-        formsStats[formsType].count0 += 1;
+        conCalificaciones++;
       }
     });
 
-    const formsLenguajePercentage = totalCalificaciones
-      ? (formsStats['Forms Lenguaje'].totalCalificaciones / totalCalificaciones) * 100
-      : 0;
-    const formsInglesPercentage = totalCalificaciones
-      ? (formsStats['Forms Ingles'].totalCalificaciones / totalCalificaciones) * 100
-      : 0;
-
-    return { formsStats, formsLenguajePercentage, formsInglesPercentage, totalCalificaciones };
+    return { sinDescarga, conErrores, conCalificaciones };
   };
 
-  const { formsStats, formsLenguajePercentage, formsInglesPercentage, totalCalificaciones } =
-    calculateStatistics();
+  const { sinDescarga, conErrores, conCalificaciones } = calculateStatsByCategory();
 
   const calificacionesColumns = [
-    {
-      title: 'Forms',
-      dataIndex: 'forms',
-      key: 'forms',
-    },
     {
       title: 'ID Upload',
       dataIndex: 'id_upload',
       key: 'id_upload',
-      render: (id_upload) => (
-        <Link to={`/upload/${id_upload}`}>{id_upload}</Link>
-      ),
+      render: (id_upload) => <Link to={`/upload/${id_upload}`}>{id_upload}</Link>,
     },
     {
-      title: 'Lineas con calificación',
+      title: 'Líneas con calificación',
       dataIndex: 'total_calificaciones_si',
       key: 'total_calificaciones_si',
     },
     {
-      title: 'Lineas sin calificación',
+      title: 'Líneas sin calificación',
       dataIndex: 'total_calificaciones_no',
       key: 'total_calificaciones_no',
     },
@@ -169,28 +137,52 @@ const UploadListaPage = () => {
     },
   ];
 
-  // Función para asignar clase a la fila, marca en rojo si las calificaciones son 0
   const rowClassName = (record) => {
-    return record.total_calificaciones_si === 0 ? 'sin_calificacion' : '';
+    const total = record.total_calificaciones_completas;
+    const si = record.total_calificaciones_si;
+
+    if (total === 0) {
+      return 'sin-descarga';
+    } else if (si === 0 && total > 0) {
+      return 'con-errores';
+    } else if (total > 0 && si > 0) {
+      return 'con-calificaciones';
+    } else {
+      return ''; // fallback por si acaso
+    }
   };
 
-  // Formatear números con punto como separador de miles
-  const formatNumber = (number) => {
-    return new Intl.NumberFormat('de-CL').format(number);
-  };
-
-  // Usar useEffect para ejecutar fetchMonitoreo cuando se actualizan los valores de "desde" y "hasta"
   useEffect(() => {
     if (desde && hasta) {
       fetchMonitoreo();
     }
   }, [desde, hasta]);
 
+  const handleDownloadFaltantes = () => {
+    const faltantes = filteredData
+      .filter(item => item.total_calificaciones_completas === 0)
+      .map(item => item.id_upload);
+
+    if (faltantes.length === 0) {
+      message.warning('No hay elementos sin descarga.');
+      return;
+    }
+
+    const csvContent = faltantes.join(',');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'faltantes.csv');
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="page-full">
       <h1>Total de Calificaciones por ID Upload</h1>
-
-      <Space style={{ marginBottom: 16 }}>
+      <InfoBox items={UploadListaList} />
+      <Space style={{ marginBottom: 16, marginLeft: 10 }}>
         <Input
           placeholder="Desde ID Upload"
           value={desde}
@@ -207,8 +199,8 @@ const UploadListaPage = () => {
           Buscar
         </Button>
       </Space>
-
-      <Space style={{ marginBottom: 16 }}>
+      
+      <Space style={{ marginBottom: 16, marginLeft: 10 }}>
         <Select
           value={filtro0 ? '0 Calificaciones' : 'Todos'}
           onChange={(value) => setFiltro0(value === '0 Calificaciones')}
@@ -218,49 +210,35 @@ const UploadListaPage = () => {
         </Select>
       </Space>
 
-      {/* Estadísticas */}
+      <Space style={{ marginBottom: 16, marginLeft: 10 }}>
+        <Button type="primary" onClick={handleDownloadFaltantes}>
+          Descargar faltantes
+        </Button>
+      </Space>
+
       <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={12}>
-          <Statistic
-            title="Calificaciones Forms Lenguaje"
-            value={formatNumber(formsStats['Forms Lenguaje'].totalCalificaciones)}
-            suffix={`(${formsLenguajePercentage.toFixed(2)}%)`}
-          />
+        <Col span={8}>
+          <Statistic title="Sin descarga" value={sinDescarga} />
         </Col>
-        <Col span={12}>
-          <Statistic
-            title="Calificaciones Forms Ingles"
-            value={formatNumber(formsStats['Forms Ingles'].totalCalificaciones)}
-            suffix={`(${formsInglesPercentage.toFixed(2)}%)`}
-          />
+        <Col span={8}>
+          <Statistic title="Con errores" value={conErrores} />
         </Col>
-      </Row>
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={12}>
-          <Statistic
-            title="0 Calificaciones Forms Lenguaje"
-            value={formsStats['Forms Lenguaje'].count0}
-          />
-        </Col>
-        <Col span={12}>
-          <Statistic
-            title="0 Calificaciones Forms Ingles"
-            value={formsStats['Forms Ingles'].count0}
-          />
+        <Col span={8}>
+          <Statistic title="Con calificaciones" value={conCalificaciones} />
         </Col>
       </Row>
 
       <Row gutter={16}>
         <Col span={24}>
-        <Table
-          columns={calificacionesColumns}
-          dataSource={dataWithForms}
-          rowKey="id_upload"
-          size="small"
-          pagination={false}
-          loading={loading}
-          rowClassName={rowClassName}  // Aplica la función rowClassName
-        />
+          <Table
+            columns={calificacionesColumns}
+            dataSource={filteredData}
+            rowKey="id_upload"
+            size="small"
+            pagination={false}
+            loading={loading}
+            rowClassName={rowClassName}
+          />
         </Col>
       </Row>
     </div>

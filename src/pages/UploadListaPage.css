@@ -1,4 +1,9 @@
-.ant-table-row.ant-table-row-level-0.sin_calificacion {
+.ant-table-row.ant-table-row-level-0.con-errores {
     background-color: #f8d7da !important; /* Color de fondo para filas sin calificación */
     color: #721c24 !important;
+}
+
+.ant-table-row.ant-table-row-level-0.sin-descarga {
+    background-color: rgb(209, 209, 209) !important; /* Color de fondo para filas sin calificación */
+    color: rgb(190, 190, 190) !important;
 }

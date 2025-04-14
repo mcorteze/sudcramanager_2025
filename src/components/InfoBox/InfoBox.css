@@ -1,0 +1,36 @@
+/* src/components/InfoBox/InfoBox.css */
+
+.info-box {
+    margin-bottom: 16px;
+    background-color: #f4f7fb;
+    border-left: 3px solid #1890ff;
+    padding: 0;
+    max-width: 800px;
+    font-size: 13px;
+  }
+  
+  .info-box-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .info-box-icon {
+    font-size: 18px;
+    color: #1890ff;
+    margin-right: 8px;
+  }
+  
+  .info-box-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #2f4f75;
+  }
+  
+  .info-box-item {
+    padding-left: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    line-height: 1.4;
+  }
+  

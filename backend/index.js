@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  //host: '10.12.1.235',
-  //database: 'sudcra',
+  host: '10.12.1.235',
+  database: 'sudcra',
   // ******* bases de datos estáticas *******
-  host: 'localhost',
-  database: 'sudcra_0404', // final primer semestre
+  //host: 'localhost',
+  //database: 'sudcra', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -2107,7 +2107,7 @@ app.get('/rut_lecturas/:rut', async (req, res) => {
 
     // Definir la consulta SQL con el parámetro rut
     const query = `
-      SELECT DISTINCT
+    SELECT DISTINCT
         asig.programa,
         asig.cod_asig,
         l.id_archivoleido,
@@ -2115,11 +2115,12 @@ app.get('/rut_lecturas/:rut', async (req, res) => {
         l.num_prueba,
         l.reproceso,
         l.imagen,
+        split_part(l.imagen, '_', 1) AS id_upload,  -- Extrae el número antes del "_"
         l.instante_forms
-      FROM lectura l
-      JOIN asignaturas asig ON asig.cod_interno = l.cod_interno
-      WHERE rut = $1  -- Usar parámetros posicionales para evitar SQL injection
-      ORDER BY asig.programa ASC, l.id_archivoleido ASC;
+    FROM lectura l
+    JOIN asignaturas asig ON asig.cod_interno = l.cod_interno
+    WHERE rut = $1  -- Usar parámetros posicionales para evitar SQL injection
+    ORDER BY asig.programa ASC, l.id_archivoleido ASC;
     `;
 
     // Ejecutar la consulta con el parámetro rut
