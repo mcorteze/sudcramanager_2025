@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  host: '10.12.1.235',
-  database: 'sudcra',
+  //host: '10.12.1.235',
+  //database: 'sudcra',
   // ******* bases de datos estáticas *******
-  //host: 'localhost',
-  //database: 'sudcra', // final primer semestre
+  host: 'localhost',
+  database: 'sudcra_0404', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -1895,9 +1895,13 @@ app.get('/api/upload_lista', async (req, res) => {
     const valores = [];
 
     if (desde && hasta) {
-      filtros = `WHERE CAST(SUBSTRING(l.imagen FROM 1 FOR POSITION('_' IN l.imagen) - 1) AS INTEGER) BETWEEN $1 AND $2`;
+      filtros = `
+        WHERE POSITION('_' IN l.imagen) > 1
+        AND CAST(SUBSTRING(l.imagen FROM 1 FOR POSITION('_' IN l.imagen) - 1) AS INTEGER) BETWEEN $1 AND $2
+      `;
       valores.push(desde, hasta);
     }
+    
 
     const query = `
       SELECT DISTINCT 
@@ -2142,6 +2146,47 @@ app.get('/rut_lecturas/:rut', async (req, res) => {
 });
 
 
+// Endpoint para obtener calificaciones detalladas
+app.get('/api/historial_procesamiento', async (req, res) => {
+  try {
+    const query = `
+    SELECT 
+      co.id_matricula_eval,
+      me.id_matricula,
+      me.id_eval,
+      asig.programa,
+      asig.cod_programa,
+      e.cod_asig,
+      e.num_prueba,
+      e.nombre_prueba,
+      me.imagen,
+      me.id_archivoleido,
+      me.linea_leida,
+      al.archivoleido,
+      al.tipoarchivo,
+      al.marcatemporal,
+      co.puntaje_total_obtenido,
+      co.logro_obtenido,
+      co.id_calificacion,
+      co.lectura_fecha,
+      co.num_prueba,
+      co.informe_listo,
+      i.id_lista
+    FROM calificaciones_obtenidas co
+    JOIN matricula_eval me on me.id_matricula_eval = co.id_matricula_eval
+    JOIN archivosleidos al on al.id_archivoleido = me.id_archivoleido
+    JOIN eval e on e.id_eval = me.id_eval
+    JOIN asignaturas asig on asig.cod_asig = e.cod_asig
+    LEFT JOIN imagenes i on me.imagen = i.id_imagen
+    `;
+
+    const result = await pool.query(query);
+    res.json(result.rows); // Devuelve los resultados como JSON
+  } catch (err) {
+    console.error('Error al obtener calificaciones:', err);
+    res.status(500).json({ error: 'Error al obtener calificaciones' });
+  }
+});
 
 
 // ------------------------------------------------------

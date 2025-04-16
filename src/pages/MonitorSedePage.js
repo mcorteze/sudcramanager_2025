@@ -244,7 +244,7 @@ export default function MonitorSedePage() {
           <Select
             style={{ width: 200 }}
             onChange={(value) => setSelectedSede(value)}
-            options={sedes.map(sede => ({ label: sede.nombre, value: sede.id_sede }))}
+            options={sedes.map(sede => ({ label: sede.nombre_sede, value: sede.id_sede }))}
             loading={loading}
           />
         </div>

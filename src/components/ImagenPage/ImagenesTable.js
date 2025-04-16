@@ -1,69 +1,59 @@
 import React, { useState } from 'react';
 import { Table, Modal, Button, notification } from 'antd';
-import { CopyOutlined, DownloadOutlined, EyeOutlined, ArrowsAltOutlined } from '@ant-design/icons'; // Importando los íconos
+import { CopyOutlined, DownloadOutlined, EyeOutlined, ArrowsAltOutlined } from '@ant-design/icons';
+import { PiDotOutlineFill } from "react-icons/pi";
 
 const ImagenesTable = ({ imagenesData, loading }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isMaxHeightFull, setIsMaxHeightFull] = useState(false); // Estado para alternar el tamaño de la imagen
-  const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
+  const [isMaxHeightFull, setIsMaxHeightFull] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Mostrar modal para visualizar la imagen
   const openModal = (index) => {
     setCurrentImageIndex(index);
     setIsModalVisible(true);
   };
 
-  // Cerrar modal
   const closeModal = () => {
     setIsModalVisible(false);
   };
 
-  // Ir a la imagen anterior
   const previousImage = () => {
-    if (currentImageIndex > 0) {
-      setCurrentImageIndex(currentImageIndex - 1);
-    }
+    if (currentImageIndex > 0) setCurrentImageIndex(currentImageIndex - 1);
   };
 
-  // Ir a la siguiente imagen
   const nextImage = () => {
-    if (currentImageIndex < imagenesData.length - 1) {
-      setCurrentImageIndex(currentImageIndex + 1);
-    }
+    if (currentImageIndex < imagenesData.length - 1) setCurrentImageIndex(currentImageIndex + 1);
   };
 
-  // Función para copiar la URL al portapapeles
   const copyToClipboard = (url) => {
     navigator.clipboard.writeText(url)
-      .then(() => {
-        notification.success({
-          message: 'URL Copiada',
-          description: 'La URL de la imagen ha sido copiada al portapapeles.',
-        });
-      })
-      .catch(() => {
-        notification.error({
-          message: 'Error al copiar',
-          description: 'Hubo un error al intentar copiar la URL.',
-        });
-      });
+      .then(() => notification.success({
+        message: 'URL Copiada',
+        description: 'La URL de la imagen ha sido copiada al portapapeles.',
+      }))
+      .catch(() => notification.error({
+        message: 'Error al copiar',
+        description: 'Hubo un error al intentar copiar la URL.',
+      }));
   };
 
-  // Función para descargar la imagen
   const downloadImage = (url) => {
     window.open(url, '_blank');
   };
 
-  // Alternar el tamaño de la imagen entre '80vh' y '100%'
   const toggleImageSize = () => {
-    setIsMaxHeightFull((prev) => !prev);
+    setIsMaxHeightFull(prev => !prev);
   };
 
-  // Calcula el índice absoluto según la página
   const getAbsoluteIndex = (index) => {
     return (currentPage - 1) * 10 + index;
   };
+
+  const totalRegistros = imagenesData?.length || 0;
+  const imagenSet = new Set(imagenesData?.map(item => item.imagen));
+  const cantidadUnicas = imagenSet.size;
+  const cantidadDuplicados = totalRegistros - cantidadUnicas;
 
   const imagenesColumns = [
     { title: 'ID Sección', dataIndex: 'id_seccion', key: 'id_seccion' },
@@ -75,32 +65,9 @@ const ImagenesTable = ({ imagenesData, loading }) => {
       key: 'acciones',
       render: (_, __, index) => (
         <div>
-          {/* Botón de copiar URL */}
-          <Button 
-            type="link" 
-            icon={<CopyOutlined />} 
-            onClick={() => copyToClipboard(imagenesData[getAbsoluteIndex(index)].url_imagen)} 
-          >
-            Copiar URL
-          </Button>
-          
-          {/* Botón de descarga */}
-          <Button 
-            type="link" 
-            icon={<DownloadOutlined />} 
-            onClick={() => downloadImage(imagenesData[getAbsoluteIndex(index)].url_imagen)} 
-          >
-            Descargar
-          </Button>
-
-          {/* Botón para ver la imagen */}
-          <Button 
-            type="link" 
-            icon={<EyeOutlined />} 
-            onClick={() => openModal(getAbsoluteIndex(index))}
-          >
-            Ver Imagen
-          </Button>
+          <Button type="link" icon={<CopyOutlined />} onClick={() => copyToClipboard(imagenesData[getAbsoluteIndex(index)].url_imagen)}>Copiar URL</Button>
+          <Button type="link" icon={<DownloadOutlined />} onClick={() => downloadImage(imagenesData[getAbsoluteIndex(index)].url_imagen)}>Descargar</Button>
+          <Button type="link" icon={<EyeOutlined />} onClick={() => openModal(getAbsoluteIndex(index))}>Ver Imagen</Button>
         </div>
       ),
     },
@@ -108,7 +75,15 @@ const ImagenesTable = ({ imagenesData, loading }) => {
 
   return (
     <div>
-      <h2>Registros en tabla Imágenes</h2>
+      <h2>Tabla Imágenes (registro preliminar de archivos, al descargarlas en el flujo de PowerAutomate, al contrastar con la subida se puede detectar imagenes no descargadas)</h2>
+      <p style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <span>🧾 Total de registros: {totalRegistros}</span>
+        <PiDotOutlineFill />
+        <span style = {{ fontWeight:'600' }}>🖼️ Imágenes únicas: {cantidadUnicas}</span>
+        <PiDotOutlineFill />
+        <span>♻️ Duplicados: {cantidadDuplicados}</span>
+      </p>
+
       <Table
         className='buscar-seccion-table1'
         columns={imagenesColumns}
@@ -117,22 +92,21 @@ const ImagenesTable = ({ imagenesData, loading }) => {
         rowKey="id_imagen"
         pagination={{
           pageSize: 10,
-          current: currentPage, // Página actual
-          onChange: (page) => setCurrentPage(page), // Actualiza la página
+          current: currentPage,
+          onChange: (page) => setCurrentPage(page),
         }}
       />
 
-      {/* Modal para el visor de imágenes */}
       <Modal
         visible={isModalVisible}
         title={`Visor de Imagen: ${imagenesData[currentImageIndex]?.imagen || 'Sin nombre'}`}
         footer={null}
         onCancel={closeModal}
         centered
-        width="90%" // Ocupa el 90% del ancho de la pantalla
-        style={{ top: 0 }} // Espaciado superior reducido
+        width="90%"
+        style={{ top: 0 }}
       >
-        <div style={{ position: 'relative', textAlign: 'center' }} >
+        <div style={{ position: 'relative', textAlign: 'center' }}>
           <img
             src={imagenesData[currentImageIndex]?.url_imagen}
             alt={imagenesData[currentImageIndex]?.imagen}
@@ -140,42 +114,36 @@ const ImagenesTable = ({ imagenesData, loading }) => {
           />
         </div>
 
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 80,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            color: 'white',
-            padding: '10px 20px',
-            borderRadius: '5px',
-            zIndex: 1000,
-          }}
-        >
+        <div style={{
+          position: 'fixed',
+          bottom: 80,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          color: 'white',
+          padding: '10px 20px',
+          borderRadius: '5px',
+          zIndex: 1000,
+        }}>
           {imagenesData[currentImageIndex]?.imagen || 'Sin nombre'}
         </div>
 
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 20,
-            left: 0,
-            right: 0,
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '10px',
-            zIndex: 1000,
-          }}
-        >
+        <div style={{
+          position: 'fixed',
+          bottom: 20,
+          left: 0,
+          right: 0,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '10px',
+          zIndex: 1000,
+        }}>
           <Button onClick={previousImage} disabled={currentImageIndex === 0} type="primary">
             Anterior
           </Button>
-
           <Button onClick={nextImage} disabled={currentImageIndex === imagenesData.length - 1} type="primary">
             Siguiente
           </Button>
-
           <Button onClick={toggleImageSize} type="primary" icon={<ArrowsAltOutlined />}>
             Cambiar Tamaño
           </Button>

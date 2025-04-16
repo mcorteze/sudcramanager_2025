@@ -1,5 +1,6 @@
 import React from 'react';
 import { Table } from 'antd';
+import { PiDotOutlineFill } from "react-icons/pi";
 
 const ErroresTable = ({ erroresData, loading }) => {
   const erroresColumns = [
@@ -14,9 +15,22 @@ const ErroresTable = ({ erroresData, loading }) => {
     { title: 'Valida Forma', dataIndex: 'valida_forma', key: 'valida_forma', render: (text) => text ? 'Sí' : 'No' },
   ];
 
+  // Conteo de imágenes únicas y duplicadas
+  const totalRegistros = erroresData?.length || 0;
+  const imagenSet = new Set(erroresData?.map(item => item.imagen));
+  const cantidadUnicas = imagenSet.size;
+  const cantidadDuplicados = totalRegistros - cantidadUnicas;
+
   return (
     <div>
       <h2>Registros en tabla Errores</h2>
+      <p style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <span>🧾 Total de registros: {totalRegistros}</span>
+        <PiDotOutlineFill />
+        <span style = {{ fontWeight:'600' }}>🖼️ Imágenes únicas: {cantidadUnicas}</span>
+        <PiDotOutlineFill />
+        <span>♻️ Duplicados: {cantidadDuplicados}</span>
+      </p>
       <Table
         className='buscar-seccion-table1'
         columns={erroresColumns}

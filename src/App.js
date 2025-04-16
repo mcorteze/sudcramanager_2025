@@ -57,6 +57,7 @@ import UploadIdPage from './pages/UploadIdPage.js';
 import LecturaPage from './pages/LecturaPage.js';
 import ErroresIDPage from './pages/ErroresIDPage.js';
 import RutLecturas from './components/RutAlumno/RutLecturas.js';
+import MonitorPage from './pages/MonitorPage.js';
 
 import './App.css';
 
@@ -112,7 +113,7 @@ const AppContent = () => {
             <Link to="/pendientes">Pendientes</Link>
           </Menu.Item>
           <Menu.Item key="14" icon={<RiRadarLine />}>
-            <Link to="/monitoreo_lista">Monitoreo</Link>
+            <Link to="/monitor_accesos">Monitoreo</Link>
           </Menu.Item>
           <Menu.Item key="18" icon={<TableOutlined />}>
             <Link to="/accesos">Recursos</Link>
@@ -179,7 +180,7 @@ const AppContent = () => {
             <Route path="/lectura/:id_archivoleido/:linea_leida" element={<LecturaPage />} />
             <Route path="/errores/:id_archivoleido/:linea_leida" element={<ErroresIDPage />} />
             <Route path="/rut_lecturas/:rut" element={<RutLecturas />} />
-
+            <Route path="/monitor_accesos" element={<MonitorPage />} />
           </Routes>
         </Content>
       </Layout>

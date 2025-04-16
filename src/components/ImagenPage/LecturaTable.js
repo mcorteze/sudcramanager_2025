@@ -1,5 +1,6 @@
 import React from 'react';
 import { Table } from 'antd';
+import { PiDotOutlineFill } from "react-icons/pi";
 
 const LecturaTable = ({ lecturaData, loading }) => {
   const lecturaColumns = [
@@ -13,9 +14,31 @@ const LecturaTable = ({ lecturaData, loading }) => {
     { title: 'Reproceso', dataIndex: 'reproceso', key: 'reproceso', render: (text) => text ? 'Sí' : 'No' },
   ];
 
+  const totalRegistros = lecturaData?.length || 0;
+
+  // Set para contar imágenes únicas
+  const imagenSet = new Set(lecturaData?.map(item => item.imagen));
+  const cantidadUnicas = imagenSet.size;
+  const cantidadDuplicados = totalRegistros - cantidadUnicas;
+
+  // Filtrar imágenes con calificación (logro_obtenido no vacío)
+  const imagenesConCalificacion = new Set(
+    lecturaData?.filter(item => item.logro_obtenido).map(item => item.imagen)
+  );
+  const cantidadConCalificacion = imagenesConCalificacion.size;
+
   return (
     <div>
-      <h2>Imágenes con calificación</h2>
+      <h2>Tabla Lectura (líneas txt exportadas por Forms) cruzadas con calificaciones</h2>
+      <p style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <span>🧾 Total de registros: {totalRegistros}</span>
+        <PiDotOutlineFill />
+        <span style={{ fontWeight: '600' }}>🖼️ Imágenes únicas: {cantidadUnicas}</span>
+        <PiDotOutlineFill />
+        <span>♻️ Duplicados: {cantidadDuplicados}</span>
+        <PiDotOutlineFill />
+        <span>🏆 Imágenes con calificación: {cantidadConCalificacion}</span>
+      </p>
       <Table
         className='buscar-seccion-table1'
         columns={lecturaColumns}

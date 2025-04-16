@@ -86,7 +86,7 @@ const SeguimientoPlanilla = () => {
 
     return (
         <div style={{ padding: '20px' }}>
-            <h2>Búsqueda de Archivos Leídos</h2>
+            <h2>Búsqueda de planillas leídas</h2>
             <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <Search
                     placeholder="Primer String"
