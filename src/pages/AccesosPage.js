@@ -90,6 +90,13 @@ export default function AccesosPage() {
       icon: <BuildOutlined />,
       link: "/pruebas",
     },
+    {
+      title: "Resumen procesamiento",
+      subtitle: "Visualización",
+      description: "Tablas de resumen de procesos.",
+      icon: <BuildOutlined />,
+      link: "/resumen_procesos",
+    },
   ];
 
   return (

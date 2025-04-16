@@ -12,7 +12,7 @@ import ScatterChartComponent from '../components/Dashboard/ScatterChartComponent
 import HorizontalBarChartComponent from '../components/Dashboard/HorizontalBarChartComponent';
 import LineChartWithTwoLines from '../components/Dashboard/LineChartWithTwoLines';
 
-import './home.css';
+import './ResumenProcesosPage.css';
 import './DashboardPage.css';
 
 const formatFecha = (fecha) => {

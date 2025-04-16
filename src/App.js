@@ -15,13 +15,14 @@ import {
   TableOutlined,
   SendOutlined
 } from '@ant-design/icons';
+import { HiMiniViewfinderCircle } from "react-icons/hi2";
 import { BiSolidError } from "react-icons/bi";
 import { RiRadarLine } from "react-icons/ri";
 import { SlNote } from "react-icons/sl";
 import { Layout, Menu, theme } from 'antd';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
 import CabezalSidebar from './components/CabezalSidebar.js';
-import Home from './pages/Home.js';
+import Home from './pages/ResumenProcesosPage.js';
 import Informe from './pages/Informe';
 import RutAlumno from './pages/RutAlumno';
 import BuscarAlumno from './pages/BuscarAlumno';
@@ -58,6 +59,9 @@ import LecturaPage from './pages/LecturaPage.js';
 import ErroresIDPage from './pages/ErroresIDPage.js';
 import RutLecturas from './components/RutAlumno/RutLecturas.js';
 import MonitorPage from './pages/MonitorPage.js';
+import ResumenProcesosPage from './pages/ResumenProcesosPage.js';
+import Monitoreo from './pages/Monitoreo.js';
+
 
 import './App.css';
 
@@ -85,8 +89,8 @@ const AppContent = () => {
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <CabezalSidebar />
         <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
-          <Menu.Item key="1" icon={<SyncOutlined />}>
-            <Link to="/">Resumen</Link>
+          <Menu.Item key="1" icon={<RiRadarLine />}>
+            <Link to="/">Monitoreo</Link>
           </Menu.Item>
           <Menu.Item key="2" icon={<FilterOutlined />}>
             <Link to="/informe">Filtro Informe</Link>
@@ -112,8 +116,8 @@ const AppContent = () => {
           <Menu.Item key="13" icon={<ExclamationOutlined />}>
             <Link to="/pendientes">Pendientes</Link>
           </Menu.Item>
-          <Menu.Item key="14" icon={<RiRadarLine />}>
-            <Link to="/monitor_accesos">Monitoreo</Link>
+          <Menu.Item key="14" icon={<HiMiniViewfinderCircle />}>
+            <Link to="/monitor_accesos">Seguimiento</Link>
           </Menu.Item>
           <Menu.Item key="18" icon={<TableOutlined />}>
             <Link to="/accesos">Recursos</Link>
@@ -132,7 +136,7 @@ const AppContent = () => {
           }}
         >
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Monitoreo />} />
             <Route path="/informe" element={<Informe />} />
             <Route path="/informe/:programa/:sede/:asignatura/:seccion" element={<Informe />} />
             <Route path="/rut" element={<RutAlumno />} />
@@ -181,6 +185,7 @@ const AppContent = () => {
             <Route path="/errores/:id_archivoleido/:linea_leida" element={<ErroresIDPage />} />
             <Route path="/rut_lecturas/:rut" element={<RutLecturas />} />
             <Route path="/monitor_accesos" element={<MonitorPage />} />
+            <Route path="/resumen_procesos" element={<ResumenProcesosPage />} />
           </Routes>
         </Content>
       </Layout>

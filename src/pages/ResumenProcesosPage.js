@@ -7,9 +7,8 @@ import { ResponsiveContainer } from 'recharts';
 import UltimoProcesoImagen from '../components/Home/UltimoProcesoImagen';
 import UltimoProcesoPlanilla from '../components/Home/UltimoProcesoPlanilla';
 import UltimoIdArchivoleidoImagen from '../components/Home/UltimoIdArchivoleidoImagen';
-import HistorialProcesamientoTable from '../components/Home/HistorialProcesamientoTable';
 
-import './home.css';
+import './ResumenProcesosPage.css';
 
 // Columnas para la tabla de últimas calificaciones
 const columnsUltimasCalificaciones = [
@@ -208,7 +207,6 @@ export default function Home() {
   return (
     <div className='page-full'>
       <h1>Resumen</h1>
-      <HistorialProcesamientoTable />
       <h2>Último procesamiento</h2>
       <Table className="table_formato1"
         columns={columnsUltimasCalificaciones} 
