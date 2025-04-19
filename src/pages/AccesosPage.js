@@ -97,6 +97,27 @@ export default function AccesosPage() {
       icon: <BuildOutlined />,
       link: "/resumen_procesos",
     },
+    {
+      title: "Crear alumno",
+      subtitle: "Crear registros",
+      description: "Permite crear el registro de un nuevo estudiante",
+      icon: <BuildOutlined />,
+      link: "/crear_alumno",
+    },
+    {
+      title: "Crear docente",
+      subtitle: "Crear registros",
+      description: "Permite crear el registro de un nuevo docente",
+      icon: <BuildOutlined />,
+      link: "/crear_docente",
+    },
+    {
+      title: "Crear matricula",
+      subtitle: "Crear registros",
+      description: "Permite crear el registro de una nueva matricula",
+      icon: <BuildOutlined />,
+      link: "/crear_matricula",
+    },
   ];
 
   return (

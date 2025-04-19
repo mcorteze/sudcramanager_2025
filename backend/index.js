@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  //host: '10.12.1.235',
-  //database: 'sudcra',
+  host: '10.12.1.235',
+  database: 'sudcra',
   // ******* bases de datos estáticas *******
-  host: 'localhost',
-  database: 'sudcra_0404', // final primer semestre
+  //host: 'localhost',
+  //database: 'sudcra_0404', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -1679,22 +1679,36 @@ app.get('/api/secciones', async (req, res) => {
   try {
     // Utilizar un parámetro para prevenir inyecciones SQL
     const result = await pool.query(`
-      SELECT 
-        s.id_seccion,
-        sd.nombre_sede,
-        s.cod_asig,
-        s.seccion,
-        d.rut_docente,
-        d.nombre_doc,
-        d.apellidos_doc,
-        d.mail_doc
-      FROM 
-        secciones as s
-      JOIN
-        docentes as d ON d.rut_docente = s.rut_docente
-      JOIN
-        sedes as sd ON sd.id_sede = s.id_sede
-      WHERE s.id_seccion = $1
+SELECT 
+    s.id_seccion,
+    sd.nombre_sede,
+    s.cod_asig,
+    s.seccion,
+    d.rut_docente,
+    d.nombre_doc,
+    d.apellidos_doc,
+    d.mail_doc,
+    COUNT(i.id_matricula) AS inscritos
+FROM 
+    secciones AS s
+JOIN
+    docentes AS d ON d.rut_docente = s.rut_docente
+JOIN
+    sedes AS sd ON sd.id_sede = s.id_sede
+LEFT JOIN 
+    inscripcion AS i ON s.id_seccion = i.id_seccion
+WHERE 
+    s.id_seccion = $1
+GROUP BY 
+    s.id_seccion,
+    sd.nombre_sede,
+    s.cod_asig,
+    s.seccion,
+    d.rut_docente,
+    d.nombre_doc,
+    d.apellidos_doc,
+    d.mail_doc;
+
     `, [id_seccion]); // Usar $1 para el parámetro
     res.json(result.rows);
   } catch (err) {
@@ -2120,6 +2134,7 @@ app.get('/rut_lecturas/:rut', async (req, res) => {
         l.reproceso,
         l.imagen,
         split_part(l.imagen, '_', 1) AS id_upload,  -- Extrae el número antes del "_"
+        substring(l.imagen from position('_' in l.imagen) + 1) AS nombre_imagen
         l.instante_forms
     FROM lectura l
     JOIN asignaturas asig ON asig.cod_interno = l.cod_interno
@@ -2185,6 +2200,74 @@ app.get('/api/historial_procesamiento', async (req, res) => {
   } catch (err) {
     console.error('Error al obtener calificaciones:', err);
     res.status(500).json({ error: 'Error al obtener calificaciones' });
+  }
+});
+
+// Endpoint GET para obtener id_matricula por rut
+app.get('/rut_matricula/:rut', async (req, res) => {
+  const client = await pool.connect();  // Usamos el pool para la conexión a la base de datos
+  const { rut } = req.params;  // Obtener el parámetro rut desde la URL
+
+  try {
+    // Validar que el RUT tenga el formato correcto (números seguidos de un guion y una letra o número)
+    const rutRegex = /^\d{7,8}[0-9Kk]$/;  // Permitir 7 u 8 dígitos y la letra "K"
+    if (!rut || !rutRegex.test(rut)) {
+      return res.status(400).json({ error: 'El RUT debe tener un formato válido.' });
+    }
+
+    // Realizar la consulta a la base de datos
+    const query = 'SELECT id_matricula FROM matricula WHERE rut = $1 LIMIT 1';
+    const result = await client.query(query, [rut]);  // Pasamos el RUT como parámetro a la consulta
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No se encontró una matrícula con ese RUT' });
+    }
+
+    console.log("Resultado de la consulta:", result.rows);
+
+    // Retornar el resultado como respuesta
+    res.status(200).json(result.rows[0]);
+
+  } catch (err) {
+    console.error('Error en el servidor:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();  // Liberamos la conexión al final
+  }
+});
+
+app.get('/api/historial_imagenes', async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    const query = `
+      SELECT 
+        i.id_lista,
+        i.id_sede,
+        i.cod_asig,
+        asig.cod_programa,
+        COUNT(*) AS cant_adjuntos
+      FROM imagenes i
+      JOIN asignaturas asig ON asig.cod_asig = i.cod_asig
+      GROUP BY i.id_lista, i.id_sede, i.cod_asig, asig.cod_programa
+      ORDER BY i.id_lista;
+    `;
+
+    const result = await client.query(query);
+
+    res.status(200).json({
+      success: true,
+      data: result.rows,
+    });
+  } catch (error) {
+    console.error('Error obteniendo adjuntos por lista:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener los datos',
+      error: error.message
+    });
+  } finally {
+    client.release();
   }
 });
 
@@ -2460,6 +2543,8 @@ app.get('/api/evaluaciones', async (req, res) => {
         e.num_prueba,
         e.nombre_prueba,
         e.tiene_formas,
+        e.retro_alum,
+        e.retro_doc,
         e.tiene_grupo,
         e.cargado_fecha,
         e.archivo_tabla
@@ -2599,18 +2684,27 @@ app.put('/api/cambiarinscripcion', async (req, res) => {
   }
 });
 
-// Endpoint para agregar una nueva inscripción de alumno
 app.post('/api/agregarinscripcion', async (req, res) => {
   const { id_inscripcion, id_matricula, id_seccion } = req.body;
 
+  // Fecha y hora actual para marca temporal
+  const marca_temporal = new Date().toISOString();  // Genera una fecha en formato ISO
+  const vigente = true;  // El campo 'vigente' será siempre true
+
   try {
     const query = `
-      INSERT INTO public.inscripcion (id_inscripcion, id_matricula, id_seccion) 
-      VALUES ($1, $2, $3) 
+      INSERT INTO public.inscripcion (id_inscripcion, id_matricula, id_seccion, marca_temporal, vigente) 
+      VALUES ($1, $2, $3, $4, $5) 
       RETURNING *;`;
 
-    // Ejecutar la consulta con los parámetros en el orden correcto
-    const result = await pool.query(query, [id_inscripcion, id_matricula, id_seccion]);
+    // Ejecutar la consulta con los parámetros, incluyendo la marca temporal y el campo vigente
+    const result = await pool.query(query, [
+      id_inscripcion, 
+      id_matricula, 
+      id_seccion, 
+      marca_temporal, 
+      vigente
+    ]);
 
     if (result.rowCount > 0) {
       res.status(201).json({ message: 'Inscripción creada exitosamente.', data: result.rows[0] });
@@ -2622,7 +2716,6 @@ app.post('/api/agregarinscripcion', async (req, res) => {
     res.status(500).json({ error: 'Error en la consulta SQL' });
   }
 });
-
 
 // Endpoint para actualizar el registro del alumno en la tabla de alumnos
 app.put('/api/actualizar-alumno', async (req, res) => {
@@ -2652,6 +2745,188 @@ app.put('/api/actualizar-alumno', async (req, res) => {
   }
 });
 
+// Endpoint para crear alumno
+app.post('/crear_alumno', async (req, res) => {
+  const { rut, nombres, apellidos, user_alum, sexo } = req.body;
+
+  // Validación básica
+  if (!rut || !nombres || !apellidos || !user_alum || !sexo) {
+    return res.status(400).json({
+      error: 'Faltan datos requeridos para crear el alumno.'
+    });
+  }
+
+  try {
+    const query = `
+      INSERT INTO alumnos (rut, nombres, apellidos, user_alum, sexo)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *;
+    `;
+
+    const result = await pool.query(query, [rut, nombres, apellidos, user_alum, sexo]);
+
+    if (result.rowCount > 0) {
+      return res.status(201).json({
+        message: 'Alumno creado exitosamente.',
+        data: result.rows[0]
+      });
+    } else {
+      return res.status(400).json({
+        error: 'No se pudo crear el alumno. Verifique los datos.'
+      });
+    }
+
+  } catch (error) {
+    console.error('Error al crear alumno (backend):', error);
+
+    // Verificar errores comunes (por ejemplo, RUT duplicado si es PK)
+    if (error.code === '23505') { // código típico de violación de restricción única en PostgreSQL
+      return res.status(409).json({
+        error: 'Ya existe un alumno con ese RUT.'
+      });
+    }
+
+    return res.status(500).json({
+      error: 'Error interno del servidor al crear el alumno.',
+      detalle: error.message
+    });
+  }
+});
+
+// Endpoint para crear docente
+app.post('/crear_docente', async (req, res) => {
+  const { rut_docente, nombre_doc, apellidos_doc, username_doc, mail_doc } = req.body;
+
+  // Validación básica
+  if (!rut_docente || !nombre_doc || !apellidos_doc || !username_doc || !mail_doc) {
+    return res.status(400).json({
+      error: 'Faltan datos requeridos para crear el docente.'
+    });
+  }
+
+  try {
+    const query = `
+      INSERT INTO docentes (rut_docente, nombre_doc, apellidos_doc, username_doc, mail_doc)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *;
+    `;
+
+    const result = await pool.query(query, [
+      rut_docente,
+      nombre_doc,
+      apellidos_doc,
+      username_doc,
+      mail_doc
+    ]);
+
+    if (result.rowCount > 0) {
+      return res.status(201).json({
+        message: 'Docente creado exitosamente.',
+        data: result.rows[0]
+      });
+    } else {
+      return res.status(400).json({
+        error: 'No se pudo crear el docente. Verifique los datos.'
+      });
+    }
+
+  } catch (error) {
+    console.error('Error al crear docente (backend):', error);
+
+    if (error.code === '23505') {
+      return res.status(409).json({
+        error: 'Ya existe un docente con ese RUT o nombre de usuario.'
+      });
+    }
+
+    return res.status(500).json({
+      error: 'Error interno del servidor al crear el docente.',
+      detalle: error.message
+    });
+  }
+});
+
+// Endpoint para crear matrícula
+app.post('/crear_matricula', async (req, res) => {
+  const {
+    id_matricula,
+    rut,
+    id_sede,
+    cod_plan,
+    ano,
+    periodo,
+    marca_temporal,
+    vigente,
+    estado
+  } = req.body;
+
+  // Validación básica de campos requeridos
+  if (
+    !id_matricula ||
+    !rut ||
+    !id_sede ||
+    !cod_plan ||
+    !ano ||
+    !periodo ||
+    !marca_temporal ||
+    vigente === undefined || // para permitir false
+    !estado
+  ) {
+    return res.status(400).json({
+      error: 'Faltan uno o más campos requeridos para crear la matrícula.'
+    });
+  }
+
+  try {
+    const query = `
+      INSERT INTO matricula (
+        id_matricula, rut, id_sede, cod_plan,
+        ano, periodo, marca_temporal, vigente, estado
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *;
+    `;
+
+    const values = [
+      id_matricula,
+      rut,
+      id_sede,
+      cod_plan,
+      ano,
+      periodo,
+      marca_temporal,
+      vigente,
+      estado
+    ];
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount > 0) {
+      return res.status(201).json({
+        message: 'Matrícula creada exitosamente.',
+        data: result.rows[0]
+      });
+    } else {
+      return res.status(400).json({
+        error: 'No se pudo crear la matrícula. Verifique los datos enviados.'
+      });
+    }
+
+  } catch (error) {
+    console.error('Error al crear matrícula (backend):', error);
+
+    if (error.code === '23505') {
+      return res.status(409).json({
+        error: 'Ya existe una matrícula con ese ID.'
+      });
+    }
+
+    return res.status(500).json({
+      error: 'Error interno del servidor al crear la matrícula.',
+      detalle: error.message
+    });
+  }
+});
 
 // ---------------------------------
 //      API PARA BORRAR !!!

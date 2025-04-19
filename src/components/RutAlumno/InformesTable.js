@@ -75,7 +75,7 @@ const columns = (handleRehacerInforme, handleReenviarInforme) => [
     dataIndex: 'id_matricula_eval',
     key: 'informe',
     render: (id_matricula_eval, record) => {
-      const url = `https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/2024002/alumnos/${id_matricula_eval}.html`;
+      const url = `https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/2025001/alumnos/${id_matricula_eval}.html`;
   
       return (
         <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>

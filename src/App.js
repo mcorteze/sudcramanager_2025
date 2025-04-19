@@ -61,8 +61,10 @@ import RutLecturas from './components/RutAlumno/RutLecturas.js';
 import MonitorPage from './pages/MonitorPage.js';
 import ResumenProcesosPage from './pages/ResumenProcesosPage.js';
 import Monitoreo from './pages/Monitoreo.js';
-
-
+import CrearAlumnoPage from './pages/CrearAlumnoPage.js';
+import CrearDocentePage from './pages/CrearDocentePage.js';
+import CrearMatriculaPage from './pages/CrearMatriculaPage.js';
+import MonitoreoInicioPage from './pages/MonitoreoInicioPage.js'
 import './App.css';
 
 import EnlacesFlotante from './components/EnlacesFlotante.js';
@@ -136,7 +138,7 @@ const AppContent = () => {
           }}
         >
           <Routes>
-            <Route path="/" element={<Monitoreo />} />
+            <Route path="/" element={<MonitoreoInicioPage />} />
             <Route path="/informe" element={<Informe />} />
             <Route path="/informe/:programa/:sede/:asignatura/:seccion" element={<Informe />} />
             <Route path="/rut" element={<RutAlumno />} />
@@ -186,6 +188,10 @@ const AppContent = () => {
             <Route path="/rut_lecturas/:rut" element={<RutLecturas />} />
             <Route path="/monitor_accesos" element={<MonitorPage />} />
             <Route path="/resumen_procesos" element={<ResumenProcesosPage />} />
+            <Route path="/crear_alumno" element={<CrearAlumnoPage />} />
+            <Route path="/crear_docente" element={<CrearDocentePage />} />
+            <Route path="/crear_matricula" element={<CrearMatriculaPage />} />
+            <Route path="/monitoreo_inicio" element={<MonitoreoInicioPage />} />
           </Routes>
         </Content>
       </Layout>

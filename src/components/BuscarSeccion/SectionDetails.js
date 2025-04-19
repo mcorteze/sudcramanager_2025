@@ -90,6 +90,16 @@ const SectionDetails = ({ data }) => (
               />
             </p>
           </Col>
+          <Col span={8}>
+            <p className="titulo">Inscritos:</p>
+            <p>
+              {item.inscritos} alumnos
+              <CopyOutlined
+                style={{ cursor: 'pointer', marginLeft: 8, color: '#1890ff' }}
+                onClick={() => copyToClipboard(item.inscritos)}
+              />
+            </p>
+          </Col>
         </Row>
       </div>
     ))}

@@ -76,27 +76,36 @@ const RutLecturas = ({ rut }) => {
     { title: 'ID Upload', dataIndex: 'id_upload', key: 'id_upload' },
 
     {
-  title: 'Acciones',
-  key: 'acciones',
-  render: (text, record) => {
-    const [idUpload, codigo] = record.imagen.split('_');
-    const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20251/Attachments/${idUpload}/${codigo}`;
+      title: 'Acciones',
+      key: 'acciones',
+      render: (text, record) => {
+        const [idUpload, ...rest] = record.imagen.split('_');
+        const nombre_imagen = rest.join('_'); // Por si hay más de un "_" en el nombre
     
-    return (
-      <div>
-        <a onClick={() => handleVerLectura(record.id_archivoleido, record.linea_leida)} style={{ marginRight: 10 }}>
-          Ver lectura
-        </a>
-        <a onClick={() => handleVerErrores(record.id_archivoleido, record.linea_leida)} style={{ marginRight: 10 }}>
-          Ver errores
-        </a>
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          Ver imagen
-        </a>
-      </div>
-    );
-  }
-}
+        const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20251/Attachments/${idUpload}/${nombre_imagen}`;
+        const lecturaUrl = `/lectura/${record.id_archivoleido}/${record.linea_leida}`;
+        const erroresUrl = `/errores/${record.id_archivoleido}/${record.linea_leida}`;
+    
+        return (
+          <div>
+            <a href={lecturaUrl} target="_blank" rel="noopener noreferrer" style={{ marginRight: 10 }}>
+              Ver lectura
+            </a>
+            <a href={erroresUrl} target="_blank" rel="noopener noreferrer" style={{ marginRight: 10 }}>
+              Ver errores
+            </a>
+            <a href={url} target="_blank" rel="noopener noreferrer">
+              Ver imagen
+            </a>
+          </div>
+        );
+      }
+    }
+    
+
+
+    
+    
 
   ];
 

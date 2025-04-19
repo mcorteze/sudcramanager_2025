@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Table,
   Spin,
   message,
   Typography,
@@ -127,32 +126,6 @@ const HistorialProcesamientoTable = () => {
     </Row>
   );
 
-  const formatDateTime = (text) => {
-    if (!text) return '—';
-    const date = new Date(text);
-    const pad = (n) => n.toString().padStart(2, '0');
-    const formattedDate = `${pad(date.getDate())}-${pad(date.getMonth() + 1)}-${date.getFullYear()}`;
-    const formattedTime = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-    return `${formattedDate}, ${formattedTime}`;
-  };
-
-  const columns = [
-    { title: 'Programa', dataIndex: 'programa', key: 'programa' },
-    { title: 'Código Programa', dataIndex: 'cod_programa', key: 'cod_programa' },
-    { title: 'Código Asignatura', dataIndex: 'cod_asig', key: 'cod_asig' },
-    { title: 'Num Prueba', dataIndex: 'num_prueba', key: 'num_prueba' },
-    { title: 'Nombre Prueba', dataIndex: 'nombre_prueba', key: 'nombre_prueba' },
-    { title: 'Tipo Archivo', dataIndex: 'tipoarchivo', key: 'tipoarchivo' },
-    {
-      title: 'Fecha de Lectura',
-      dataIndex: 'lectura_fecha',
-      key: 'lectura_fecha',
-      render: (text) => formatDateTime(text),
-    },
-    { title: 'ID Lista (upload)', dataIndex: 'id_lista', key: 'id_lista' },
-  ];
-
-  // 🎨 Colores asignados por programa (puedes personalizar aquí)
   const programColors = {};
   const colorPalette = [
     '#8884d8', '#82ca9d', '#ffc658', '#ff7f50',
@@ -161,24 +134,24 @@ const HistorialProcesamientoTable = () => {
   ];
 
   const getChartData = () => {
-    const quarterHours = Array.from({ length: 96 }, (_, i) => i * 0.25); // de 0 a 23.75 en pasos de 15 min
+    const quarterHours = Array.from({ length: 96 }, (_, i) => i * 0.25);
     const programas = [...new Set(filteredData.map(item => item.programa))];
-  
+
     const base = quarterHours.map(h => {
-      const hourLabel = h.toFixed(2); // ej: "14.25"
+      const hourLabel = h.toFixed(2);
       const entry = { hora: parseFloat(hourLabel) };
       programas.forEach(programa => {
         entry[programa] = 0;
       });
       return entry;
     });
-  
+
     filteredData.forEach((item) => {
       const date = new Date(item.lectura_fecha);
       const hour = date.getHours();
       const minutes = date.getMinutes();
       const decimalHour = hour + minutes / 60;
-      const rounded = Math.round(decimalHour * 4) / 4; // redondear a 15 min
+      const rounded = Math.round(decimalHour * 4) / 4;
       const entry = base.find(e => e.hora === rounded);
       if (entry) {
         const programa = item.programa;
@@ -187,7 +160,7 @@ const HistorialProcesamientoTable = () => {
         }
       }
     });
-  
+
     base.forEach(entry => {
       programas.forEach(programa => {
         if (entry[programa] === 0) {
@@ -195,26 +168,24 @@ const HistorialProcesamientoTable = () => {
         }
       });
     });
-  
+
     programas.forEach((programa, i) => {
       if (!programColors[programa]) {
         programColors[programa] = colorPalette[i % colorPalette.length];
       }
     });
-  
+
     return base;
   };
-  
 
-  // 🕒 Hora actual (ej: '14:00')
   const now = new Date();
   const currentDecimalHour = now.getHours() + now.getMinutes() / 60;
-  
+
   return (
     <Spin spinning={loading}>
       <div>
-        <Space direction="vertical" size="middle" style={{ marginBottom: 20 }}>
-          <Title level={4}>Selecciona una fecha para filtrar:</Title>
+        <Space direction="vertical" size="middle">
+          <Title level={2} style={{ fontSize: 22, fontWeight: 300 }}>Monitoreo de lecturas con calificación</Title>
           <DatePicker
             value={selectedDate}
             onChange={handleDateChange}
@@ -227,32 +198,29 @@ const HistorialProcesamientoTable = () => {
 
         {renderFilters()}
 
-        <Title level={4}>Distribución de lecturas por hora y programa</Title>
+        <Title level={4}>Distribución de lecturas con calificación, por hora y programa</Title>
         <ResponsiveContainer width="100%" height={350}>
           <LineChart data={getChartData()}>
-          <XAxis
-  dataKey="hora"
-  type="number"
-  domain={[0, 24]}
-  tickFormatter={(tick) => {
-    const hours = Math.floor(tick);
-    const minutes = Math.round((tick - hours) * 60);
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-  }}
-  ticks={Array.from({ length: 25 }, (_, i) => i)} // [0, 1, ..., 24]
-/>
-
-
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Legend />
-                    <ReferenceLine
-          x={currentDecimalHour}
-          stroke="red"
-          strokeWidth={2}
-          label={{ value: 'Hora actual', position: 'insideTopRight', fill: 'red' }}
-        />
-
+            <XAxis
+              dataKey="hora"
+              type="number"
+              domain={[0, 24]}
+              tickFormatter={(tick) => {
+                const hours = Math.floor(tick);
+                const minutes = Math.round((tick - hours) * 60);
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+              }}
+              ticks={Array.from({ length: 25 }, (_, i) => i)}
+            />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Legend />
+            <ReferenceLine
+              x={currentDecimalHour}
+              stroke="red"
+              strokeWidth={2}
+              label={{ value: 'Ahora', position: 'insideTopRight', fill: 'red' }}
+            />
             {Array.from(new Set(filteredData.map(item => item.programa))).map((programa) => (
               <Line
                 key={programa}
@@ -266,16 +234,6 @@ const HistorialProcesamientoTable = () => {
             ))}
           </LineChart>
         </ResponsiveContainer>
-
-        <Divider />
-
-        <Table
-          dataSource={filteredData}
-          columns={columns}
-          rowKey="id_matricula_eval"
-          scroll={{ x: 'max-content' }}
-          pagination={{ pageSize: 10 }}
-        />
       </div>
     </Spin>
   );

@@ -77,6 +77,18 @@ export default function EvaluacionesFiltradas() {
       render: (text, record) => (record.tiene_formas ? 'Sí' : 'No')
     },
     { 
+      title: 'Retro Alumno', 
+      dataIndex: 'retro_alum', 
+      key: 'retro_alum',
+      render: (text, record) => (record.tiene_formas ? 'Sí' : 'No')
+    },
+    { 
+      title: 'Retro Docente', 
+      dataIndex: 'retro_doc', 
+      key: 'retro_doc',
+      render: (text, record) => (record.tiene_formas ? 'Sí' : 'No')
+    },
+    { 
       title: 'Tiene Grupo', 
       dataIndex: 'tiene_grupo', 
       key: 'tiene_grupo',
