@@ -65,6 +65,7 @@ import CrearAlumnoPage from './pages/CrearAlumnoPage.js';
 import CrearDocentePage from './pages/CrearDocentePage.js';
 import CrearMatriculaPage from './pages/CrearMatriculaPage.js';
 import MonitoreoInicioPage from './pages/MonitoreoInicioPage.js'
+import SubirDocenteSeccionMasivo from './pages/SubirDocenteSeccionMasivo.js'
 import './App.css';
 
 import EnlacesFlotante from './components/EnlacesFlotante.js';
@@ -192,6 +193,8 @@ const AppContent = () => {
             <Route path="/crear_docente" element={<CrearDocentePage />} />
             <Route path="/crear_matricula" element={<CrearMatriculaPage />} />
             <Route path="/monitoreo_inicio" element={<MonitoreoInicioPage />} />
+            <Route path="/subirdocenteseccionmasivo" element={<SubirDocenteSeccionMasivo />} />
+            
           </Routes>
         </Content>
       </Layout>

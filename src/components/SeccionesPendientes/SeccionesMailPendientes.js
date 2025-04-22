@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Spin, Alert, Button, message } from 'antd';
-import { CopyOutlined } from '@ant-design/icons';
+import { CopyOutlined, DownloadOutlined } from '@ant-design/icons';
+import * as XLSX from 'xlsx';
 import 'antd/dist/reset.css';
 import moment from 'moment';
 import './formato_tabla.css';
@@ -37,6 +38,27 @@ export default function SeccionesMailPendientes() {
     }).catch(() => {
       message.error('Error al copiar al portapapeles');
     });
+  };
+
+  const handleExport = () => {
+    const dataToExport = seccionesMailPendientes.map(row => ({
+      Programa: row.programa,
+      Sede: row.nombre_sede,
+      Sección: row.seccion,
+      'ID Sección': row.id_seccion,
+      'RUT Docente': row.rut_docente,
+      'ID Informe Sección': row.id_informeseccion,
+      'ID Evaluación': row.id_eval,
+      'Marca Temporal': row.marca_temporal ? moment(row.marca_temporal).format('DD/MM/YYYY HH:mm:ss') : '',
+      'Marca Temporal Mail': row.marca_temp_mail ? moment(row.marca_temp_mail).format('DD/MM/YYYY HH:mm:ss') : '',
+      'Mail Enviado': row.mail_enviado ? 'Sí' : 'No'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Pendientes');
+
+    XLSX.writeFile(workbook, 'secciones_pendientes.xlsx');
   };
 
   const columns = [
@@ -92,17 +114,10 @@ export default function SeccionesMailPendientes() {
     },
   ];
 
-  if (loading) {
-    return <div><Spin /> Cargando...</div>;
-  }
-
-  if (error) {
-    return <Alert message="Error" description={error} type="error" />;
-  }
-
-  if (seccionesMailPendientes.length === 0) {
+  if (loading) return <div><Spin /> Cargando...</div>;
+  if (error) return <Alert message="Error" description={error} type="error" />;
+  if (seccionesMailPendientes.length === 0)
     return <Alert message="No hay secciones pendientes" description="No hay más secciones pendientes de envío de mail." type="info" />;
-  }
 
   return (
     <div>
@@ -116,6 +131,11 @@ export default function SeccionesMailPendientes() {
         pagination={false}
         className="table-small-font"
       />
+      <div style={{ marginTop: '20px', textAlign: 'right' }}>
+        <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport}>
+          Exportar a Excel
+        </Button>
+      </div>
     </div>
   );
 }

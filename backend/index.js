@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  host: '10.12.1.235',
-  database: 'sudcra',
+  //host: '10.12.1.235',
+  //database: 'sudcra',
   // ******* bases de datos estáticas *******
-  //host: 'localhost',
-  //database: 'sudcra_0404', // final primer semestre
+  host: 'localhost',
+  database: 'sudcra_0421', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -2271,6 +2271,70 @@ app.get('/api/historial_imagenes', async (req, res) => {
   }
 });
 
+app.get('/api/completar_seccion/:id_seccion', async (req, res) => {
+  const client = await pool.connect();
+  const { id_seccion } = req.params;
+
+  try {
+    const query = `
+      SELECT 
+        s.seccion,
+        sd.nombre_sede
+      FROM secciones s
+      JOIN sedes sd ON sd.id_sede = s.id_sede
+      WHERE s.id_seccion = $1
+    `;
+
+    const result = await client.query(query, [id_seccion]);
+
+    if (result.rows.length === 0) {
+      return res.status(200).json({ seccion: 's.i.', nombre_sede: 's.i.' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error obteniendo datos de sección:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener datos de la sección',
+      error: error.message
+    });
+  } finally {
+    client.release();
+  }
+});
+
+app.get('/api/completar_docente/:rut_docente', async (req, res) => {
+  const client = await pool.connect();
+  const { rut_docente } = req.params;
+
+  try {
+    const query = `
+      SELECT 
+        apellidos_doc || ' ' || nombre_doc AS docente,
+        mail_doc
+      FROM docentes
+      WHERE rut_docente = $1
+    `;
+
+    const result = await client.query(query, [rut_docente]);
+
+    if (result.rows.length === 0) {
+      return res.status(200).json({ docente: 's.i.', mail_doc: 's.i.' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error obteniendo datos del docente:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener datos del docente',
+      error: error.message
+    });
+  } finally {
+    client.release();
+  }
+});
 
 // ------------------------------------------------------
 
