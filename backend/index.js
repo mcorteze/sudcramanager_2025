@@ -2312,7 +2312,7 @@ app.get('/api/completar_docente/:rut_docente', async (req, res) => {
     const query = `
       SELECT 
         apellidos_doc || ' ' || nombre_doc AS docente,
-        mail_doc
+        username_doc
       FROM docentes
       WHERE rut_docente = $1
     `;
@@ -2339,6 +2339,50 @@ app.get('/api/completar_docente/:rut_docente', async (req, res) => {
 // ------------------------------------------------------
 
 // API PARA ESCRIBIR
+app.put('/api/asignardocente', async (req, res) => {
+  const { idSeccion, rutDocente } = req.body;
+
+  console.log("Parámetros recibidos:", { idSeccion, rutDocente });
+
+  // Validación básica de entrada
+  if (!idSeccion || !rutDocente) {
+    return res.status(400).json({ error: 'Faltan parámetros requeridos: idSeccion y/o rutDocente.' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN'); // Inicia transacción
+
+    const query = `
+      UPDATE secciones
+      SET rut_docente = $1
+      WHERE id_seccion = $2
+      RETURNING *;
+    `;
+
+    const result = await client.query(query, [rutDocente, idSeccion]);
+
+    if (result.rowCount === 0) {
+      throw new Error('No se encontró la sección para actualizar.');
+    }
+
+    await client.query('COMMIT'); // Confirma transacción
+
+    res.status(200).json({
+      message: 'Docente asignado correctamente a la sección.',
+      updatedSection: result.rows[0],
+    });
+  } catch (err) {
+    await client.query('ROLLBACK'); // Deshace cambios en caso de error
+    console.error('Error al asignar docente:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release(); // Libera la conexión
+  }
+});
+
+
 app.put('/api/rehacerinformealumno', async (req, res) => {
   const { idMatriculaEval } = req.body; // Recibimos el id_matricula_eval
   console.log("idMatriculaEval recibido:", idMatriculaEval);

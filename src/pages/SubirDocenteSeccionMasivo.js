@@ -1,56 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Upload, Button, Table, message } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Upload, Button, Table, message, Popconfirm } from 'antd';
+import { UploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
-import { Link } from 'react-router-dom'; // Importamos Link de react-router-dom
 
 export default function ExcelUploader() {
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
-  const [firstIdSeccion, setFirstIdSeccion] = useState(null);
-  const [seccionInfo, setSeccionInfo] = useState({ seccion: 'Cargando...', nombre_sede: 'Cargando...' });
-  const [rutDocente, setRutDocente] = useState(null);
-  const [docenteInfo, setDocenteInfo] = useState({ docente: 'Cargando...', mail_doc: 'Cargando...' });
-  const [selectedRow, setSelectedRow] = useState(null); // Para almacenar el id_seccion seleccionado
 
-  // Función para consumir el endpoint de la sección
-  const fetchSeccionInfo = async (idSeccion) => {
-    try {
-      const response = await fetch(`http://localhost:3001/api/completar_seccion/${idSeccion}`);
-      const data = await response.json();
-
-      if (data.seccion !== 's.i.') {
-        setSeccionInfo(data);
-      } else {
-        setSeccionInfo({ seccion: 'No disponible', nombre_sede: 'No disponible' });
-      }
-    } catch (error) {
-      console.error('Error al obtener los datos de la sección:', error);
-      setSeccionInfo({ seccion: 'Error', nombre_sede: 'Error' });
-    }
-  };
-
-  // Función para consumir el endpoint del docente
-  const fetchDocenteInfo = async (rutDocente) => {
-    try {
-      const response = await fetch(`http://localhost:3001/api/completar_docente/${rutDocente}`);
-      const data = await response.json();
-
-      if (data.docente !== 's.i.') {
-        setDocenteInfo(data);
-      } else {
-        setDocenteInfo({ docente: 'No disponible', mail_doc: 'No disponible' });
-      }
-    } catch (error) {
-      console.error('Error al obtener los datos del docente:', error);
-      setDocenteInfo({ docente: 'Error', mail_doc: 'Error' });
-    }
-  };
-
-  // Función para manejar la carga del archivo Excel
-  const handleFileUpload = (file) => {
+  const handleFileUpload = async (file) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: 'array' });
 
@@ -72,88 +31,158 @@ export default function ExcelUploader() {
         return { key: index, ...rowData };
       });
 
-      setColumns(headers.map(header => ({
+      const enrichedRows = await Promise.all(rows.map(async (row) => {
+        let seccion = { seccion: 'No disponible', nombre_sede: 'No disponible' };
+        let docente = { docente: 'No disponible', mail_doc: 'No disponible', username_doc: 'No disponible' };
+
+        try {
+          if (row.id_seccion) {
+            const res = await fetch(`http://localhost:3001/api/completar_seccion/${row.id_seccion}`);
+            const data = await res.json();
+            if (data.seccion !== 's.i.') {
+              seccion = data;
+            }
+          }
+        } catch (e) {
+          console.error(`Error al obtener sección para ${row.id_seccion}`, e);
+        }
+
+        try {
+          if (row.rut_docente) {
+            const res = await fetch(`http://localhost:3001/api/completar_docente/${row.rut_docente}`);
+            const data = await res.json();
+            if (data.docente !== 's.i.') {
+              docente = data;
+            }
+          }
+        } catch (e) {
+          console.error(`Error al obtener docente para ${row.rut_docente}`, e);
+        }
+
+        const isComplete =
+          seccion.nombre_sede !== 'No disponible' &&
+          seccion.seccion !== 'No disponible' &&
+          docente.docente !== 'No disponible' &&
+          docente.username_doc !== 'No disponible';
+
+        return {
+          ...row,
+          nombre_sede: seccion.nombre_sede,
+          seccion: seccion.seccion,
+          docente: docente.docente,
+          username_doc: docente.username_doc,
+          validacion: isComplete ? '✔️' : '❌',
+        };
+      }));
+
+      const extendedHeaders = [...headers, 'nombre_sede', 'seccion', 'docente', 'username_doc'];
+
+      const baseColumns = extendedHeaders.map(header => ({
         title: header,
         dataIndex: header,
         key: header,
-      })));
-      setData(rows);
-    };
-    reader.readAsArrayBuffer(file);
-    return false; // evita el upload real
-  };
+        render: (text) =>
+          header === 'rut_docente' && text ? (
+            <a href={`/carga-docente/${text}`} target="_blank" rel="noopener noreferrer">
+              {text}
+            </a>
+          ) : (
+            text
+          ),
+      }));
 
-  // Función para manejar la selección de fila
-  const handleRowSelect = (row) => {
-    setSelectedRow(row);
+      baseColumns.push({
+        title: 'Validación',
+        dataIndex: 'validacion',
+        key: 'validacion',
+        render: (text) => <span style={{ fontSize: '18px' }}>{text}</span>,
+      });
 
-    // Llamar al endpoint para completar la información de la sección
-    if (row.id_seccion) {
-      fetchSeccionInfo(row.id_seccion);
-    }
-
-    // Llamar al endpoint para obtener los datos del docente
-    if (row.rut_docente) {
-      fetchDocenteInfo(row.rut_docente);
-    }
-  };
-
-  const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
-      if (selectedRows.length > 0) {
-        handleRowSelect(selectedRows[0]); // Seleccionamos el primer registro de la lista seleccionada
-      }
-    },
-    type: 'radio', // Tipo de selección será por Radio Button
-    selectedRowKeys: selectedRow ? [selectedRow.key] : [], // Establecer la fila seleccionada
-  };
-
-  // Añadimos una columna para mostrar el enlace de 'Rut Docente'
-  const modifiedColumns = columns.map(col => {
-    if (col.dataIndex === 'rut_docente') {
-      return {
-        ...col,
-        render: (text) => (
-          <a href={`/carga-docente/${text}`} target="_blank" rel="noopener noreferrer">
-            {text}
-          </a>
+      baseColumns.push({
+        title: 'Acción',
+        key: 'accion',
+        render: (_, record) => (
+          <Popconfirm
+            title="¿Deseas registrar al docente en esta sección?"
+            onConfirm={() => handleRegistrar(record)}
+            okText="Sí"
+            cancelText="Cancelar"
+            disabled={record.validacion !== '✔️'}
+          >
+            <Button type="primary" disabled={record.validacion !== '✔️'}>
+              Registrar
+            </Button>
+          </Popconfirm>
         ),
-      };
+      });
+
+      setColumns(baseColumns);
+      setData(enrichedRows);
+    };
+
+    reader.readAsArrayBuffer(file);
+    return false;
+  };
+
+  const handleRegistrar = async (record) => {
+    const { id_seccion, rut_docente } = record;
+
+    try {
+      const res = await fetch('http://localhost:3001/api/asignardocente', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idSeccion: id_seccion,
+          rutDocente: rut_docente,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        message.success(`Registro actualizado: ${result.message}`);
+      } else {
+        message.error(`Error: ${result.error || 'No se pudo registrar'}`);
+      }
+    } catch (err) {
+      console.error('Error al registrar:', err);
+      message.error('Error al conectar con el servidor.');
     }
-    return col;
-  });
+  };
+
+  const handleDescargarFormato = () => {
+    const worksheet = XLSX.utils.aoa_to_sheet([
+      ['id_seccion', 'rut_docente'], // Cabeceras
+    ]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Formato');
+    XLSX.writeFile(workbook, 'formato_asignacion.xlsx');
+  };
 
   return (
     <div>
       <h2>Subir archivo Excel</h2>
-      <Upload
-        beforeUpload={handleFileUpload}
-        accept=".xlsx, .xls"
-        showUploadList={false}
-        maxCount={1}
-      >
-        <Button icon={<UploadOutlined />}>Seleccionar archivo Excel</Button>
-      </Upload>
-
-      {selectedRow && (
-        <div style={{ marginTop: 20 }}>
-          <h3>Primer id_seccion: {selectedRow.id_seccion}</h3>
-          <p><strong>Sección:</strong> {seccionInfo.seccion}</p>
-          <p><strong>Sede:</strong> {seccionInfo.nombre_sede}</p>
-          <p><strong>Rut Docente:</strong> {selectedRow.rut_docente || 'No disponible'}</p>
-          <p><strong>Docente:</strong> {docenteInfo.docente}</p>
-          <p><strong>Correo Docente:</strong> {docenteInfo.mail_doc}</p>
-        </div>
-      )}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+        <Button icon={<DownloadOutlined />} onClick={handleDescargarFormato}>
+          Descargar formato
+        </Button>
+        <Upload
+          beforeUpload={handleFileUpload}
+          accept=".xlsx, .xls"
+          showUploadList={false}
+          maxCount={1}
+        >
+          <Button icon={<UploadOutlined />}>Seleccionar archivo Excel</Button>
+        </Upload>
+      </div>
 
       {data.length > 0 && (
         <div style={{ marginTop: 20 }}>
           <h3>Datos cargados</h3>
           <Table
             dataSource={data}
-            columns={modifiedColumns}  // Usamos las columnas modificadas
-            pagination={{ pageSize: 10 }}
-            rowSelection={rowSelection} // Agregamos la configuración de selección de filas
+            columns={columns}
+            pagination={false}
           />
         </div>
       )}

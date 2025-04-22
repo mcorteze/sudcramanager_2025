@@ -118,6 +118,13 @@ export default function AccesosPage() {
       icon: <BuildOutlined />,
       link: "/crear_matricula",
     },
+    {
+      title: "Asignar docentes masivo",
+      subtitle: "Modificar registros",
+      description: "Permite asignar rut de docente a seccion a partir de .xlsx",
+      icon: <FormOutlined />,
+      link: "/subirdocenteseccionmasivo",
+    },
   ];
 
   return (
