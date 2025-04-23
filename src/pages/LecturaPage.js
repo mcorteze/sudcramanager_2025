@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, Input, Button, message, Space, Row, Col } from 'antd';
 import axios from 'axios';
@@ -9,6 +10,7 @@ const LecturaPage = () => {
   const [lineaLeida, setLineaLeida] = useState(linea_leida || ''); // Lo mismo con linea_leida
   const [datosLectura, setDatosLectura] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editableData, setEditableData] = useState([]); // Estado para los datos editables
 
   // Campos a mostrar arriba de la tabla
   const [campoData, setCampoData] = useState({
@@ -34,13 +36,12 @@ const LecturaPage = () => {
   const fetchLectura = async (idArchivoParam, lineaLeidaParam) => {
     setLoading(true);
     try {
-      // Hacemos la solicitud a la API usando los parámetros
       const response = await axios.get(`http://localhost:3001/api/lectura/${idArchivoParam}/${lineaLeidaParam}`);
       console.log('📥 Datos obtenidos:', response.data);
 
-      // Asegurarnos de que la respuesta sea un array válido
       if (Array.isArray(response.data.data)) {
         setDatosLectura(response.data.data || []);
+        setEditableData(response.data.data || []); // Actualizamos los datos editables
         extractFields(response.data.data);
       } else {
         console.error('La respuesta no es un array válido');
@@ -55,7 +56,6 @@ const LecturaPage = () => {
     }
   };
 
-  // Función para extraer los primeros valores de los campos
   const extractFields = (data) => {
     if (data.length > 0) {
       const firstRecord = data[0];
@@ -92,14 +92,32 @@ const LecturaPage = () => {
     return result;
   };
 
+  // Función para manejar el cambio en "Registro Leído"
+  const handleRegistroChange = (idLectura, newValue) => {
+    const newData = editableData.map(item =>
+      item.id_lectura === idLectura ? { ...item, registro_leido: newValue } : item
+    );
+    setEditableData(newData);
+  };
+
   // Columnas para la tabla
   const columns = [
     { title: 'N', dataIndex: 'n', key: 'n' },
-    { title: 'Registro Leído', dataIndex: 'registro_leido', key: 'registro_leido' },
+    {
+      title: 'Registro Leído',
+      dataIndex: 'registro_leido',
+      key: 'registro_leido',
+      render: (text, record, index) => (
+        <Input
+          value={text}
+          onChange={(e) => handleRegistroChange(record.id_lectura, e.target.value)}
+        />
+      ),
+    },
   ];
 
   // Dividir los datos en 6 tablas de 10 filas cada una
-  const tablasDatos = chunkData(datosLectura);
+  const tablasDatos = chunkData(editableData);
 
   return (
     <div style={{ padding: 24 }}>
@@ -108,50 +126,120 @@ const LecturaPage = () => {
         <Input
           placeholder="ID Archivo Leído"
           value={idArchivo}
-          onChange={(e) => setIdArchivo(e.target.value)} // Permite que el usuario escriba en el input
+          onChange={(e) => setIdArchivo(e.target.value)}
           style={{ width: 200 }}
         />
         <Input
           placeholder="Línea Leída"
           value={lineaLeida}
-          onChange={(e) => setLineaLeida(e.target.value)} // Permite que el usuario escriba en el input
+          onChange={(e) => setLineaLeida(e.target.value)}
           style={{ width: 200 }}
         />
         <Button type="primary" onClick={handleBuscar}>Buscar</Button>
       </Space>
 
-      {/* Mostrar los campos sobre la tabla */}
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={6}><strong>ID Lectura:</strong> {campoData.idLectura}</Col>
-        <Col span={6}><strong>ID Archivo Leído:</strong> {campoData.idArchivoLeido}</Col>
-        <Col span={6}><strong>Línea Leída:</strong> {campoData.lineaLeida}</Col>
-        <Col span={6}><strong>Reproceso:</strong> {campoData.reproceso}</Col>
-      </Row>
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={6}><strong>Imagen:</strong> {campoData.imagen}</Col>
-        <Col span={6}><strong>Instante Forms:</strong> {campoData.instanteForms}</Col>
-        <Col span={6}><strong>RUT:</strong> {campoData.rut}</Col>
-        <Col span={6}><strong>N° Prueba:</strong> {campoData.numPrueba}</Col>
-      </Row>
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={6}><strong>Forma:</strong> {campoData.forma}</Col>
-        <Col span={6}><strong>Grupo:</strong> {campoData.grupo}</Col>
-        <Col span={6}><strong>Código Interno:</strong> {campoData.codInterno}</Col>
-      </Row>
+      {/* Estructura en 2 columnas: izquierda (datos) y derecha (tablas) */}
+      <Row gutter={24}>
+        {/* Columna izquierda - Datos */}
+        <Col span={8}>
+          <Row gutter={[0, 16]}>
+            <Col span={24}>
+              <strong>ID Lectura:</strong>
+              <Input
+                value={campoData.idLectura}
+                onChange={(e) => setCampoData({ ...campoData, idLectura: e.target.value })}
+              />
+            </Col>
+            <Col span={24}>
+              <strong>RUT:</strong>
+              <Input
+                value={campoData.rut}
+                onChange={(e) => setCampoData({ ...campoData, rut: e.target.value })}
+              />
+            </Col>
+            <Col span={24}>
+              <strong>ID Archivo Leído:</strong>
+              <Input
+                value={campoData.idArchivoLeido}
+                onChange={(e) => setCampoData({ ...campoData, idArchivoLeido: e.target.value })}
+              />
+            </Col>
+            <Col span={24}>
+              <strong>Línea Leída:</strong>
+              <Input
+                value={campoData.lineaLeida}
+                onChange={(e) => setCampoData({ ...campoData, lineaLeida: e.target.value })}
+              />
+            </Col>
+            <Col span={24}>
+              <strong>Reproceso:</strong>
+              <Input
+                value={campoData.reproceso}
+                onChange={(e) => setCampoData({ ...campoData, reproceso: e.target.value })}
+              />
+            </Col>
+            <Col span={24}>
+              <strong>Imagen:</strong>
+              <Input
+                value={campoData.imagen}
+                onChange={(e) => setCampoData({ ...campoData, imagen: e.target.value })}
+              />
+            </Col>
+            <Col span={24}>
+              <strong>Instante Forms:</strong>
+              <Input
+                value={campoData.instanteForms}
+                onChange={(e) => setCampoData({ ...campoData, instanteForms: e.target.value })}
+              />
+            </Col>
+            <Col span={24}>
+              <strong>N° Prueba:</strong>
+              <Input
+                value={campoData.numPrueba}
+                onChange={(e) => setCampoData({ ...campoData, numPrueba: e.target.value })}
+              />
+            </Col>
+            <Col span={24}>
+              <strong>Forma:</strong>
+              <Input
+                value={campoData.forma}
+                onChange={(e) => setCampoData({ ...campoData, forma: e.target.value })}
+              />
+            </Col>
+            <Col span={24}>
+              <strong>Grupo:</strong>
+              <Input
+                value={campoData.grupo}
+                onChange={(e) => setCampoData({ ...campoData, grupo: e.target.value })}
+              />
+            </Col>
+            <Col span={24}>
+              <strong>Código Interno:</strong>
+              <Input
+                value={campoData.codInterno}
+                onChange={(e) => setCampoData({ ...campoData, codInterno: e.target.value })}
+              />
+            </Col>
+          </Row>
+        </Col>
 
-      {/* Mostrar las tablas horizontalmente */}
-      <Row gutter={16}>
-        {tablasDatos.map((tabla, index) => (
-          <Col span={4} key={index}>
-            <Table
-              dataSource={tabla.map((item, idx) => ({ ...item, n: idx + 1 }))}
-              columns={columns}
-              rowKey="id_lectura"
-              pagination={false}
-              bordered
-            />
-          </Col>
-        ))}
+        {/* Columna derecha - Tablas */}
+        <Col span={16}>
+          <Row gutter={16}>
+            {tablasDatos.map((tabla, index) => (
+              <Col span={8} key={index}>
+                <Table
+                  dataSource={tabla.map((item, idx) => ({ ...item, n: idx + 1 }))}
+                  columns={columns}
+                  rowKey="id_lectura"
+                  pagination={false}
+                  bordered
+                  size="small"
+                />
+              </Col>
+            ))}
+          </Row>
+        </Col>
       </Row>
     </div>
   );

@@ -82,6 +82,16 @@ const UploadIdPage = () => {
       key: 'linea_leida',
     },
     {
+      title: 'Rut',
+      dataIndex: 'rut',
+      key: 'rut',
+    },
+    {
+      title: 'Imagen',
+      dataIndex: 'imagen',
+      key: 'imagen',
+    },
+    {
       title: '¿Tiene Calificación?',
       dataIndex: 'tiene_calificacion',
       key: 'tiene_calificacion',

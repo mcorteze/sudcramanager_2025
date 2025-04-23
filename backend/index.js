@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  //host: '10.12.1.235',
-  //database: 'sudcra',
+  host: '10.12.1.235',
+  database: 'sudcra',
   // ******* bases de datos estáticas *******
-  host: 'localhost',
-  database: 'sudcra_0421', // final primer semestre
+  //host: 'localhost',
+  //database: 'sudcra_0421', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -904,10 +904,11 @@ app.get('/api/lecturas', async (req, res) => {
     let query = `
       SELECT 
         l.rut, l.id_itemresp, l.id_archivoleido, l.linea_leida, 
-        l.reproceso, l.imagen, l.instante_forms, l.num_prueba, 
+        l.reproceso, l.imagen, l.instante_forms, asig.cod_asig, l.num_prueba, 
         l.forma, l.grupo, l.cod_interno, l.registro_leido,
         a.apellidos || ' ' || a.nombres AS nombre_alumno
       FROM lectura AS l
+      JOIN asignaturas asig on asig.cod_interno = l.cod_interno
       JOIN alumnos AS a ON l.rut = a.rut
       WHERE 1=1
     `;
@@ -925,6 +926,9 @@ app.get('/api/lecturas', async (req, res) => {
     }
 
     const result = await pool.query(query, params);
+    
+    // Verifica los datos antes de enviarlos
+    console.log(result.rows); // Añade esta línea para verificar lo que estás enviando al frontend
 
     res.json(result.rows);
   } catch (err) {
@@ -932,6 +936,7 @@ app.get('/api/lecturas', async (req, res) => {
     res.status(500).json({ error: 'Error en la consulta SQL' });
   }
 });
+
 
 // Endpoint para insertar en `lectura_temp`
 app.post('/api/lectura-temp', async (req, res) => {
@@ -1957,13 +1962,24 @@ app.get('/api/upload/:id_upload', async (req, res) => {
   const { id_upload } = req.params;  // Obtener id_upload de la URL
 
   try {
-    // Validar que id_upload es un número entero
-    if (isNaN(id_upload)) {
+    // Validar que id_upload es un número válido (solo si es completamente numérico)
+    if (!/^\d+$/.test(id_upload)) {
       return res.status(400).json({ error: 'El id_upload debe ser un número válido.' });
     }
 
     // Definir filtros
-    const filtros = `WHERE CAST(SUBSTRING(l.imagen FROM 1 FOR POSITION('_' IN l.imagen) - 1) AS INTEGER) = $1`;
+    const filtros = `
+      WHERE 
+        CASE 
+          WHEN POSITION('_' IN l.imagen) > 0 THEN 
+            CAST(SUBSTRING(l.imagen FROM 1 FOR POSITION('_' IN l.imagen) - 1) AS INTEGER)
+          ELSE
+            CASE 
+              WHEN l.imagen ~ '^\d+$' THEN CAST(l.imagen AS INTEGER)
+              ELSE NULL
+            END
+        END = $1
+    `;
 
     // Realizar la consulta
     const query = `
@@ -1971,6 +1987,8 @@ app.get('/api/upload/:id_upload', async (req, res) => {
           l.id_archivoleido,
           SUBSTRING(l.imagen FROM 1 FOR POSITION('_' IN l.imagen) - 1) AS id_upload,
           l.linea_leida,
+          l.rut,
+          l.imagen,
           CASE
               WHEN me.id_archivoleido IS NOT NULL AND me.linea_leida IS NOT NULL THEN TRUE
               ELSE FALSE

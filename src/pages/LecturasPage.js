@@ -27,7 +27,7 @@ export default function LecturasPage() {
 
       const response = await fetch(`http://localhost:3001/api/lecturas?${query.toString()}`);
       const result = await response.json();
-      
+
       // Agrupar los registros por id_archivoleido y obtener el primer registro y el instante_forms máximo
       const groupedData = groupDataByIdArchivo(result);
 
@@ -47,6 +47,7 @@ export default function LecturasPage() {
         rut,
         linea_leida,
         reproceso,
+        cod_asig,
         num_prueba,
         forma,
         grupo,
@@ -64,6 +65,7 @@ export default function LecturasPage() {
           rut,
           linea_leida,
           reproceso,
+          cod_asig,
           num_prueba,
           forma,
           grupo,
@@ -155,6 +157,7 @@ export default function LecturasPage() {
     { title: 'ID Archivo', dataIndex: 'id_archivoleido', key: 'id_archivoleido' },
     { title: 'Linea Leída', dataIndex: 'linea_leida', key: 'linea_leida' },
     { title: 'Reproceso', dataIndex: 'reproceso', key: 'reproceso' },
+    { title: 'Cod Asig', dataIndex: 'cod_asig', key: 'cod_asig' },
     { title: 'Número de Prueba', dataIndex: 'num_prueba', key: 'num_prueba' },
     { title: 'Forma', dataIndex: 'forma', key: 'forma' },
     { title: 'Grupo', dataIndex: 'grupo', key: 'grupo' },

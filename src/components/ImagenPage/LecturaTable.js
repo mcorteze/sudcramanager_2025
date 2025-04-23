@@ -29,7 +29,7 @@ const LecturaTable = ({ lecturaData, loading }) => {
 
   return (
     <div>
-      <h2>Tabla Lectura (líneas txt exportadas por Forms) cruzadas con calificaciones</h2>
+      <h2>Tabla Lectura (líneas txt exportadas por Forms) cruzadas (left join) con calificaciones</h2>
       <p style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <span>🧾 Total de registros: {totalRegistros}</span>
         <PiDotOutlineFill />
