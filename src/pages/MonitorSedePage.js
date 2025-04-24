@@ -243,8 +243,11 @@ export default function MonitorSedePage() {
           <h2>Seleccione una Sede</h2>
           <Select
             style={{ width: 200 }}
-            onChange={(value) => setSelectedSede(value)}
-            options={sedes.map(sede => ({ label: sede.nombre_sede, value: sede.id_sede }))}
+            onChange={value => setSelectedSede(value)}
+            options={sedes.map(sede => ({
+              label: `${sede.id_sede} – ${sede.nombre_sede}`, // <-- aquí
+              value: sede.id_sede
+            }))}
             loading={loading}
           />
         </div>

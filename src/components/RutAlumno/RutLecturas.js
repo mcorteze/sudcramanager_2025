@@ -22,7 +22,7 @@ const RutLecturas = ({ rut }) => {
     const fetchLecturasData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:3001/rut_lecturas/${rut}`);
+        const response = await axios.get(`http://localhost:3001/api/rut_lecturas/${rut}`);
         console.log('Datos obtenidos:', response.data); // Verificamos los datos en la consola
         if (response.data.data) {
           setLecturasData(response.data.data);  // Establecemos los datos correctamente

@@ -2125,7 +2125,7 @@ app.get('/api/errores/:id_archivoleido/:linea_leida', async (req, res) => {
   }
 });
 
-app.get('/rut_lecturas/:rut', async (req, res) => {
+app.get('/api/rut_lecturas/:rut', async (req, res) => {
   const client = await pool.connect();  // Obtener una conexión del pool
 
   const { rut } = req.params;  // Obtener el parámetro rut de la URL
@@ -2152,7 +2152,7 @@ app.get('/rut_lecturas/:rut', async (req, res) => {
         l.reproceso,
         l.imagen,
         split_part(l.imagen, '_', 1) AS id_upload,  -- Extrae el número antes del "_"
-        substring(l.imagen from position('_' in l.imagen) + 1) AS nombre_imagen
+        substring(l.imagen from position('_' in l.imagen) + 1) AS nombre_imagen,
         l.instante_forms
     FROM lectura l
     JOIN asignaturas asig ON asig.cod_interno = l.cod_interno
@@ -2234,7 +2234,7 @@ app.get('/rut_matricula/:rut', async (req, res) => {
     }
 
     // Realizar la consulta a la base de datos
-    const query = 'SELECT id_matricula FROM matricula WHERE rut = $1 LIMIT 10';
+    const query = 'SELECT id_matricula FROM matricula WHERE rut = $1';
     const result = await client.query(query, [rut]);  // Pasamos el RUT como parámetro a la consulta
 
     if (result.rows.length === 0) {
@@ -2243,8 +2243,8 @@ app.get('/rut_matricula/:rut', async (req, res) => {
 
     console.log("Resultado de la consulta:", result.rows);
 
-    // Retornar el resultado como respuesta
-    res.status(200).json(result.rows[0]);
+    // Retornar el resultado como respuesta (toda la lista de resultados)
+    res.status(200).json(result.rows);
 
   } catch (err) {
     console.error('Error en el servidor:', err.message);
@@ -2253,6 +2253,7 @@ app.get('/rut_matricula/:rut', async (req, res) => {
     client.release();  // Liberamos la conexión al final
   }
 });
+
 
 app.get('/api/historial_imagenes', async (req, res) => {
   const client = await pool.connect();
@@ -2405,7 +2406,7 @@ app.delete('/api/borrar_secciones_sin_inscritos', async (req, res) => {
 // -----------------------------------------------
 
 // API PARA ESCRIBIR
-app.put('/api/asignardocente', async (req, res) => {
+app.put('/api/asignardocentetitular', async (req, res) => {
   const { idSeccion, rutDocente } = req.body;
 
   console.log("Parámetros recibidos:", { idSeccion, rutDocente });
@@ -2447,6 +2448,61 @@ app.put('/api/asignardocente', async (req, res) => {
     client.release(); // Libera la conexión
   }
 });
+
+app.put('/api/asignardocentereemplazo', async (req, res) => {
+  const { idSeccion, rutDocente } = req.body;
+
+  console.log("Parámetros recibidos:", { idSeccion, rutDocente });
+
+  if (!idSeccion || !rutDocente) {
+    return res.status(400).json({ error: 'Faltan parámetros requeridos: idSeccion y/o rutDocente.' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // 1. Verificar si ya existe el registro
+    const checkQuery = `
+      SELECT * FROM seccion_docente
+      WHERE id_seccion = $1 AND rut_docente = $2;
+    `;
+    const checkResult = await client.query(checkQuery, [idSeccion, rutDocente]);
+
+    if (checkResult.rows.length > 0) {
+      // Ya existe, no hacer nada
+      await client.query('COMMIT');
+      return res.status(200).json({
+        message: 'El docente ya está registrado como reemplazo en esta sección.',
+        existing: checkResult.rows[0],
+      });
+    }
+
+    // 2. Insertar si no existe
+    const insertQuery = `
+      INSERT INTO seccion_docente (id_seccion, rut_docente)
+      VALUES ($1, $2)
+      RETURNING *;
+    `;
+    const insertResult = await client.query(insertQuery, [idSeccion, rutDocente]);
+
+    await client.query('COMMIT');
+
+    res.status(200).json({
+      message: 'Docente asignado correctamente como reemplazo.',
+      section: insertResult.rows[0],
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error al asignar docente como reemplazo:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
 
 
 app.put('/api/rehacerinformealumno', async (req, res) => {

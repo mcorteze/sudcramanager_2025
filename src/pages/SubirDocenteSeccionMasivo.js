@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Button, Table, message, Popconfirm } from 'antd';
+import { Upload, Button, Table, message, Popconfirm, Space } from 'antd';
 import { UploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 
@@ -59,19 +59,12 @@ export default function ExcelUploader() {
           console.error(`Error al obtener docente para ${row.rut_docente}`, e);
         }
 
-        const isComplete =
-          seccion.nombre_sede !== 'No disponible' &&
-          seccion.seccion !== 'No disponible' &&
-          docente.docente !== 'No disponible' &&
-          docente.username_doc !== 'No disponible';
-
         return {
           ...row,
           nombre_sede: seccion.nombre_sede,
           seccion: seccion.seccion,
           docente: docente.docente,
           username_doc: docente.username_doc,
-          validacion: isComplete ? '✔️' : '❌',
         };
       }));
 
@@ -92,27 +85,27 @@ export default function ExcelUploader() {
       }));
 
       baseColumns.push({
-        title: 'Validación',
-        dataIndex: 'validacion',
-        key: 'validacion',
-        render: (text) => <span style={{ fontSize: '18px' }}>{text}</span>,
-      });
-
-      baseColumns.push({
         title: 'Acción',
         key: 'accion',
         render: (_, record) => (
-          <Popconfirm
-            title="¿Deseas registrar al docente en esta sección?"
-            onConfirm={() => handleRegistrar(record)}
-            okText="Sí"
-            cancelText="Cancelar"
-            disabled={record.validacion !== '✔️'}
-          >
-            <Button type="primary" disabled={record.validacion !== '✔️'}>
-              Registrar
-            </Button>
-          </Popconfirm>
+          <Space>
+            <Popconfirm
+              title="¿Asignar como titular?"
+              onConfirm={() => handleRegistrar(record, 'titular')}
+              okText="Sí"
+              cancelText="Cancelar"
+            >
+              <Button type="primary">Asignar titular</Button>
+            </Popconfirm>
+            <Popconfirm
+              title="¿Agregar como reemplazo?"
+              onConfirm={() => handleRegistrar(record, 'reemplazo')}
+              okText="Sí"
+              cancelText="Cancelar"
+            >
+              <Button>Agregar reemplazo</Button>
+            </Popconfirm>
+          </Space>
         ),
       });
 
@@ -124,11 +117,16 @@ export default function ExcelUploader() {
     return false;
   };
 
-  const handleRegistrar = async (record) => {
+  const handleRegistrar = async (record, tipo) => {
     const { id_seccion, rut_docente } = record;
 
+    const endpoint =
+      tipo === 'titular'
+        ? 'asignardocentetitular'
+        : 'asignardocentereemplazo';
+
     try {
-      const res = await fetch('http://localhost:3001/api/asignardocente', {
+      const res = await fetch(`http://localhost:3001/api/${endpoint}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -140,7 +138,7 @@ export default function ExcelUploader() {
       const result = await res.json();
 
       if (res.ok) {
-        message.success(`Registro actualizado: ${result.message}`);
+        message.success(`Éxito: ${result.message}`);
       } else {
         message.error(`Error: ${result.error || 'No se pudo registrar'}`);
       }

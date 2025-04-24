@@ -22,7 +22,7 @@ export default function EnlacesFlotante() {
           <div className='sidebar-icon' style={{ backgroundImage: `url(${PowerBiLogo})` }}></div>
           <span>Monitor planillas</span>
         </a>
-        <a href="https://app.powerbi.com/groups/530c4e63-77c1-4129-a317-088008da3b84/reports/3a4d7d7a-a44f-4b65-b6e1-f35b9847bb9d/6e316e19d1c27603d315?experience=power-bi" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
+        <a href="https://app.powerbi.com/groups/530c4e63-77c1-4129-a317-088008da3b84/reports/9c33f244-0d8a-46f1-a9a9-8009d894abb7/6e316e19d1c27603d315?experience=power-bi" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
           <div className='sidebar-icon' style={{ backgroundImage: `url(${PowerBiLogo})` }}></div>
           <span>Monitor SUDCRA</span>
         </a>
