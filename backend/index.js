@@ -2234,7 +2234,7 @@ app.get('/rut_matricula/:rut', async (req, res) => {
     }
 
     // Realizar la consulta a la base de datos
-    const query = 'SELECT id_matricula FROM matricula WHERE rut = $1 LIMIT 1';
+    const query = 'SELECT id_matricula FROM matricula WHERE rut = $1 LIMIT 10';
     const result = await client.query(query, [rut]);  // Pasamos el RUT como parámetro a la consulta
 
     if (result.rows.length === 0) {
@@ -2355,6 +2355,54 @@ app.get('/api/completar_docente/:rut_docente', async (req, res) => {
 });
 
 // ------------------------------------------------------
+// Lista las secciones que aún no tienen alumnos
+app.get('/api/secciones_sin_inscritos', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT
+        sd.nombre_sede,
+        s.seccion,
+        s.id_seccion,
+        COUNT(i.id_inscripcion) AS inscritos
+      FROM   secciones   AS s
+      JOIN   sedes       AS sd ON sd.id_sede = s.id_sede
+      LEFT JOIN inscripcion AS i ON i.id_seccion = s.id_seccion
+      GROUP  BY sd.nombre_sede, s.seccion, s.id_seccion
+      HAVING COUNT(i.id_inscripcion) = 0
+      ORDER  BY s.id_seccion
+    `);
+
+    res.status(200).json(rows);           // Devuelve la lista en JSON
+  } catch (error) {
+    console.error('Error al obtener secciones sin inscritos:', error);
+    res
+      .status(500)
+      .json({ message: 'Error al consultar las secciones sin inscritos' });
+  }
+});
+
+// DELETE /api/borrar_secciones_sin_inscritos – elimina secciones sin alumnos
+app.delete('/api/borrar_secciones_sin_inscritos', async (req, res) => {
+  try {
+    const { rowCount } = await pool.query(`
+      DELETE FROM secciones AS s
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM   inscripcion AS i
+        WHERE  i.id_seccion = s.id_seccion
+      );
+    `);
+
+    // Devuelve la cantidad de secciones eliminadas
+    res.status(200).json({ message: `Se eliminaron ${rowCount} secciones sin inscritos`, deletedCount: rowCount });
+  } catch (error) {
+    console.error('Error al eliminar secciones sin inscritos:', error);
+    res.status(500).json({ message: 'Error al eliminar las secciones sin inscritos' });
+  }
+});
+
+
+// -----------------------------------------------
 
 // API PARA ESCRIBIR
 app.put('/api/asignardocente', async (req, res) => {

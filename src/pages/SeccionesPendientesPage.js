@@ -2,7 +2,8 @@
 import React from 'react';
 import InformesPorDesbloquear from '../components/SeccionesPendientes/InformesPorDesbloquear';
 import SeccionesMailPendientes from '../components/SeccionesPendientes/SeccionesMailPendientes';
-import MailPendientesAlumnos from '../components/SeccionesPendientes/MailPendientesAlumnos ';
+import MailPendientesAlumnos from '../components/SeccionesPendientes/MailPendientesAlumnos';
+import SeccionesSinInscritosPage from '../components/SeccionesPendientes/SeccionesSinInscritosPage';
 
 export default function SeccionesPendientesPage() {
   return (
@@ -13,7 +14,8 @@ export default function SeccionesPendientesPage() {
       <InformesPorDesbloquear />
       {/* Registros de informes de seccion que fueron emitidos pero no fueron enviados por alguún motivo */ }
       <SeccionesMailPendientes />
-      <MailPendientesAlumnos  />
+      <MailPendientesAlumnos />
+      <SeccionesSinInscritosPage />
     </div>
   );
 }
