@@ -1,6 +1,6 @@
 // LecturaPage.js
 import React, { useState, useEffect } from 'react';
-import { Row, Col, message } from 'antd';
+import { Row, Col, message, Divider } from 'antd';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import SearchForm from '../components/LecturaPage/SearchForm';
@@ -99,10 +99,9 @@ const LecturaPage = () => {
         setLineaLeida={setLineaLeida}
         handleBuscar={() => fetchLectura(idArchivo, lineaLeida)}
       />
-
-      {/* Usamos el componente DownloadTxtButton */}
-      <DownloadTxtButton campoData={campoData} editableData={editableData} />
-
+      
+      <Divider style={{ borderColor: '#7cb305' }}>Hoja Digitalizada</Divider>
+      
       <Row gutter={24}>
         <Col span={8}>
           <EditableDataFields
@@ -118,6 +117,9 @@ const LecturaPage = () => {
           />
         </Col>
       </Row>
+      <Divider />
+      {/* Usamos el componente DownloadTxtButton */}
+      <DownloadTxtButton campoData={campoData} editableData={editableData} />
     </div>
   );
 };

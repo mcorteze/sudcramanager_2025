@@ -9,8 +9,8 @@ const DownloadTxtButton = ({ campoData, editableData }) => {
     // 1️⃣ Reproceso (0 si es false, 1 si es true)
     const reproceso = campoData.reproceso === 'Sí' ? 1 : 0;
 
-    // 2️⃣ "sudcra-manager" concatenado con el valor de campoData.imagen
-    const sudcraManager = `sudcra-manager_${campoData.imagen}`;
+    // 2️⃣ Usar directamente el nombre de la imagen sin modificar
+    const nombreImagen = campoData.imagen;
 
     // 3️⃣ Fecha actual en formato YYMMDD
     const fecha = new Date();
@@ -48,23 +48,23 @@ const DownloadTxtButton = ({ campoData, editableData }) => {
       .map(item => item.registro_leido ?? 'sinRegistro')
       .join(',');
 
-    // 10️⃣ Construimos el texto completo en una sola línea, separados por comas
+    // 🔟 Construimos el texto completo en una sola línea, separados por comas
     const textoCompleto = [
-      reproceso, 
-      sudcraManager, 
-      YYMMDD, 
-      hhmmss, 
-      rutSeparado, 
-      codInterno, 
-      numPrueba, 
-      forma, 
+      reproceso,
+      nombreImagen,
+      YYMMDD,
+      hhmmss,
+      rutSeparado,
+      codInterno,
+      numPrueba,
+      forma,
       registrosTabla
     ].join(',');
 
-    // 11️⃣ Construir el nombre del archivo
+    // 1️⃣1️⃣ Construir el nombre del archivo
     const archivoNombre = `sudcra-manager_${rutSeparado.replace(/,/g, '')}_${YYMMDD}_${hhmmss}.txt`;
 
-    // 12️⃣ Creamos el Blob y lo descargamos
+    // 1️⃣2️⃣ Creamos el Blob y lo descargamos
     const blob = new Blob([textoCompleto], { type: 'text/plain;charset=utf-8' });
     saveAs(blob, archivoNombre);
   };
@@ -75,7 +75,7 @@ const DownloadTxtButton = ({ campoData, editableData }) => {
       onClick={handleDescargarTxt}
       style={{ margin: '16px 0' }}
     >
-      Obtener valores (TXT)
+      Descargar txt
     </Button>
   );
 };

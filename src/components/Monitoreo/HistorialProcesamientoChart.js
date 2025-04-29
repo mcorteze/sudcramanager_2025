@@ -1,14 +1,21 @@
 import React from 'react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend,
-  ResponsiveContainer, LabelList, ReferenceLine
+  ResponsiveContainer, LabelList, ReferenceLine, CartesianGrid
 } from 'recharts';
 
-const programColors = {};
-const colorPalette = [
+// Colores específicos para programas conocidos
+const programColors = {
+  'Programa de Matemáticas': '#28d0d4 ', 
+  'Programa de Lenguaje y Comunicación': '#f67297', 
+  'Programa de Inglés': '#d1a90c'
+};
+
+// Paleta de respaldo para otros programas
+const fallbackColors = [
   '#8884d8', '#82ca9d', '#ffc658', '#ff7f50',
   '#a6cee3', '#b2df8a', '#fdbf6f', '#cab2d6',
-  '#fb9a99', '#e31a1c', '#33a02c', '#1f78b4'
+  '#fb9a99', '#33a02c', '#1f78b4'
 ];
 
 const HistorialProcesamientoChart = ({ filteredData }) => {
@@ -48,9 +55,12 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
       });
     });
 
-    programas.forEach((programa, i) => {
+    // Asignar colores a programas
+    let fallbackIndex = 0;
+    programas.forEach(programa => {
       if (!programColors[programa]) {
-        programColors[programa] = colorPalette[i % colorPalette.length];
+        programColors[programa] = fallbackColors[fallbackIndex % fallbackColors.length];
+        fallbackIndex++;
       }
     });
 
@@ -62,8 +72,9 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
   const currentDecimalHour = now.getHours() + now.getMinutes() / 60;
 
   return (
-    <ResponsiveContainer width="100%" height={350}>
-      <LineChart data={data}>
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={data} className="grafico-lineas">
+        <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           dataKey="hora"
           type="number"
@@ -77,18 +88,12 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
         />
         <YAxis allowDecimals={false} />
         <Tooltip />
-        <Legend
-          payload={programas.map((programa) => ({
-            value: programa,
-            type: 'line',
-            color: programColors[programa]
-          }))}
-        />
+        <Legend verticalAlign="bottom" align="center" height={36} />
         <ReferenceLine
           x={currentDecimalHour}
           stroke="red"
           strokeWidth={2}
-          label={{ value: 'Ahora', position: 'insideTopRight', fill: 'red' }}
+          label={{ value: '', position: 'insideTopRight', fill: 'red' }}
         />
         {programas.map((programa) => (
           <Line

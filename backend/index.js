@@ -895,40 +895,28 @@ app.get('/api/monitorasig/evaluaciones', async (req, res) => {
 // LecturasPage: sirve para listar las lecturas en tabla lecturas y pasarlas a lectura_temp para reprocesar(para casos de inscripcion tardía)
 app.get('/api/lecturas', async (req, res) => {
   try {
-    const { rut, id_archivoleido } = req.query;
+    const { rut } = req.query;
 
-    if (!rut && !id_archivoleido) {
-      return res.status(400).json({ error: 'Debe proporcionar rut o id_archivoleido' });
+    if (!rut) {
+      return res.status(400).json({ error: 'Debe proporcionar rut' });
     }
 
-    let query = `
+    const query = `
       SELECT 
-        l.rut, l.id_itemresp, l.id_archivoleido, l.linea_leida, 
-        l.reproceso, l.imagen, l.instante_forms, asig.cod_asig, l.num_prueba, 
-        l.forma, l.grupo, l.cod_interno, l.registro_leido,
-        a.apellidos || ' ' || a.nombres AS nombre_alumno
-      FROM lectura AS l
-      JOIN asignaturas asig on asig.cod_interno = l.cod_interno
-      JOIN alumnos AS a ON l.rut = a.rut
-      WHERE 1=1
+      asig.cod_asig,
+      al.apellidos || ' ' || al.nombres AS nombre_alumno,
+      l.rut, l.id_itemresp, l.id_archivoleido, l.linea_leida, l.reproceso, l.imagen, l.instante_forms, l.num_prueba, l.forma, l.grupo, l.cod_interno, l.registro_leido
+      from lectura l
+      left JOIN asignaturas asig ON l.cod_interno = asig.cod_interno
+      left JOIN alumnos al on al.rut = l.rut
+      WHERE l.rut = $1
     `;
 
-    const params = [];
-
-    if (rut) {
-      query += ` AND l.rut = $${params.length + 1}`;
-      params.push(rut);
-    }
-
-    if (id_archivoleido) {
-      query += ` AND l.id_archivoleido = $${params.length + 1}`;
-      params.push(id_archivoleido);
-    }
+    const params = [rut];
 
     const result = await pool.query(query, params);
     
-    // Verifica los datos antes de enviarlos
-    console.log(result.rows); // Añade esta línea para verificar lo que estás enviando al frontend
+    console.log(result.rows); // Para debug
 
     res.json(result.rows);
   } catch (err) {
@@ -936,6 +924,7 @@ app.get('/api/lecturas', async (req, res) => {
     res.status(500).json({ error: 'Error en la consulta SQL' });
   }
 });
+
 
 
 // Endpoint para insertar en `lectura_temp`
@@ -969,8 +958,8 @@ app.get('/lecturas_masivo', async (req, res) => {
   try {
     // Consulta SQL
     const query = `
-SELECT e.rut,
-       al.nombres || al.apellidos AS nombre,
+      SELECT 
+       e.rut,
        mt.id_matricula,
        e.cod_interno,
        asig.cod_asig,
@@ -983,7 +972,8 @@ SELECT e.rut,
        e.valida_inscripcion,
        e.valida_eval,
        e.valida_forma,
-       e.mail_enviado
+       e.mail_enviado,
+       al.nombres || al.apellidos AS nombre,
 FROM errores e
 JOIN matricula mt ON mt.rut::text = e.rut::text
 JOIN alumnos al ON al.rut = mt.rut

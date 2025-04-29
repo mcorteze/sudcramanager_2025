@@ -128,8 +128,16 @@ const EquiposEstado = () => {
               </Tag>
               <div style={{ textAlign: 'center', marginTop: '4px' }}>
                 {/* Mostrar la marca temporal y la cantidad de imágenes pendientes */}
-                <div style={{ fontSize: '10px' }}>{new Date(equipo.marca_temporal).toLocaleString()}</div>
-                <div>Imag en tránsito: {equipo.imagenes_pendientes_1}</div>
+                <div style={{ fontSize: '10px' }}>
+                  {(() => {
+                    const date = new Date(equipo.marca_temporal);
+                    const pad = (n) => n.toString().padStart(2, '0');
+                    const formattedDate = `${pad(date.getDate())}-${pad(date.getMonth() + 1)}-${date.getFullYear()}`;
+                    const formattedTime = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+                    return `${formattedDate}, ${formattedTime}`;
+                  })()}
+                </div>
+                <div>Staging area: {equipo.imagenes_pendientes_1}</div>
               </div>
             </div>
           </div>

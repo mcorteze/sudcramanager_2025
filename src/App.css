@@ -252,3 +252,9 @@ font-size: 12px !important;
 
 /* ------------------ */
 .ant-form-item-required {margin-right: 100px;}
+
+
+
+.grafico-lineas .recharts-legend-wrapper {
+    display: block;
+}
