@@ -2402,7 +2402,16 @@ app.delete('/api/borrar_secciones_sin_inscritos', async (req, res) => {
   }
 });
 
-
+// Endpoint para obtener los registros de la tabla equipos_estado
+app.get('/api/equipos_estado', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM equipos_estado');
+    res.json(result.rows); // Devuelve los datos como JSON
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' }); // En caso de error, responde con un código 500 y mensaje de error
+  }
+});
 // -----------------------------------------------
 
 // API PARA ESCRIBIR

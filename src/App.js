@@ -66,6 +66,9 @@ import CrearDocentePage from './pages/CrearDocentePage.js';
 import CrearMatriculaPage from './pages/CrearMatriculaPage.js';
 import MonitoreoInicioPage from './pages/MonitoreoInicioPage.js'
 import SubirDocenteSeccionMasivo from './pages/SubirDocenteSeccionMasivo.js'
+import EquiposEstado from './components/Monitoreo/EquiposEstado.js'
+import FidelizadorPage from './pages/FidelizadorPage.js'
+
 import './App.css';
 
 import EnlacesFlotante from './components/EnlacesFlotante.js';
@@ -125,6 +128,9 @@ const AppContent = () => {
           <Menu.Item key="18" icon={<TableOutlined />}>
             <Link to="/accesos">Recursos</Link>
           </Menu.Item>
+          <Menu.Item key="20" icon={<TableOutlined />}>
+            <Link to="/fidelizador">Fidelizador</Link>
+          </Menu.Item>         
         </Menu>
       </Sider>
       <EnlacesFlotante />
@@ -194,6 +200,8 @@ const AppContent = () => {
             <Route path="/crear_matricula" element={<CrearMatriculaPage />} />
             <Route path="/monitoreo_inicio" element={<MonitoreoInicioPage />} />
             <Route path="/subirdocenteseccionmasivo" element={<SubirDocenteSeccionMasivo />} />
+            <Route path="/equipos_estado" element={<EquiposEstado />} />
+            <Route path="/fidelizador" element={<FidelizadorPage />} />
             
           </Routes>
         </Content>
