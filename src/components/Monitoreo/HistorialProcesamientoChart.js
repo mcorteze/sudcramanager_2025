@@ -20,12 +20,12 @@ const fallbackColors = [
 
 const HistorialProcesamientoChart = ({ filteredData }) => {
   const getChartData = () => {
-    const quarterHours = Array.from({ length: 96 }, (_, i) => i * 0.25);
+    // Crear un rango de 1440 minutos (24 horas * 60 minutos)
+    const minutesInDay = Array.from({ length: 1440 }, (_, i) => i);
     const programas = [...new Set(filteredData.map(item => item.programa))];
 
-    const base = quarterHours.map(h => {
-      const hourLabel = h.toFixed(2);
-      const entry = { hora: parseFloat(hourLabel) };
+    const base = minutesInDay.map(m => {
+      const entry = { hora: m }; // Usar el número de minuto directamente
       programas.forEach(programa => {
         entry[programa] = 0;
       });
@@ -36,9 +36,10 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
       const date = new Date(item.lectura_fecha);
       const hour = date.getHours();
       const minutes = date.getMinutes();
-      const decimalHour = hour + minutes / 60;
-      const rounded = Math.round(decimalHour * 4) / 4;
-      const entry = base.find(e => e.hora === rounded);
+      const minuteOfDay = hour * 60 + minutes; // Calcular minuto del día
+
+      // Buscar el minuto exacto en el arreglo de base
+      const entry = base.find(e => e.hora === minuteOfDay);
       if (entry) {
         const programa = item.programa;
         if (programa) {
@@ -69,7 +70,7 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
 
   const { data, programas } = getChartData();
   const now = new Date();
-  const currentDecimalHour = now.getHours() + now.getMinutes() / 60;
+  const currentMinuteOfDay = now.getHours() * 60 + now.getMinutes(); // Minuto actual del día
 
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -78,19 +79,25 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
         <XAxis
           dataKey="hora"
           type="number"
-          domain={[0, 24]}
+          domain={[0, 1440]} // Rango de 0 a 1440 minutos
           tickFormatter={(tick) => {
-            const hours = Math.floor(tick);
-            const minutes = Math.round((tick - hours) * 60);
+            const hours = Math.floor(tick / 60);
+            const minutes = tick % 60;
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
           }}
-          ticks={Array.from({ length: 25 }, (_, i) => i)}
+          ticks={Array.from({ length: 25 }, (_, i) => i * 60)} // Mostrar un tick cada hora
         />
         <YAxis allowDecimals={false} />
-        <Tooltip />
+        <Tooltip
+          labelFormatter={(label) => {
+            const hours = Math.floor(label / 60);
+            const minutes = label % 60;
+            return `Marca temporal: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} hrs.`;
+          }}
+        />
         <Legend verticalAlign="bottom" align="center" height={36} />
         <ReferenceLine
-          x={currentDecimalHour}
+          x={currentMinuteOfDay}
           stroke="red"
           strokeWidth={2}
           label={{ value: '', position: 'insideTopRight', fill: 'red' }}

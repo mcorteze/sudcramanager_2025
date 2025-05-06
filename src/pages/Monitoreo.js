@@ -7,6 +7,12 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import HistorialProcesamientoChart from '../components/Monitoreo/HistorialProcesamientoChart';
 import EquiposEstado from '../components/Monitoreo/EquiposEstado';
+import NotificacionCampana from '../components/NotificacionesCampana/NotificacionesCamapana';
+import 'dayjs/locale/es';
+import esES from 'antd/locale/es_ES';
+import { ConfigProvider } from 'antd';
+
+dayjs.locale('es');
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -17,6 +23,7 @@ const HistorialProcesamientoTable = () => {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [loading, setLoading] = useState(true);
   const [tipoArchivo, setTipoArchivo] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
   const [filters, setFilters] = useState({
     cod_programa: null,
     cod_asig: null,
@@ -25,8 +32,16 @@ const HistorialProcesamientoTable = () => {
   });
 
   useEffect(() => {
-    fetchHistorial();
-  }, []);
+    const interval = setInterval(() => {
+      // Solo actualiza si el usuario está viendo hoy
+      if (dayjs(selectedDate).isSame(dayjs(), 'day')) {
+        fetchHistorial();
+      }
+    }, 20000);
+  
+    return () => clearInterval(interval);
+  }, [selectedDate]);
+  
 
   const fetchHistorial = async () => {
     try {
@@ -34,6 +49,7 @@ const HistorialProcesamientoTable = () => {
       const allData = response.data || [];
       setRawData(allData);
       filterAll(allData, selectedDate, tipoArchivo, filters);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error al obtener historial de procesamiento:', error);
       message.error('No se pudo cargar el historial');
@@ -118,29 +134,39 @@ const HistorialProcesamientoTable = () => {
   );
 
   return (
+    <ConfigProvider locale={esES}>
     <div className='page-full'>
-      <h1>Monitoreo de lecturas con calificación</h1>
+      <h1>Monitoreo</h1> 
       <Spin spinning={loading}>
         <div>
           <Space direction="vertical" size="middle">
-            <DatePicker
-              value={selectedDate}
-              onChange={handleDateChange}
-              format="DD-MM-YYYY"
-              allowClear={false}
-            />
+            <Space direction="horizontal" size="middle">
+              <DatePicker
+                value={selectedDate}
+                onChange={handleDateChange}
+                format="DD-MM-YYYY"
+                allowClear={false}
+              />
+              <NotificacionCampana/>
+            </Space>
             <EquiposEstado />
           </Space>
-
           <Divider />
 
           {renderFilters()}
 
-          <Title level={4}>Distribución de lecturas con calificación, por hora y programa</Title>
+          <Title level={5} style = {{ marginBottom: '0px' }}>Procesos de lecturas con calificación</Title>
+          {lastUpdated && (
+            <Typography.Paragraph style={{ fontSize: '12px', color: 'red', marginBottom: '12px' }}>
+              Última actualización: {dayjs(lastUpdated).format('HH:mm:ss')}
+            </Typography.Paragraph>
+          )}
+          
           <HistorialProcesamientoChart filteredData={filteredData} />
         </div>
       </Spin>
     </div>
+    </ConfigProvider>
   );
 };
 

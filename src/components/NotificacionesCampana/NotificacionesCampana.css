@@ -1,0 +1,15 @@
+.campana-notificaciones svg {
+    font-size: 1.5em !important;
+}
+
+/* Reducir el tamaño del círculo */
+.campana-noti-circulo .ant-badge-count {
+    width: 18px; /* Tamaño del círculo */
+    height: 18px; /* Tamaño del círculo */
+    line-height: 18px; /* Centra el número dentro del círculo */
+    border-radius: 50%; /* Asegura que el círculo sea perfecto */
+  }
+  
+  .campana-noti-circulo .ant-badge-count .ant-scroll-number-only span{
+    font-size: 11px !important;
+  }
