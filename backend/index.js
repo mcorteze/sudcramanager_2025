@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  host: '10.12.1.235',
-  database: 'sudcra',
+  //host: '10.12.1.235',
+  //database: 'sudcra',
   // ******* bases de datos estáticas *******
-  //host: 'localhost',
-  //database: 'sudcra_0421', // final primer semestre
+  host: 'localhost',
+  database: 'sudcra_0404', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -2402,6 +2402,37 @@ app.get('/api/equipos_estado', async (req, res) => {
     res.status(500).json({ error: 'Error en la consulta SQL' }); // En caso de error, responde con un código 500 y mensaje de error
   }
 });
+
+// Endpoint para obtener registros únicos del último instante_forms por RUT
+app.get('/api/lectura_rescatar_rut/:rut', async (req, res) => {
+  const rut = req.params.rut;
+
+  const query = `
+    SELECT DISTINCT 
+        rut,
+        id_archivoleido,
+        linea_leida,
+        reproceso,
+        imagen,
+        instante_forms
+    FROM lectura
+    WHERE rut = $1
+      AND instante_forms = (
+          SELECT MAX(instante_forms)
+          FROM lectura
+          WHERE rut = $1
+      );
+  `;
+
+  try {
+    const result = await pool.query(query, [rut]);
+    res.json(result.rows); // Devuelve los resultados como JSON
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
 // -----------------------------------------------
 
 // API PARA ESCRIBIR

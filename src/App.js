@@ -68,6 +68,7 @@ import MonitoreoInicioPage from './pages/MonitoreoInicioPage.js'
 import SubirDocenteSeccionMasivo from './pages/SubirDocenteSeccionMasivo.js'
 import EquiposEstado from './components/Monitoreo/EquiposEstado.js'
 import FidelizadorPage from './pages/FidelizadorPage.js'
+import RescatarLecturaPage from './pages/RescatarLecturaPage.js'
 
 import './App.css';
 
@@ -109,6 +110,9 @@ const AppContent = () => {
           </Menu.Item>
           <Menu.Item key="5" icon={<DropboxOutlined />}>
             <Link to="/secciones">ID Sección</Link>
+          </Menu.Item>
+          <Menu.Item key="22" icon={<SendOutlined />}>
+            <Link to="/lectura_rescatar_rut">Rescatar lectura</Link>
           </Menu.Item>
           <Menu.Item key="6" icon={<SendOutlined />}>
             <Link to="/lecturas">Reprocesar</Link>
@@ -202,6 +206,8 @@ const AppContent = () => {
             <Route path="/subirdocenteseccionmasivo" element={<SubirDocenteSeccionMasivo />} />
             <Route path="/equipos_estado" element={<EquiposEstado />} />
             <Route path="/fidelizador" element={<FidelizadorPage />} />
+            <Route path="/lectura_rescatar_rut" element={<RescatarLecturaPage />} />
+            <Route path="/lectura_rescatar_rut/:rut" element={<RescatarLecturaPage />} />
             
           </Routes>
         </Content>
