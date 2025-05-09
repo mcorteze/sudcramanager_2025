@@ -69,6 +69,7 @@ import SubirDocenteSeccionMasivo from './pages/SubirDocenteSeccionMasivo.js'
 import EquiposEstado from './components/Monitoreo/EquiposEstado.js'
 import FidelizadorPage from './pages/FidelizadorPage.js'
 import RescatarLecturaPage from './pages/RescatarLecturaPage.js'
+import Forms100Page from './pages/Forms100Page.js'
 
 import './App.css';
 
@@ -125,6 +126,9 @@ const AppContent = () => {
           </Menu.Item>
           <Menu.Item key="13" icon={<ExclamationOutlined />}>
             <Link to="/pendientes">Pendientes</Link>
+          </Menu.Item>
+          <Menu.Item key="22" icon={<ExclamationOutlined />}>
+            <Link to="/forms100">Calidad Forms30</Link>
           </Menu.Item>
           <Menu.Item key="14" icon={<HiMiniViewfinderCircle />}>
             <Link to="/monitor_accesos">Seguimiento</Link>
@@ -208,6 +212,7 @@ const AppContent = () => {
             <Route path="/fidelizador" element={<FidelizadorPage />} />
             <Route path="/lectura_rescatar_rut" element={<RescatarLecturaPage />} />
             <Route path="/lectura_rescatar_rut/:rut" element={<RescatarLecturaPage />} />
+            <Route path="/forms100" element={<Forms100Page />} />
             
           </Routes>
         </Content>

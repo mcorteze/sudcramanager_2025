@@ -103,7 +103,7 @@ const EquiposEstado = () => {
       <Title level={5} style = {{ marginBottom: '0px' }} >Monitor de red de equipos Forms</Title>
       <Typography.Paragraph style={{ fontSize: '12px', color: 'red', marginBottom: '12px' }}>
         {lastUpdated
-          ? `Última actualización: ${dayjs(lastUpdated).format('HH:mm:ss')}`
+          ? `Última actualización: ${dayjs(lastUpdated).format('HH:mm:ss')},  Polling (5s) | PC Input (5m)`
           : 'Actualizando...'}
       </Typography.Paragraph>
 

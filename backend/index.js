@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  //host: '10.12.1.235',
-  //database: 'sudcra',
+  host: '10.12.1.235',
+  database: 'sudcra',
   // ******* bases de datos estáticas *******
-  host: 'localhost',
-  database: 'sudcra_0404', // final primer semestre
+  //host: 'localhost',
+  //database: 'sudcra_0404', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -2428,6 +2428,63 @@ app.get('/api/lectura_rescatar_rut/:rut', async (req, res) => {
     const result = await pool.query(query, [rut]);
     res.json(result.rows); // Devuelve los resultados como JSON
   } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+// Endpoint para obtener las calificaciones
+app.get('/api/forms100', async (req, res) => {
+  try {
+    // Ejecutamos la consulta SQL
+    const result = await pool.query(`
+      WITH max_id_upload AS (
+        SELECT GREATEST(
+          (SELECT CAST(SPLIT_PART(imagen, '_', 1) AS INTEGER)
+           FROM errores
+           WHERE instante_forms IS NOT NULL
+             AND imagen LIKE '%\_%'
+           ORDER BY instante_forms DESC
+           LIMIT 1),
+          (SELECT CAST(SPLIT_PART(imagen, '_', 1) AS INTEGER)
+           FROM lectura
+           WHERE instante_forms IS NOT NULL
+             AND imagen LIKE '%\_%'
+           ORDER BY instante_forms DESC
+           LIMIT 1)
+        ) AS max_id_upload
+      ),
+      calificaciones AS (
+        SELECT DISTINCT
+            l.id_archivoleido,
+            SUBSTRING(l.imagen FROM 1 FOR POSITION('_' IN l.imagen) - 1) AS id_upload,
+            l.linea_leida,
+            CASE
+                WHEN me.id_archivoleido IS NOT NULL AND me.linea_leida IS NOT NULL THEN TRUE
+                ELSE FALSE
+            END AS tiene_calificacion
+        FROM lectura l
+        LEFT JOIN matricula_eval me 
+            ON l.id_archivoleido = me.id_archivoleido 
+            AND l.linea_leida = me.linea_leida
+        CROSS JOIN max_id_upload
+        WHERE POSITION('_' IN l.imagen) > 1
+          AND CAST(SUBSTRING(l.imagen FROM 1 FOR POSITION('_' IN l.imagen) - 1) AS INTEGER) BETWEEN (max_id_upload.max_id_upload - 29) AND max_id_upload.max_id_upload
+      )
+      SELECT 
+          id_upload,
+          COUNT(CASE WHEN tiene_calificacion THEN 1 END) AS total_calificaciones_si,
+          COUNT(CASE WHEN NOT tiene_calificacion THEN 1 END) AS total_calificaciones_no,
+          COUNT(*) AS total_calificaciones_completas
+      FROM calificaciones
+      GROUP BY id_upload
+      ORDER BY id_upload DESC;
+    `);
+
+    // Devuelve los resultados en formato JSON
+    res.json(result.rows);
+  } catch (err) {
+    // Manejo de errores si algo sale mal
     console.error('Error en la consulta SQL:', err);
     res.status(500).json({ error: 'Error en la consulta SQL' });
   }

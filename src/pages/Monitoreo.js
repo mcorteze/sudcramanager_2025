@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Spin, message, Typography, Divider, DatePicker,
   Space, Select, Row, Col
@@ -30,17 +30,38 @@ const HistorialProcesamientoTable = () => {
     num_prueba: null,
     nombre_prueba: null,
   });
+  const intervalRef = useRef(null);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Solo actualiza si el usuario está viendo hoy
-      if (dayjs(selectedDate).isSame(dayjs(), 'day')) {
-        fetchHistorial();
-      }
-    }, 20000);
+  const hayFiltrosActivos = () => {
+    return tipoArchivo !== null || Object.values(filters).some(val => val !== null);
+  };
   
-    return () => clearInterval(interval);
-  }, [selectedDate]);
+  useEffect(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+  
+    const updateCondition = () => {
+      const esHoy = dayjs(selectedDate).isSame(dayjs(), 'day');
+      const filtrosActivos = tipoArchivo !== null || Object.values(filters).some(val => val !== null);
+      return esHoy && !filtrosActivos;
+    };
+  
+    if (updateCondition()) {
+      intervalRef.current = setInterval(() => {
+        if (updateCondition()) {
+          fetchHistorial();
+        }
+      }, 20000);
+    }
+  
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [selectedDate, tipoArchivo, filters]);
+  
   
 
   const fetchHistorial = async () => {
@@ -158,7 +179,7 @@ const HistorialProcesamientoTable = () => {
           <Title level={5} style = {{ marginBottom: '0px' }}>Procesos de lecturas con calificación</Title>
           {lastUpdated && (
             <Typography.Paragraph style={{ fontSize: '12px', color: 'red', marginBottom: '12px' }}>
-              Última actualización: {dayjs(lastUpdated).format('HH:mm:ss')}
+              Última actualización: {dayjs(lastUpdated).format('HH:mm:ss')}, Polling (20s)
             </Typography.Paragraph>
           )}
           
