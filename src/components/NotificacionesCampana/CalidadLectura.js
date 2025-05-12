@@ -104,7 +104,7 @@ const CalidadLectura = ({ onAlertaChange }) => {
         </a>
       </span>
       <div style={{ marginTop: 10, fontSize: '0.9em', color: '#888' }}>
-        Última actualización: {lastUpdated}, Polling (1m)
+        Última actualización: {lastUpdated}
       </div>
     </div>
   );

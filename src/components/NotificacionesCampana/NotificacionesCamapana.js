@@ -65,11 +65,11 @@ export default function NotificacionCampana() {
       </Tooltip>
 
       <Modal
-        title="Notificaciones, Polling (10s)"
         visible={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
       >
+        <h4 style={{ marginTop: '20px', fontWeight: '600' }}>PENDIENTES, Polling (10s)</h4>
         <Table
           columns={columns}
           dataSource={notificaciones.map(n => ({ ...n, key: n.id }))}
@@ -78,7 +78,7 @@ export default function NotificacionCampana() {
           bordered
           showHeader={false}
         />
-        <h4 style={{ marginTop: '20px', fontWeight: '400' }}>CALIDAD DE LA LECTURA DE IMÁGENES</h4>
+        <h4 style={{ marginTop: '20px', fontWeight: '600' }}>CALIDAD DE LA LECTURA DE IMÁGENES, Polling (1m)</h4>
         <CalidadLectura onAlertaChange={setHayAlertaLectura} />
       </Modal>
     </div>
