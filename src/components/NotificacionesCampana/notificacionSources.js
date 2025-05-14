@@ -24,6 +24,12 @@ const notificacionSources = [
         apiUrl: 'http://localhost:3001/api/secciones_sin_inscritos',
         redirectUrl: '/pendientes',
     },
+      {
+        id: 'listado_tickets',
+        label: 'Tickets',
+        apiUrl: 'http://localhost:3001/api/solicitudes_abierto',
+        redirectUrl: '/tickets',
+    },
   ];
   
   export default notificacionSources;

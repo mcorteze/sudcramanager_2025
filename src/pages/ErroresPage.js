@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Spin, Alert, Select, Input, Row, Col, Button, Switch } from 'antd';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const ErroresPage = () => {
   const [errores, setErrores] = useState([]);
@@ -12,12 +14,24 @@ const ErroresPage = () => {
   const [codAsig, setCodAsig] = useState('');
   const [idLista, setIdLista] = useState('');
   const [numSeccion, setNumSeccion] = useState('');
+  const [numPrueba, setNumPrueba] = useState('');
   const [rut, setRut] = useState(''); // Nuevo estado para rut
   const [validaRut, setValidaRut] = useState(null);
   const [validaMatricula, setValidaMatricula] = useState(null);
   const [validaInscripcion, setValidaInscripcion] = useState(null);
   const [validaEval, setValidaEval] = useState(null);
   const [validaForma, setValidaForma] = useState(null);
+
+  const exportToExcel = () => {
+  const worksheet = XLSX.utils.json_to_sheet(filteredErrores);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Errores Filtrados');
+
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const data = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+  saveAs(data, 'errores_filtrados.xlsx');
+  };
 
   useEffect(() => {
     const fetchErrores = async () => {
@@ -65,6 +79,12 @@ const ErroresPage = () => {
       filteredData = filteredData.filter(item => item.num_seccion === parseInt(numSeccion));
     }
 
+    // Filtrar por num_prueba
+    if (numPrueba) {
+      filteredData = filteredData.filter(item => item.num_prueba === parseInt(numPrueba));
+    }
+
+
     // Filtrar por rut
     if (rut) {
       filteredData = filteredData.filter(item => item.rut === rut);
@@ -101,6 +121,7 @@ const ErroresPage = () => {
     setCodAsig('');
     setIdLista('');
     setNumSeccion('');
+    setNumPrueba('');
     setRut('');
     setValidaRut(null);
     setValidaMatricula(null);
@@ -314,6 +335,15 @@ const ErroresPage = () => {
             onPressEnter={handleFilterChange} // Filtro cuando se presiona Enter
           />
         </Col>
+        <Col span={6}>
+          <div className="mb-2">Evaluación</div>
+          <Input
+            placeholder="Evaluación"
+            value={numPrueba}
+            onChange={(e) => setNumPrueba(e.target.value)}
+            onPressEnter={handleFilterChange} // Filtro cuando se presiona Enter
+          />
+        </Col>
       </Row>
 
       {/* Filtros Booleanos */}
@@ -346,6 +376,9 @@ const ErroresPage = () => {
             Filtrar
           </Button>
           <Button onClick={clearFilters}>Quitar Filtros</Button>
+          <Button type="default" onClick={exportToExcel} style={{ marginLeft: '8px' }}>
+            Descargar Excel
+          </Button>
         </Col>
       </Row>
 

@@ -158,8 +158,8 @@ export default function ExcelUploader() {
   };
 
   return (
-    <div>
-      <h2>Subir archivo Excel</h2>
+    <div className='page-full'>
+      <h1>Cargar id seccion por rut docente</h1>
       <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
         <Button icon={<DownloadOutlined />} onClick={handleDescargarFormato}>
           Descargar formato

@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  host: '10.12.1.235',
-  database: 'sudcra',
+  //host: '10.12.1.235',
+  //database: 'sudcra',
   // ******* bases de datos estáticas *******
-  //host: 'localhost',
-  //database: 'sudcra_0404', // final primer semestre
+  host: 'localhost',
+  database: 'sudcra_20250514_1502', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -995,31 +995,28 @@ GROUP BY e.rut, al.nombres, al.apellidos, mt.id_matricula, e.cod_interno, asig.c
   }
 });
 
-// Endpoint para mover datos a lectura_temp (cambiado a /lectura-temp-masivo)
 app.post('/lectura-temp-masivo', async (req, res) => {
-  const { records } = req.body;
+  const { imagenes } = req.body;
 
-  // Iterar sobre los registros recibidos y ejecutar la consulta
+  if (!Array.isArray(imagenes) || imagenes.length === 0) {
+    return res.status(400).json({ success: false, message: 'Se requiere un arreglo de "imagenes".' });
+  }
+
   const query = `
     INSERT INTO lectura_temp (rut, id_itemresp, id_archivoleido, linea_leida, reproceso, imagen, instante_forms, num_prueba, forma, grupo, cod_interno, registro_leido)
     SELECT l.rut, l.id_itemresp, l.id_archivoleido, l.linea_leida, l.reproceso, l.imagen, l.instante_forms, l.num_prueba, l.forma, l.grupo, l.cod_interno, l.registro_leido
     FROM lectura l
-    WHERE l.rut = ANY($1) AND l.id_archivoleido = ANY($2);
+    WHERE l.imagen = ANY($1);
   `;
-  
-  const rutArray = records.map(record => record.rut);
-  const idArchivoleidoArray = records.map(record => record.id_archivoleido);
 
   try {
-    await pool.query(query, [rutArray, idArchivoleidoArray]);
+    await pool.query(query, [imagenes]);
     res.json({ success: true });
   } catch (err) {
     console.error('Error al mover los datos:', err);
     res.status(500).json({ success: false, message: 'Error al mover los datos' });
   }
 });
-
-
 // ***** ENDPOINTS PARA MONITOR POR SEDE ******
 // ********************************************
 
@@ -2489,6 +2486,30 @@ app.get('/api/forms100', async (req, res) => {
     res.status(500).json({ error: 'Error en la consulta SQL' });
   }
 });
+
+app.get('/api/solicitudes', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM solicitudes_sudcra ORDER BY id DESC;');
+    res.json(result.rows); // Devuelve todas las solicitudes como JSON
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+app.get('/api/solicitudes_abierto', async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM solicitudes_sudcra WHERE estado = 'Abierto' OR estado = 'En proceso' ORDER BY id DESC;"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+
 
 // -----------------------------------------------
 

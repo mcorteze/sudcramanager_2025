@@ -70,6 +70,7 @@ import EquiposEstado from './components/Monitoreo/EquiposEstado.js'
 import FidelizadorPage from './pages/FidelizadorPage.js'
 import RescatarLecturaPage from './pages/RescatarLecturaPage.js'
 import Forms100Page from './pages/Forms100Page.js'
+import TicketsPage from './pages/TicketsPage.js'
 
 import './App.css';
 
@@ -138,7 +139,10 @@ const AppContent = () => {
           </Menu.Item>
           <Menu.Item key="20" icon={<TableOutlined />}>
             <Link to="/fidelizador">Fidelizador</Link>
-          </Menu.Item>         
+          </Menu.Item>
+          <Menu.Item key="23" icon={<TableOutlined />}>
+            <Link to="/tickets">Tickets</Link>
+          </Menu.Item>           
         </Menu>
       </Sider>
       <EnlacesFlotante />
@@ -213,7 +217,7 @@ const AppContent = () => {
             <Route path="/lectura_rescatar_rut" element={<RescatarLecturaPage />} />
             <Route path="/lectura_rescatar_rut/:rut" element={<RescatarLecturaPage />} />
             <Route path="/forms100" element={<Forms100Page />} />
-            
+            <Route path="/tickets" element={<TicketsPage />} />
           </Routes>
         </Content>
       </Layout>

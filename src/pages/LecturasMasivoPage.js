@@ -1,180 +1,94 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Button, Spin, message, Modal } from 'antd';
-import axios from 'axios';
+import React, { useState } from 'react';
+import { Button, Upload, Table, Typography, Space, message, Statistic, Card } from 'antd';
+import { DownloadOutlined, UploadOutlined } from '@ant-design/icons';
+import * as XLSX from 'xlsx';
+import axios from 'axios'; // ✅ Importamos axios
+
+const { Title } = Typography;
 
 const LecturasMasivoPage = () => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [recordsToMove, setRecordsToMove] = useState([]);
 
-  // Obtener los datos desde el endpoint
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://localhost:3001/lecturas_masivo'); // Corregir aquí la URL
-        console.log('Datos obtenidos:', response.data);  // Verificar que los datos llegan correctamente
-        setData(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error al obtener los datos", error);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Definir las columnas de la tabla
-  const columns = [
-    {
-      title: 'Rut',
-      dataIndex: 'rut',
-      key: 'rut',
-    },
-    {
-      title: 'Nombre',
-      dataIndex: 'nombre',
-      key: 'nombre',
-    },
-    {
-      title: 'ID Matrícula',
-      dataIndex: 'id_matricula',
-      key: 'id_matricula',
-    },
-    {
-      title: 'Código Interno',
-      dataIndex: 'cod_interno',
-      key: 'cod_interno',
-    },
-    {
-      title: 'Código Asignatura',
-      dataIndex: 'cod_asig',
-      key: 'cod_asig',
-    },
-    {
-      title: 'ID Archivo Leído',
-      dataIndex: 'id_archivoleido',
-      key: 'id_archivoleido',
-    },
-    {
-      title: 'Número Prueba',
-      dataIndex: 'num_prueba',
-      key: 'num_prueba',
-    },
-    {
-      title: 'Imagen',
-      dataIndex: 'imagen',
-      key: 'imagen',
-    },
-    {
-      title: 'Instante Forms',
-      dataIndex: 'instante_forms',
-      key: 'instante_forms',
-    },
-    {
-      title: 'Valida Rut',
-      dataIndex: 'valida_rut',
-      key: 'valida_rut',
-      render: (val) => (val ? 'Sí' : 'No'),
-    },
-    {
-      title: 'Valida Matrícula',
-      dataIndex: 'valida_matricula',
-      key: 'valida_matricula',
-      render: (val) => (val ? 'Sí' : 'No'),
-    },
-    {
-      title: 'Valida Inscripción',
-      dataIndex: 'valida_inscripcion',
-      key: 'valida_inscripcion',
-      render: (val) => (val ? 'Sí' : 'No'),
-    },
-    {
-      title: 'Valida Evaluación',
-      dataIndex: 'valida_eval',
-      key: 'valida_eval',
-      render: (val) => (val ? 'Sí' : 'No'),
-    },
-    {
-      title: 'Valida Forma',
-      dataIndex: 'valida_forma',
-      key: 'valida_forma',
-      render: (val) => (val ? 'Sí' : 'No'),
-    },
-    {
-      title: 'Mail Enviado',
-      dataIndex: 'mail_enviado',
-      key: 'mail_enviado',
-      render: (val) => (val ? 'Sí' : 'No'),
-    },
-  ];
-
-  // Función para manejar el clic del botón "Mover todo a lectura temp"
-  const handleMoveToTemp = () => {
-    const recordsToMove = data.map(record => ({
-      rut: record.rut,
-      id_archivoleido: record.id_archivoleido,
-    }));
-
-    // Mostrar el modal de confirmación con la cantidad de registros
-    setRecordsToMove(recordsToMove);
-    setIsModalVisible(true);
+  const handleDownload = () => {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([['ID_Imagen']]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Formato');
+    XLSX.writeFile(wb, 'formato_lecturas.xlsx');
   };
 
-  // Función para confirmar la acción y mover los registros
-  const handleConfirmMove = async () => {
-    try {
-      const response = await axios.post('http://localhost:3001/lectura-temp-masivo', { records: recordsToMove });
-      if (response.data.success) {
-        message.success(`Se han movido ${recordsToMove.length} registros a lectura temporal.`);
-      } else {
-        message.error('Hubo un error al mover los datos');
+  const handleUpload = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+
+      if (jsonData.length < 2 || jsonData[0][0] !== 'ID_Imagen') {
+        message.error('Formato inválido. Asegúrate de que la celda A1 diga "ID_Imagen".');
+        return;
       }
-    } catch (error) {
-      message.error('Error al conectar con el servidor');
-      console.error('Error:', error);
-    } finally {
-      setIsModalVisible(false);  // Cerrar el modal después de la acción
+
+      const records = jsonData.slice(1).map((row, index) => ({
+        key: index,
+        id_imagen: row[0],
+      }));
+
+      setData(records);
+    };
+    reader.readAsArrayBuffer(file);
+    return false; // evitar carga automática de archivo
+  };
+
+  const handleEnviar = async () => {
+    try {
+      const imagenes = data.map(record => record.id_imagen).filter(Boolean);
+      const response = await axios.post('http://localhost:3001/lectura-temp-masivo', { imagenes });
+
+
+      if (response.data.success) {
+        message.success('Datos enviados correctamente');
+      } else {
+        message.error(response.data.message || 'Error al enviar los datos');
+      }
+    } catch (err) {
+      console.error(err);
+      message.error('Error de red o servidor');
     }
   };
 
-  // Función para cancelar la acción
-  const handleCancel = () => {
-    setIsModalVisible(false);  // Cerrar el modal sin hacer nada
-  };
+  const columns = [
+    {
+      title: 'ID_Imagen',
+      dataIndex: 'id_imagen',
+      key: 'id_imagen',
+    },
+  ];
 
   return (
-    <div>
-      <h1>Lecturas Masivo</h1>
-      {loading ? (
-        <Spin size="large" />
-      ) : (
+    <div style={{ padding: 24 }}>
+      <Title level={3}>Lecturas Masivo</Title>
+      <Space style={{ marginBottom: 16 }}>
+        <Button type="primary" icon={<DownloadOutlined />} onClick={handleDownload}>
+          Descargar formato
+        </Button>
+        <Upload beforeUpload={handleUpload} showUploadList={false} accept=".xlsx,.xls">
+          <Button icon={<UploadOutlined />}>Importar archivo</Button>
+        </Upload>
+      </Space>
+
+      {data.length > 0 && (
         <>
-          <Table 
-            dataSource={data} 
-            columns={columns} 
-            rowKey="id_archivoleido" 
-            scroll={{ x: 'max-content' }}  // Permite desplazamiento horizontal
-          />
-          <Button type="primary" onClick={handleMoveToTemp} style={{ marginTop: 20 }}>
-            Mover todo a lectura temp
+          <Card style={{ marginBottom: 16 }}>
+            <Statistic title="Total de registros" value={data.length} />
+          </Card>
+          <Button type="primary" onClick={handleEnviar} disabled={data.length === 0} style={{ marginBottom: 16 }}>
+            Enviar a lectura_temp
           </Button>
+          <Table columns={columns} dataSource={data} pagination={{ pageSize: 10 }} />
         </>
       )}
-
-      {/* Modal de confirmación */}
-      <Modal
-        title="Confirmar Movimiento"
-        visible={isModalVisible}
-        onOk={handleConfirmMove}
-        onCancel={handleCancel}
-        okText="Mover"
-        cancelText="Cancelar"
-      >
-        <p>Está a punto de mover <strong>{recordsToMove.length}</strong> registros a lectura temporal.</p>
-        <p>¿Está seguro de que desea continuar?</p>
-      </Modal>
     </div>
   );
 };

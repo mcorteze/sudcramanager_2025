@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
+
+
 
 const CrearDocentePage = () => {
   const [form] = Form.useForm();
@@ -30,6 +33,11 @@ const CrearDocentePage = () => {
   return (
     <div className="page-full">
       <h1>Crear Nuevo Docente</h1>
+      <h6>
+        Asignar carga académica a un docente nuevo{" "}
+        <Link to="/subirdocenteseccionmasivo" target="_blank">aquí</Link>
+      </h6>
+
       <div className="muro">
         <Form
           form={form}
