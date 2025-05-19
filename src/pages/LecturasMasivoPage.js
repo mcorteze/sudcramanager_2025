@@ -68,7 +68,7 @@ const LecturasMasivoPage = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <Title level={3}>Lecturas Masivo</Title>
+      <Title level={3}>Enviar registros de lectura a lectura-temp por lista de id_imagen</Title>
       <Space style={{ marginBottom: 16 }}>
         <Button type="primary" icon={<DownloadOutlined />} onClick={handleDownload}>
           Descargar formato

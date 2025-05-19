@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Select, message } from 'antd';
+import { Form, Input, Button, Select, message, Space } from 'antd';
 import axios from 'axios';
 
 const { Option } = Select;
@@ -8,15 +8,28 @@ const CrearMatriculaPage = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
+  const generarIdMatricula = () => {
+    const codPlan = form.getFieldValue('cod_plan');
+    const rut = form.getFieldValue('rut');
+    const ano = form.getFieldValue('ano');
+    const periodo = form.getFieldValue('periodo');
+
+    if (codPlan && rut && ano && periodo) {
+      const periodoFormateado = periodo === '1' ? '001' : periodo === '2' ? '002' : periodo.padStart(3, '0');
+      const idMatricula = `${codPlan}${rut}${ano}${periodoFormateado}`;
+      form.setFieldsValue({ id_matricula: idMatricula });
+    } else {
+      message.warning('Debe completar Código Plan, RUT, Año y Periodo antes de generar el ID.');
+    }
+  };
+
   const onFinish = async (values) => {
     setLoading(true);
     try {
       const payload = {
         ...values,
-        marca_temporal: new Date().toISOString(), // Se genera internamente
+        marca_temporal: new Date().toISOString(),
       };
-
-      console.log('Enviando datos al backend:', payload);
 
       const response = await axios.post('http://localhost:3001/crear_matricula', payload);
 
@@ -24,12 +37,9 @@ const CrearMatriculaPage = () => {
       form.resetFields();
     } catch (error) {
       console.error('Error al crear matrícula:', error);
-      if (error.response) {
-        console.error('Respuesta del servidor:', error.response.data);
-      }
       message.error(
         error.response?.data?.error +
-        (error.response?.data?.detalle ? `: ${error.response.data.detalle}` : '')
+        (error.response?.data?.detalle ? `: ${error.response.data.detalle}` : 'Error desconocido')
       );
     } finally {
       setLoading(false);
@@ -50,10 +60,20 @@ const CrearMatriculaPage = () => {
         >
           <Form.Item
             label="ID Matrícula"
-            name="id_matricula"
-            rules={[{ required: true, message: 'Ingrese el ID de matrícula' }]}
+            required
           >
-            <Input placeholder="Ej: 123456" />
+            <Space style={{ width: '100%' }}>
+              <Form.Item
+                name="id_matricula"
+                noStyle
+                rules={[{ required: true, message: 'Genere el ID de matrícula' }]}
+              >
+                <Input readOnly style={{ width: '100%' }} />
+              </Form.Item>
+              <Button onClick={generarIdMatricula}>
+                Generar ID Matrícula
+              </Button>
+            </Space>
           </Form.Item>
 
           <Form.Item
@@ -91,9 +111,12 @@ const CrearMatriculaPage = () => {
           <Form.Item
             label="Periodo"
             name="periodo"
-            rules={[{ required: true, message: 'Ingrese el periodo' }]}
+            rules={[{ required: true, message: 'Seleccione el periodo' }]}
           >
-            <Input placeholder="Ej: 1" />
+            <Select placeholder="Seleccione el periodo">
+              <Option value="1">1</Option>
+              <Option value="2">2</Option>
+            </Select>
           </Form.Item>
 
           <Form.Item

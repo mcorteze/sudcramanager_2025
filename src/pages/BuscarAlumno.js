@@ -100,7 +100,7 @@ const BuscarAlumno = () => {
 
   return (
     <div className='page-full'>
-      <h1>Buscar alumno</h1>
+      <h1>Buscar alumno (El alumno debe tener matrícula)</h1>
       <Search
         placeholder="Ingrese una palabra clave"
         allowClear

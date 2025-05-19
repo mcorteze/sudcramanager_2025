@@ -7,6 +7,7 @@ export default function CabezalSidebar () {
     <div className='cabezal-sidebar cabezal-icon'>
         <MdOutlineSupportAgent />
         <span>Sudcra Manager 2025</span>
+        <span style={{ fontSize: '11px' }}>Asistente de monitoreo y apoyo operativo</span>
     </div>
   );
 };

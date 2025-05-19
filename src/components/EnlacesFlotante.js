@@ -1,7 +1,7 @@
 import React from 'react';
 import PowerAppsLogo from '../images/powerappslogo.png';
 import PowerBiLogo from '../images/powerbilogo.png';
-import FormsLogo from '../images/formslogo.png';
+import ListLogo from '../images/listlogo.png';
 import './EnlacesFlotante.css';
 
 export default function EnlacesFlotante() {
@@ -26,26 +26,18 @@ export default function EnlacesFlotante() {
           <div className='sidebar-icon' style={{ backgroundImage: `url(${PowerBiLogo})` }}></div>
           <span>Monitor SUDCRA</span>
         </a>
-        {/* Forms */}
-        <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiULsiokZGRSBAgIwGh0xGo0dUQzhLQks3WThOUUQ0NjlSMlJWTUY1NUIyTC4u&origin=Invitation&channel=1" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
-          <div className='sidebar-icon' style={{ backgroundImage: `url(${FormsLogo})` }}></div>
-          <span>Forms Matemáticas</span>
+        {/* List */}
+        <a href="https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20251/AllItems.aspx?sortField=ID&isAscending=false&viewid=62f72397-1211-4bc9-a7ca-7ecc0094a11e&env=WebViewList" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
+          <div className='sidebar-icon' style={{ backgroundImage: `url(${ListLogo})` }}></div>
+          <span>Imágenes 2025-1</span>
         </a>
-        <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiULsiokZGRSBAgIwGh0xGo0dURFBJMkE2OFpYU0pKTDkwQTFXNVVKNEFNRS4u" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
-          <div className='sidebar-icon' style={{ backgroundImage: `url(${FormsLogo})` }}></div>
-          <span>Forms Lenguaje</span>
+        <a href="https://duoccl0.sharepoint.com/sites/SUDCRA1.5/Lists/planillas_recibidas_2025/AllItems.aspx?env=WebViewList" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
+          <div className='sidebar-icon' style={{ backgroundImage: `url(${ListLogo})` }}></div>
+          <span>Planillas recibidas 2025</span>
         </a>
-        <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiULsiokZGRSBAgIwGh0xGo0dUMlEyRkZTWkRaTlFBUjJMMjZKUFJUQkVTQS4u" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
-          <div className='sidebar-icon' style={{ backgroundImage: `url(${FormsLogo})` }}></div>
-          <span>Forms Emprendimiento</span>
-        </a>
-        <a href="https://forms.office.com/r/6TKmmP25pe" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
-          <div className='sidebar-icon' style={{ backgroundImage: `url(${FormsLogo})` }}></div>
-          <span>Forms Ética</span>
-        </a>
-        <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiULsiokZGRSBAgIwGh0xGo0dURVZINlFBNjFOUUtONDJWN0tKOVpLWUtaRC4u" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
-          <div className='sidebar-icon' style={{ backgroundImage: `url(${FormsLogo})` }}></div>
-          <span>Forms Inglés</span>
+        <a href="https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/Solicitudes_sudcra/AllItems.aspx?env=WebViewList" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
+          <div className='sidebar-icon' style={{ backgroundImage: `url(${ListLogo})` }}></div>
+          <span>Solicitudes (tickets)</span>
         </a>
       </div>
     </div>

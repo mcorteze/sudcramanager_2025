@@ -259,3 +259,13 @@ font-size: 12px !important;
     display: block;
 }
 
+/* Para submenú */
+.ant-menu.ant-menu-sub.ant-menu-inline {
+    background: transparent !important;
+}
+
+.ant-menu-item.ant-menu-item-only-child {
+    display: flex;
+    justify-content: center;
+    padding-left: 30px !important;
+}

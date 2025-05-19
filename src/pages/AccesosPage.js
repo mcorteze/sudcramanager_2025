@@ -125,6 +125,13 @@ export default function AccesosPage() {
       icon: <FormOutlined />,
       link: "/subirdocenteseccionmasivo",
     },
+    {
+      title: "Leer tickets",
+      subtitle: "Tickets",
+      description: "Permite leer información resumida de SUDCRA Tickets (Polling 5m)",
+      icon: <FormOutlined />,
+      link: "/tickets",
+    },
   ];
 
   return (

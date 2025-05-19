@@ -71,12 +71,15 @@ import FidelizadorPage from './pages/FidelizadorPage.js'
 import RescatarLecturaPage from './pages/RescatarLecturaPage.js'
 import Forms100Page from './pages/Forms100Page.js'
 import TicketsPage from './pages/TicketsPage.js'
+import { IoIosSearch } from "react-icons/io";
+import { PlusOutlined } from '@ant-design/icons';
 
 import './App.css';
 
 import EnlacesFlotante from './components/EnlacesFlotante.js';
 
 const { Sider, Content } = Layout;
+const { SubMenu } = Menu;
 
 const AppContent = () => {
   const [collapsed] = useState(false);
@@ -104,24 +107,33 @@ const AppContent = () => {
           <Menu.Item key="2" icon={<FilterOutlined />}>
             <Link to="/informe">Filtro Informe</Link>
           </Menu.Item>
-          <Menu.Item key="3" icon={<UserOutlined />}>
-            <Link to="/buscar-alumno">Buscar Alumno</Link>
-          </Menu.Item>
-          <Menu.Item key="4" icon={<UserOutlined />}>
-            <Link to="/buscar-docente">Buscar docente</Link>
-          </Menu.Item>
-          <Menu.Item key="5" icon={<DropboxOutlined />}>
-            <Link to="/secciones">ID Sección</Link>
-          </Menu.Item>
-          <Menu.Item key="22" icon={<SendOutlined />}>
-            <Link to="/lectura_rescatar_rut">Rescatar lectura</Link>
-          </Menu.Item>
-          <Menu.Item key="6" icon={<SendOutlined />}>
-            <Link to="/lecturas">Reprocesar</Link>
-          </Menu.Item>
-          <Menu.Item key="7" icon={<SendOutlined />}>
-            <Link to="/lecturas_masivo">Reprocesar Masivo</Link>
-          </Menu.Item>
+          
+          {/* ✅ Buscar */}
+          <SubMenu key="buscar-sub1" icon={<IoIosSearch />} title="Buscar">
+            <Menu.Item key="sub1-1">
+              <Link to="/buscar-alumno">Buscar Alumno</Link>
+            </Menu.Item>
+            <Menu.Item key="sub1-2">
+              <Link to="/buscar-docente">Buscar Docente</Link>
+            </Menu.Item>
+            <Menu.Item key="sub1-3">
+              <Link to="/secciones">Buscar ID Sección</Link>
+            </Menu.Item>
+          </SubMenu>  
+
+          {/* ✅ Reprocesar */}
+          <SubMenu key="repro-sub1" icon={<SyncOutlined />} title="Reprocesar">
+            <Menu.Item key="sub1-1">
+              <Link to="/lectura_rescatar_rut">Rescatar lectura</Link>
+            </Menu.Item>
+            <Menu.Item key="sub1-2">
+              <Link to="/lecturas">Reprocesar</Link>
+            </Menu.Item>
+            <Menu.Item key="sub1-3">
+              <Link to="/lecturas_masivo">Reprocesar Masivo</Link>
+            </Menu.Item>
+          </SubMenu>  
+
           <Menu.Item key="8" icon={<BiSolidError />}>
             <Link to="/errores_lista">Errores</Link>
           </Menu.Item>
@@ -134,15 +146,24 @@ const AppContent = () => {
           <Menu.Item key="14" icon={<HiMiniViewfinderCircle />}>
             <Link to="/monitor_accesos">Seguimiento</Link>
           </Menu.Item>
+          {/* ✅ Crear elementos */}
+          <SubMenu key="crear-sub1" icon={<PlusOutlined />} title="Crear elemento">
+            <Menu.Item key="sub1-1">
+              <Link to="/crear_alumno">Crear Alumno</Link>
+            </Menu.Item>
+            <Menu.Item key="sub1-2">
+              <Link to="/crear_docente">Crear Docente</Link>
+            </Menu.Item>
+            <Menu.Item key="sub1-3">
+              <Link to="/crear_matricula">Crear Matrícula</Link>
+            </Menu.Item>
+          </SubMenu>    
           <Menu.Item key="18" icon={<TableOutlined />}>
             <Link to="/accesos">Recursos</Link>
           </Menu.Item>
           <Menu.Item key="20" icon={<TableOutlined />}>
             <Link to="/fidelizador">Fidelizador</Link>
-          </Menu.Item>
-          <Menu.Item key="23" icon={<TableOutlined />}>
-            <Link to="/tickets">Tickets</Link>
-          </Menu.Item>           
+          </Menu.Item>              
         </Menu>
       </Sider>
       <EnlacesFlotante />

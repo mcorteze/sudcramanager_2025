@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  //host: '10.12.1.235',
-  //database: 'sudcra',
+  host: '10.12.1.235',
+  database: 'sudcra',
   // ******* bases de datos estáticas *******
-  host: 'localhost',
-  database: 'sudcra_20250514_1502', // final primer semestre
+  //host: 'localhost',
+  //database: 'sudcra_20250514_1502', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',

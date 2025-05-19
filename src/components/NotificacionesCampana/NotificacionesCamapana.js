@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Badge, Modal, Tooltip, Table } from 'antd';
+import { Badge, Modal, Tooltip, Table, Tag } from 'antd';
 import { BellOutlined } from '@ant-design/icons';
 import { FiExternalLink } from 'react-icons/fi';
 import useNotificaciones from './useNotificaciones';
@@ -15,6 +15,9 @@ export default function NotificacionCampana() {
   const notificaciones = useNotificaciones(notificacionSources);
   const totalPendientes = notificaciones.reduce((sum, n) => sum + n.count, 0);
   const totalBadge = totalPendientes + (hayAlertaLectura ? 1 : 0);
+
+  const ticketsNoti = notificaciones.find(n => n.id === 'listado_tickets');
+  const hayTicketsPendientes = ticketsNoti?.count > 0;
 
   const columns = [
     {
@@ -48,7 +51,7 @@ export default function NotificacionCampana() {
   ];
 
   return (
-    <div style={{ position: 'relative', cursor: 'pointer' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
       <Tooltip title="Notificaciones pendientes" onClick={() => setModalVisible(true)}>
         <Badge
           count={totalBadge}
@@ -63,6 +66,12 @@ export default function NotificacionCampana() {
           />
         </Badge>
       </Tooltip>
+
+      {hayTicketsPendientes && (
+        <Tag color="red" style={{ margin: 0, marginLeft: 5 }}>
+          Tickets
+        </Tag>
+      )}
 
       <Modal
         visible={modalVisible}
