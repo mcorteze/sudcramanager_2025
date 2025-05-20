@@ -1840,7 +1840,7 @@ app.get('/api/informes-enviados-alumno/:id_matricula', async (req, res) => {
       JOIN matricula_eval as me ON ia.id_matricula_eval = me.id_matricula_eval
       JOIN eval as e ON me.id_eval = e.id_eval
       WHERE ia.id_matricula_eval LIKE $1
-      ORDER BY e.cod_asig, e.nombre_prueba, ia.id_informealum, ia.marca_temp_mail ASC
+      ORDER BY ia.marca_temporal DESC;
     `, [`${id_matricula}%`]); // Usar LIKE con el patrón dado
     res.json(result.rows);
   } catch (err) {
@@ -2140,11 +2140,13 @@ app.get('/api/rut_lecturas/:rut', async (req, res) => {
         l.imagen,
         split_part(l.imagen, '_', 1) AS id_upload,  -- Extrae el número antes del "_"
         substring(l.imagen from position('_' in l.imagen) + 1) AS nombre_imagen,
+        al.tipoarchivo,
         l.instante_forms
     FROM lectura l
     JOIN asignaturas asig ON asig.cod_interno = l.cod_interno
+    LEFT JOIN archivosleidos al ON al.id_archivoleido = l.id_archivoleido
     WHERE rut = $1  -- Usar parámetros posicionales para evitar SQL injection
-    ORDER BY asig.programa ASC, l.id_archivoleido ASC;
+    ORDER BY l.instante_forms DESC;
     `;
 
     // Ejecutar la consulta con el parámetro rut

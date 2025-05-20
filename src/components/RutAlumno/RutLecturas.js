@@ -74,7 +74,7 @@ const RutLecturas = ({ rut }) => {
       }
     },
     { title: 'ID Upload', dataIndex: 'id_upload', key: 'id_upload' },
-
+    { title: 'Tipo Archivo', dataIndex: 'tipoarchivo', key: 'tipoarchivo' },
     {
       title: 'Acciones',
       key: 'acciones',

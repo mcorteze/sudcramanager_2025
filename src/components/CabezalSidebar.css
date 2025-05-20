@@ -29,3 +29,12 @@
     margin: 10px;
     margin-bottom: 4px;
 }
+
+.cabezal-sidebar .descripcion {
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    text-transform:none;
+    letter-spacing:normal;
+    color: lavender;
+    font-weight: 300 !important;
+    font-size: 11px !important;
+}
