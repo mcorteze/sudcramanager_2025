@@ -67,8 +67,8 @@ const EquiposEstado = () => {
       padding: '0px',
     },
     rectangulo: {
-      width: 150,
-      height: 150,
+      width: 140,
+      height: 140,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -99,7 +99,7 @@ const EquiposEstado = () => {
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
   return (
-    <div>
+    <div style = {{ height: '210px' }} >
       <Title level={5} style = {{ marginBottom: '0px' }} >Monitor de red de equipos Forms</Title>
       <Typography.Paragraph style={{ fontSize: '12px', color: 'red', marginBottom: '12px' }}>
         {lastUpdated

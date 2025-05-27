@@ -1720,11 +1720,11 @@ app.get('/api/seccion_informes', async (req, res) => {
           e.nombre_prueba,
           ise.mail_enviado,
           ise.marca_temp_mail,
-          'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/${anio_periodo}s/secciones/' || ise.id_eval || '_' || ise.id_seccion || '.html' AS link_informe
+          'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/${anio_periodo}/secciones/' || ise.id_eval || '_' || ise.id_seccion || '.html' AS link_informe
       FROM informes_secciones as ise
       JOIN eval as e on e.id_eval = ise.id_eval
       WHERE ise.id_seccion = $1
-      ORDER BY ise.id_eval ASC;
+      ORDER BY ise.marca_temp_mail ASC;
     `;
 
     // Capturar el parámetro id_seccion desde la query string
@@ -1840,7 +1840,7 @@ app.get('/api/informes-enviados-alumno/:id_matricula', async (req, res) => {
       JOIN matricula_eval as me ON ia.id_matricula_eval = me.id_matricula_eval
       JOIN eval as e ON me.id_eval = e.id_eval
       WHERE ia.id_matricula_eval LIKE $1
-      ORDER BY ia.marca_temporal DESC;
+      ORDER BY ia.marca_temporal ASC;
     `, [`${id_matricula}%`]); // Usar LIKE con el patrón dado
     res.json(result.rows);
   } catch (err) {
@@ -2146,7 +2146,7 @@ app.get('/api/rut_lecturas/:rut', async (req, res) => {
     JOIN asignaturas asig ON asig.cod_interno = l.cod_interno
     LEFT JOIN archivosleidos al ON al.id_archivoleido = l.id_archivoleido
     WHERE rut = $1  -- Usar parámetros posicionales para evitar SQL injection
-    ORDER BY l.instante_forms DESC;
+    ORDER BY l.instante_forms ASC;
     `;
 
     // Ejecutar la consulta con el parámetro rut
@@ -2504,6 +2504,54 @@ app.get('/api/solicitudes_abierto', async (req, res) => {
     const result = await pool.query(
       "SELECT * FROM solicitudes_sudcra WHERE estado = 'Abierto' OR estado = 'En proceso' ORDER BY id DESC;"
     );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+// Endpoint para obtener las lecturas de imágenes más recientes por programa
+app.get('/api/ultimas-lecturas-form', async (req, res) => {
+  try {
+    const query = `
+      WITH RankedPrograms AS (
+        SELECT 
+          asig.cod_programa,
+          me.imagen,
+          al.marcatemporal,
+          ROW_NUMBER() OVER (PARTITION BY asig.cod_programa ORDER BY al.marcatemporal DESC) AS rn,
+          al.id_archivoleido  -- Agregado para rowKey en React
+        FROM matricula_eval me
+        JOIN archivosleidos al ON al.id_archivoleido = me.id_archivoleido
+        JOIN eval e ON e.id_eval = me.id_eval
+        JOIN asignaturas asig ON asig.cod_asig = e.cod_asig
+        WHERE al.tipoarchivo = '.txt'
+      )
+      SELECT 
+        'Calificado' AS estado,  -- Columna 'estado' con valor 'Calificado'
+        cod_programa,
+        -- Extraer solo el número antes del guion bajo en el campo 'imagen', ignorando los que no sigan el patrón
+        CASE 
+          WHEN imagen ~ '^[0-9]+_' THEN REGEXP_SUBSTR(imagen, '^[0-9]+')
+          ELSE NULL
+        END AS imagen,
+        marcatemporal,
+        id_archivoleido  -- Agregado para rowKey en React
+      FROM RankedPrograms
+      WHERE rn = 1
+      ORDER BY marcatemporal DESC;
+    `;
+
+    // Ejecuta la consulta en la base de datos
+    const result = await pool.query(query);
+
+    // Verifica si hay resultados
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron archivos recientes' });
+    }
+
+    // Devuelve los resultados en formato JSON
     res.json(result.rows);
   } catch (err) {
     console.error('Error en la consulta SQL:', err);

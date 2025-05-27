@@ -8,6 +8,9 @@ import dayjs from 'dayjs';
 import HistorialProcesamientoChart from '../components/Monitoreo/HistorialProcesamientoChart';
 import EquiposEstado from '../components/Monitoreo/EquiposEstado';
 import NotificacionCampana from '../components/NotificacionesCampana/NotificacionesCamapana';
+import UltimasLecturasFormsTable from '../components/Monitoreo/UltimasLecturasFormsTable';
+import HistorialDiasChart from '../components/Monitoreo/HistorialDiasChart';
+
 import 'dayjs/locale/es';
 import esES from 'antd/locale/es_ES';
 import { ConfigProvider } from 'antd';
@@ -160,7 +163,7 @@ const HistorialProcesamientoTable = () => {
       <h1>Monitoreo</h1> 
       <Spin spinning={loading}>
         <div>
-          <Space direction="vertical" size="middle">
+          <Space direction="vertical" size="middle" style = {{ width: '100%' }}>
             <Space direction="horizontal" size="middle">
               <DatePicker
                 value={selectedDate}
@@ -170,7 +173,11 @@ const HistorialProcesamientoTable = () => {
               />
               <NotificacionCampana/>
             </Space>
-            <EquiposEstado />
+            <Space direction="horizontal" size="middle" style = {{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+              <EquiposEstado />
+              <UltimasLecturasFormsTable />
+              <HistorialDiasChart />
+            </Space>
           </Space>
           <Divider />
 
