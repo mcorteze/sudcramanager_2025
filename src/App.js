@@ -71,6 +71,10 @@ import FidelizadorPage from './pages/FidelizadorPage.js'
 import RescatarLecturaPage from './pages/RescatarLecturaPage.js'
 import Forms100Page from './pages/Forms100Page.js'
 import TicketsPage from './pages/TicketsPage.js'
+import AlumnosPage from './pages/AlumnosPage.js'
+import CargaTabla from './pages/CargaTabla.js'
+
+
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined } from '@ant-design/icons';
 
@@ -223,6 +227,7 @@ const AppContent = () => {
             <Route path="/monitoreo_lista" element={<UploadListaPage />} />
             <Route path="/upload/:id_upload" element={<UploadIdPage />} />
             <Route path="/lectura" element={<LecturaPage />} />
+            <Route path="/lecturas_calificadas/:num_imagen" element={<ImagenPage />} />
             <Route path="/lectura/:id_archivoleido/:linea_leida" element={<LecturaPage />} />
             <Route path="/errores/:id_archivoleido/:linea_leida" element={<ErroresIDPage />} />
             <Route path="/rut_lecturas/:rut" element={<RutLecturas />} />
@@ -239,6 +244,11 @@ const AppContent = () => {
             <Route path="/lectura_rescatar_rut/:rut" element={<RescatarLecturaPage />} />
             <Route path="/forms100" element={<Forms100Page />} />
             <Route path="/tickets" element={<TicketsPage />} />
+            
+            { /* rutas con python*/}
+            <Route path="/obtener_alumnos" element={<AlumnosPage />} />
+            <Route path="/carga_tablas_especificaciones" element={<CargaTabla />} />
+            
           </Routes>
         </Content>
       </Layout>

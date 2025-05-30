@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Spin, Alert, Switch, Button, message, Tooltip, Modal } from 'antd';
+import { Table, Spin, Alert, Switch, Button, message, Tooltip, Modal, Input } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons'; // Icono de tacho de basura
 import moment from 'moment';
 import 'antd/dist/reset.css'; // Importa los estilos de Ant Design
@@ -12,6 +12,8 @@ export default function InformesPorDesbloquear() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updatedSwitches, setUpdatedSwitches] = useState(new Set());
+  const [isModalVisible, setIsModalVisible] = useState(false); // Estado del modal
+  const [keyword, setKeyword] = useState(''); // Estado para la palabra clave
 
   useEffect(() => {
     fetchSeccionesPendientes();
@@ -57,33 +59,47 @@ export default function InformesPorDesbloquear() {
     setUpdatedSwitches(updated);
   };
 
-  const handleSave = async () => {
-    const updatePromises = Array.from(updatedSwitches).map(async (id_eval) => {
-      try {
-        const response = await fetch('http://localhost:3001/api/eval/update-maildisponible', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ id_eval }),
-        });
+  const handleSave = () => {
+    setIsModalVisible(true); // Muestra el modal al hacer clic en Guardar Cambios
+  };
 
-        if (!response.ok) {
-          throw new Error('Error al actualizar el registro con id_eval: ' + id_eval);
+  const handleModalOk = () => {
+    if (keyword === 'arcdus') {
+      const updatePromises = Array.from(updatedSwitches).map(async (id_eval) => {
+        try {
+          const response = await fetch('http://localhost:3001/api/eval/update-maildisponible', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id_eval }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Error al actualizar el registro con id_eval: ' + id_eval);
+          }
+        } catch (err) {
+          console.error(err);
         }
-      } catch (err) {
-        console.error(err);
-      }
-    });
+      });
 
-    try {
-      await Promise.all(updatePromises);
-      message.success('Cambios guardados exitosamente');
-      setUpdatedSwitches(new Set());
-      fetchSeccionesPendientes(); // Refresca los datos de la tabla
-    } catch (error) {
-      message.error('Error al guardar los cambios');
+      Promise.all(updatePromises)
+        .then(() => {
+          message.success('Cambios guardados exitosamente');
+          setUpdatedSwitches(new Set());
+          fetchSeccionesPendientes(); // Refresca los datos de la tabla
+          setIsModalVisible(false); // Cierra el modal
+        })
+        .catch(() => {
+          message.error('Error al guardar los cambios');
+        });
+    } else {
+      message.error('Palabra clave incorrecta. El envío no se realizará.');
     }
+  };
+
+  const handleModalCancel = () => {
+    setIsModalVisible(false); // Cierra el modal sin realizar ninguna acción
   };
 
   const confirmDelete = (id_informeseccion) => {
@@ -229,6 +245,23 @@ export default function InformesPorDesbloquear() {
       >
         Guardar Cambios
       </Button>
+
+      {/* Modal de confirmación */}
+      <Modal
+        title="Confirmación"
+        visible={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
+        okText="Confirmar"
+        cancelText="Cancelar"
+      >
+        <p>Para confirmar el envío de los informes, ingresa la palabra clave:</p>
+        <Input
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          placeholder="Ingrese la palabra clave"
+        />
+      </Modal>
     </div>
   );
 }

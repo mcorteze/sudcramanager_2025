@@ -1596,7 +1596,7 @@ app.get('/api/imagenes/:id_lista', async (req, res) => {
 
 
 // Endpoint para obtener lecturas con los campos específicos
-app.get('/api/lectura/:num_imagen', async (req, res) => {
+app.get('/api/lecturas_calificadas/:num_imagen', async (req, res) => {
   const { num_imagen } = req.params; // Obtener parámetro de la URL
   try {
     const result = await pool.query(
@@ -1724,7 +1724,7 @@ app.get('/api/seccion_informes', async (req, res) => {
       FROM informes_secciones as ise
       JOIN eval as e on e.id_eval = ise.id_eval
       WHERE ise.id_seccion = $1
-      ORDER BY ise.marca_temp_mail ASC;
+      ORDER BY ise.marca_temp_mail DESC;
     `;
 
     // Capturar el parámetro id_seccion desde la query string
@@ -1840,7 +1840,7 @@ app.get('/api/informes-enviados-alumno/:id_matricula', async (req, res) => {
       JOIN matricula_eval as me ON ia.id_matricula_eval = me.id_matricula_eval
       JOIN eval as e ON me.id_eval = e.id_eval
       WHERE ia.id_matricula_eval LIKE $1
-      ORDER BY ia.marca_temporal ASC;
+      ORDER BY ia.marca_temporal DESC;
     `, [`${id_matricula}%`]); // Usar LIKE con el patrón dado
     res.json(result.rows);
   } catch (err) {
@@ -2146,7 +2146,7 @@ app.get('/api/rut_lecturas/:rut', async (req, res) => {
     JOIN asignaturas asig ON asig.cod_interno = l.cod_interno
     LEFT JOIN archivosleidos al ON al.id_archivoleido = l.id_archivoleido
     WHERE rut = $1  -- Usar parámetros posicionales para evitar SQL injection
-    ORDER BY l.instante_forms ASC;
+    ORDER BY l.instante_forms DESC;
     `;
 
     // Ejecutar la consulta con el parámetro rut

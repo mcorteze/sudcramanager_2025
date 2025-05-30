@@ -45,7 +45,6 @@ const LecturaTable = ({ lecturaData, loading }) => {
         dataSource={lecturaData}
         loading={loading}
         rowKey="id_lectura"
-        pagination={{ pageSize: 10 }}
       />
     </div>
   );

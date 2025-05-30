@@ -44,7 +44,7 @@ export default function ImagenPage() {
       const imagenesResponse = await axios.get(`http://localhost:3001/api/imagenes/${searchTerm}`);
       setImagenesData(imagenesResponse.data);
 
-      const lecturaResponse = await axios.get(`http://localhost:3001/api/lectura/${searchTerm}`);
+      const lecturaResponse = await axios.get(`http://localhost:3001/api/lecturas_calificadas/${searchTerm}`);
       setLecturaData(lecturaResponse.data);
 
       const lecturaTempResponse = await axios.get(`http://localhost:3001/api/lectura_temp/${searchTerm}`);

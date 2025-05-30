@@ -85,13 +85,13 @@ const HistorialProcesamiento = () => {
                 }}
               />
               <Legend />
-              <Bar dataKey=".txt" stackId="a" fill="#d3dcc9" barSize={50}>
+              <Bar dataKey=".txt" stackId="a" fill="#eef1f0" barSize={50}>
                 <LabelList content={renderLabel} />
               </Bar>
-              <Bar dataKey=".xlsm" stackId="a" fill="#80a71a" barSize={50}>
+              <Bar dataKey=".xlsm" stackId="a" fill="#8ce1c2" barSize={50}>
                 <LabelList content={renderLabel} />
               </Bar>
-              <Bar dataKey=".xlsx" stackId="a" fill="#aec954" barSize={50}>
+              <Bar dataKey=".xlsx" stackId="a" fill="#ffff67" barSize={50}>
                 <LabelList content={renderLabel} />
               </Bar>
             </BarChart>
