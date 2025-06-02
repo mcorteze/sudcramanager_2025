@@ -16,16 +16,29 @@ const UltimasLecturasFormsTable = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get('http://localhost:3001/api/ultimas-lecturas-form');
-        
+
         const formattedData = response.data.map(item => {
           const marcatemporalFormatted = moment(item.marcatemporal);
-          const daysAgo = marcatemporalFormatted.isSame(moment(), 'day') 
-            ? 'hoy' 
-            : marcatemporalFormatted.fromNow(); 
+          const now = moment();
+          const diffHours = now.diff(marcatemporalFormatted, 'hours');
+          const diffDays = Math.floor(diffHours / 24);
+
+          let daysAgoText = '';
+          let isOld = false;
+
+          if (diffHours < 24) {
+            daysAgoText = 'hoy';
+          } else {
+            daysAgoText = `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+            isOld = true;
+          }
 
           return {
             ...item,
-            marcatemporal: `${marcatemporalFormatted.format('HH:mm:ss')} (${daysAgo})`,
+            marcatemporalRaw: marcatemporalFormatted,
+            marcatemporal: marcatemporalFormatted.format('HH:mm:ss'),
+            daysAgoText,
+            isOld,
           };
         });
 
@@ -59,9 +72,16 @@ const UltimasLecturasFormsTable = () => {
     },
     {
       title: 'Marca Temporal',
-      dataIndex: 'marcatemporal',
       key: 'marcatemporal',
       width: '150px',
+      render: (_, record) => (
+        <>
+          {record.marcatemporal}{' '}
+          <span style={{ color: record.isOld ? 'red' : 'inherit' }}>
+            ({record.daysAgoText})
+          </span>
+        </>
+      ),
     },
   ];
 
