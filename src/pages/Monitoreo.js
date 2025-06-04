@@ -171,7 +171,6 @@ const HistorialProcesamientoTable = () => {
                 format="DD-MM-YYYY"
                 allowClear={false}
               />
-              <NotificacionCampana/>
             </Space>
             <Space direction="horizontal" size="middle" style = {{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
               <EquiposEstado />

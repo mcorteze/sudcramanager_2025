@@ -269,3 +269,31 @@ font-size: 12px !important;
     justify-content: center;
     padding-left: 30px !important;
 }
+
+.menu-general-contenedor {
+  height: 450px;              
+  overflow-y: auto;           
+  scrollbar-width: none;      
+  -ms-overflow-style: none;   
+}
+
+.menu-general-contenedor::-webkit-scrollbar {
+  display: none;              
+}
+
+/* Para pantallas grandes */
+@media (min-width: 1440px) {
+  .menu-general-contenedor {
+    height: 750px;            
+  }
+}
+
+.ant-menu-item.ant-menu-item-selected,
+.ant-menu-submenu-title {
+    padding-left: 20px !important;
+}
+
+.ant-menu-item.ant-menu-item-only-child {
+    padding-left: 26px !important;
+    height: 24px !important;
+}

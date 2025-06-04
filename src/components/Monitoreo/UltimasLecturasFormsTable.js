@@ -20,17 +20,20 @@ const UltimasLecturasFormsTable = () => {
         const formattedData = response.data.map(item => {
           const marcatemporalFormatted = moment(item.marcatemporal);
           const now = moment();
+
+          // Criterio 1: texto en rojo si pasaron más de 24 horas reales
           const diffHours = now.diff(marcatemporalFormatted, 'hours');
-          const diffDays = Math.floor(diffHours / 24);
+          const isOld = diffHours >= 24;
 
+          // Criterio 2: texto de días por fecha calendario
           let daysAgoText = '';
-          let isOld = false;
-
-          if (diffHours < 24) {
+          if (now.isSame(marcatemporalFormatted, 'day')) {
             daysAgoText = 'hoy';
+          } else if (now.subtract(1, 'day').isSame(marcatemporalFormatted, 'day')) {
+            daysAgoText = 'ayer';
           } else {
+            const diffDays = now.diff(marcatemporalFormatted, 'days');
             daysAgoText = `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
-            isOld = true;
           }
 
           return {
@@ -44,7 +47,7 @@ const UltimasLecturasFormsTable = () => {
 
         setData(formattedData);
         setLoading(false);
-        setLastUpdated(new Date()); // Actualizamos la hora de la última actualización
+        setLastUpdated(new Date());
       } catch (err) {
         setError('Hubo un error al obtener los datos');
         setLoading(false);
@@ -54,7 +57,7 @@ const UltimasLecturasFormsTable = () => {
     fetchData();
     const intervalId = setInterval(fetchData, 20000); // Polling cada 20 segundos
     
-    return () => clearInterval(intervalId); // Limpiar el intervalo cuando el componente se desmonte
+    return () => clearInterval(intervalId); // Limpiar intervalo
   }, []);
 
   const columns = [
@@ -91,9 +94,8 @@ const UltimasLecturasFormsTable = () => {
 
   return (
     <div style={{ height: '210px' }}>
-      <Title level={5} style={{ marginBottom: '0px' }}>Resumen de últimos procesos</Title>
+      <Title level={5} style={{ marginBottom: '0px' }}>Resumen de últimos procesos de HR</Title>
       
-      {/* Mostrar mensaje de última actualización */}
       <div style={{ fontSize: '12px', marginBottom: '12px' }} >
         {lastUpdated
           ? `Última actualización: ${dayjs(lastUpdated).format('HH:mm:ss')}, Polling (20s)`

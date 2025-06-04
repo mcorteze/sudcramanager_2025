@@ -102,21 +102,21 @@ export default function InformesPorDesbloquear() {
     setIsModalVisible(false); // Cierra el modal sin realizar ninguna acción
   };
 
-  const confirmDelete = (id_informeseccion) => {
+  const confirmDelete = (id_seccion, id_eval, id_informeseccion) => {
     confirm({
       title: '¿Estás seguro de eliminar este registro?',
       content: 'Esta acción no se puede deshacer.',
       okText: 'Sí, eliminar',
       okType: 'danger',
       cancelText: 'Cancelar',
-      onOk: () => handleDelete(id_informeseccion),
+      onOk: () => handleDelete(id_seccion, id_eval, id_informeseccion),
       onCancel: () => console.log('Cancelado'),
     });
   };
 
-  const handleDelete = async (id_informeseccion) => {
+  const handleDelete = async (id_seccion, id_eval, id_informeseccion) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/informes_secciones/${id_informeseccion}`, {
+      const response = await fetch(`http://localhost:3001/api/informes_secciones/${id_seccion}/${id_eval}/${id_informeseccion}`, {
         method: 'DELETE',
       });
 
@@ -131,6 +131,8 @@ export default function InformesPorDesbloquear() {
       message.error('Error al eliminar el registro');
     }
   };
+
+
 
   const baseUrl = 'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/2025001/secciones/';
 
@@ -201,14 +203,16 @@ export default function InformesPorDesbloquear() {
       key: 'eliminar',
       render: (_, record) => (
         <Tooltip title="Eliminar">
-          <Button danger
+          <Button 
+            danger
             icon={<DeleteOutlined className="icon-tamano1" />}
-            onClick={() => confirmDelete(record.id_informeseccion)}
+            onClick={() => confirmDelete(record.id_seccion, record.id_eval)}  // Pasa ambos parámetros
             style={{ color: 'red' }}
           />
         </Tooltip>
       ),
-    },
+    }
+
   ];
 
   if (loading) {

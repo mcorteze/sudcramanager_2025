@@ -2560,6 +2560,109 @@ app.get('/api/ultimas-lecturas-form', async (req, res) => {
 });
 
 
+app.get('/api/listado_cantidad_notas', async (req, res) => {
+  const { cod_programa } = req.query;
+
+  if (!cod_programa) {
+    return res.status(400).json({ error: 'Falta el parámetro cod_programa' });
+  }
+
+  const query = `
+    SELECT
+      asig.cod_programa,
+      sd.nombre_sede,
+      l.cod_interno,
+      l.num_prueba,
+      l.forma,
+      COUNT(DISTINCT cal.id_calificacion) AS cantidad_notas
+    FROM matricula_eval me
+    JOIN lectura l ON l.id_archivoleido = me.id_archivoleido
+    JOIN matricula m ON m.id_matricula = me.id_matricula
+    JOIN sedes sd ON sd.id_sede = m.id_sede
+    JOIN calificaciones_obtenidas co ON co.id_matricula_eval = me.id_matricula_eval
+    JOIN calificaciones cal ON cal.id_calificacion = co.id_calificacion
+    JOIN asignaturas asig ON asig.cod_interno = l.cod_interno
+    WHERE asig.cod_programa = $1
+    GROUP BY
+      asig.cod_programa,
+      sd.nombre_sede,
+      l.cod_interno,
+      l.num_prueba,
+      l.forma
+    ORDER BY
+      asig.cod_programa,
+      sd.nombre_sede,
+      l.cod_interno
+  `;
+
+  try {
+    const result = await pool.query(query, [cod_programa]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+app.get('/api/topbar-buscar', async (req, res) => {
+  const { q } = req.query;
+
+  if (!q || q.trim() === '') {
+    return res.status(400).json({ error: 'Parámetro de búsqueda vacío' });
+  }
+
+  try {
+    const results = {
+      alumnos: [],
+      docentes: [],
+      seccionesPorId: [],
+      seccionesPorNombre: []
+    };
+
+    // Alumnos (por rut)
+    const alumnosQuery = await pool.query(
+      `SELECT rut, apellidos || ' ' || nombres AS nombre FROM alumnos WHERE rut = $1`,
+      [q]
+    );
+    results.alumnos = alumnosQuery.rows;
+
+    // Docentes (por rut)
+    const docentesQuery = await pool.query(
+      `SELECT rut_docente AS rut, apellidos_doc || ' ' || nombre_doc AS nombre FROM docentes WHERE rut_docente = $1`,
+      [q]
+    );
+    results.docentes = docentesQuery.rows;
+
+    // Sección por ID (solo si es numérico)
+    if (!isNaN(q)) {
+      const seccionIdQuery = await pool.query(
+        `SELECT s.id_seccion, sd.nombre_sede, s.seccion, doc.apellidos_doc || ' ' || doc.nombre_doc AS docente
+         FROM secciones s
+         JOIN sedes sd ON sd.id_sede = s.id_sede
+         JOIN docentes doc ON doc.rut_docente = s.rut_docente
+         WHERE s.id_seccion = $1`,
+        [q]
+      );
+      results.seccionesPorId = seccionIdQuery.rows;
+    }
+
+    // Sección por nombre (alfanumérico como MAT1111-002V)
+    const seccionNombreQuery = await pool.query(
+      `SELECT s.id_seccion, sd.nombre_sede, s.seccion, doc.apellidos_doc || ' ' || doc.nombre_doc AS docente
+       FROM secciones s
+       JOIN sedes sd ON sd.id_sede = s.id_sede
+       JOIN docentes doc ON doc.rut_docente = s.rut_docente
+       WHERE s.seccion = $1`,
+      [q]
+    );
+    results.seccionesPorNombre = seccionNombreQuery.rows;
+
+    res.json(results);
+  } catch (err) {
+    console.error('Error al realizar búsqueda:', err);
+    res.status(500).json({ error: 'Error al ejecutar la búsqueda' });
+  }
+});
 
 // -----------------------------------------------
 
@@ -2994,24 +3097,51 @@ app.delete('/api/matricula/:id', async (req, res) => {
   }
 });
 
-// Borrar un id_informeseccion
-app.delete('/api/informes_secciones/:id', async (req, res) => {
-  const idInformeSeccion = req.params.id; // Captura el parámetro de la URL
+// Borrar un registro de matricula_eval y registro en informes secciones enviados
+app.delete('/api/informes_secciones/:id_seccion/:id_eval/:id_informeseccion', async (req, res) => {
+  const idSeccion = req.params.id_seccion;  // Captura el primer parámetro de la URL
+  const idEval = req.params.id_eval;        // Captura el segundo parámetro de la URL
+  const idInformeSeccion = req.params.id_informeseccion; // Captura el tercer parámetro
 
+  const client = await pool.connect(); // Para manejar la transacción correctamente
   try {
-    const result = await pool.query(
+    await client.query('BEGIN'); // Comienza la transacción
+
+    // Primero, eliminamos de la tabla matricula_eval
+    const resultMatricula = await client.query(
+      `DELETE FROM public.matricula_eval me
+       USING public.inscripcion i
+       WHERE i.id_matricula = me.id_matricula
+       AND i.id_seccion = $1 
+       AND me.id_eval = $2`,
+      [idSeccion, idEval]
+    );
+
+    if (resultMatricula.rowCount === 0) {
+      await client.query('ROLLBACK'); // Si no se encuentra el registro, revertimos
+      return res.status(404).json({ message: 'Registro en matricula_eval no encontrado.' });
+    }
+
+    // Ahora, eliminamos de la tabla informes_secciones
+    const resultInformeSeccion = await client.query(
       'DELETE FROM public.informes_secciones WHERE id_informeseccion = $1',
       [idInformeSeccion]
     );
 
-    if (result.rowCount > 0) {
-      res.status(200).json({ message: 'Registro eliminado exitosamente.' });
+    if (resultInformeSeccion.rowCount > 0) {
+      await client.query('COMMIT'); // Si todo es correcto, confirmamos la transacción
+      res.status(200).json({ message: 'Registros eliminados exitosamente.' });
     } else {
-      res.status(404).json({ message: 'Registro no encontrado.' });
+      await client.query('ROLLBACK'); // Si no se encuentra el registro, revertimos
+      res.status(404).json({ message: 'Registro en informes_secciones no encontrado.' });
     }
+
   } catch (error) {
-    console.error('Error al eliminar el registro:', error);
-    res.status(500).json({ message: 'Error al eliminar el registro.' });
+    await client.query('ROLLBACK'); // En caso de error, revertimos la transacción
+    console.error('Error al eliminar los registros:', error);
+    res.status(500).json({ message: 'Error al eliminar los registros.' });
+  } finally {
+    client.release(); // Liberamos la conexión
   }
 });
 

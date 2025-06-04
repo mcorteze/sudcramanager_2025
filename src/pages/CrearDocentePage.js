@@ -52,7 +52,7 @@ const CrearDocentePage = () => {
             name="rut_docente"
             rules={[{ required: true, message: 'Por favor ingrese el RUT del docente' }]}
           >
-            <Input placeholder="12345678-9" />
+            <Input placeholder="123456789" />
           </Form.Item>
 
           <Form.Item

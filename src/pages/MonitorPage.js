@@ -14,11 +14,18 @@ export default function AccesosPage() {
         link: "/imagenes",
     },
     {
-        title: "Listado lecturas hoja de respuesta",
+        title: "Listado lecturas HR con filtros",
         subtitle: "Hojas de respuestas",
         description: "Ver listado de imágenes por id correlativo presentes en la BBDD.",
         icon: <FileImageOutlined />,
         link: "/monitoreo_lista",
+    },
+    {
+        title: "Listado de las últimas 30 lecturas HR",
+        subtitle: "Calidad Forms30",
+        description: "Ver listado de las últimas 30 lecturas de imágenes",
+        icon: <FileImageOutlined />,
+        link: "/forms100",
     },
     {
       title: "Buscar planillas leídas",
@@ -40,6 +47,13 @@ export default function AccesosPage() {
       description: "Navegar en estructura académica.",
       icon: <ApartmentOutlined />,
       link: "/monitorsede",
+    },
+    {
+      title: "Filtro de registros por error",
+      subtitle: "Registros de error",
+      description: "Permite buscar lecturas con error usando criterios.",
+      icon: <ApartmentOutlined />,
+      link: "/errores_lista",
     },
   ];
 

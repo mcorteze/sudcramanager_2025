@@ -73,16 +73,17 @@ import Forms100Page from './pages/Forms100Page.js'
 import TicketsPage from './pages/TicketsPage.js'
 import AlumnosPage from './pages/AlumnosPage.js'
 import CargaTabla from './pages/CargaTabla.js'
-
+import ListadoCantNotasPage from './pages/ListadoCantNotasPage.js'
+import TopBar from './components/TopBar.js'
 
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined } from '@ant-design/icons';
 
 import './App.css';
 
-import EnlacesFlotante from './components/EnlacesFlotante.js';
 
-const { Sider, Content } = Layout;
+
+const { Sider, Content, Header  } = Layout;
 const { SubMenu } = Menu;
 
 const AppContent = () => {
@@ -104,77 +105,96 @@ const AppContent = () => {
     <Layout>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <CabezalSidebar />
-        <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
+        <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']} className='menu-general-contenedor'>
           <Menu.Item key="1" icon={<RiRadarLine />}>
             <Link to="/">Monitoreo</Link>
           </Menu.Item>
-          <Menu.Item key="2" icon={<FilterOutlined />}>
-            <Link to="/informe">Filtro Informe</Link>
-          </Menu.Item>
-          
           {/* ✅ Buscar */}
           <SubMenu key="buscar-sub1" icon={<IoIosSearch />} title="Buscar">
+            <Menu.Item key="sub1-0">
+              <Link to="/informe">• Filtro Informe</Link>
+            </Menu.Item>
             <Menu.Item key="sub1-1">
-              <Link to="/buscar-alumno">Buscar Alumno</Link>
+              <Link to="/buscar-alumno">• Buscar Alumno</Link>
             </Menu.Item>
             <Menu.Item key="sub1-2">
-              <Link to="/buscar-docente">Buscar Docente</Link>
+              <Link to="/buscar-docente">• Buscar Docente</Link>
             </Menu.Item>
             <Menu.Item key="sub1-3">
-              <Link to="/secciones">Buscar ID Sección</Link>
+              <Link to="/secciones">• Buscar ID Sección</Link>
             </Menu.Item>
-          </SubMenu>  
+          </SubMenu>
 
           {/* ✅ Reprocesar */}
           <SubMenu key="repro-sub1" icon={<SyncOutlined />} title="Reprocesar">
             <Menu.Item key="sub1-1">
-              <Link to="/lectura_rescatar_rut">Rescatar lectura</Link>
+              <Link to="/lectura_rescatar_rut">• Rescatar lectura</Link>
             </Menu.Item>
             <Menu.Item key="sub1-2">
-              <Link to="/lecturas">Reprocesar</Link>
+              <Link to="/lecturas">• Reprocesar</Link>
             </Menu.Item>
             <Menu.Item key="sub1-3">
-              <Link to="/lecturas_masivo">Reprocesar Masivo</Link>
+              <Link to="/lecturas_masivo">• Reprocesar Masivo</Link>
             </Menu.Item>
-          </SubMenu>  
+          </SubMenu>
 
-          <Menu.Item key="8" icon={<BiSolidError />}>
-            <Link to="/errores_lista">Errores</Link>
-          </Menu.Item>
-          <Menu.Item key="13" icon={<ExclamationOutlined />}>
-            <Link to="/pendientes">Pendientes</Link>
-          </Menu.Item>
-          <Menu.Item key="22" icon={<ExclamationOutlined />}>
-            <Link to="/forms100">Calidad Forms30</Link>
-          </Menu.Item>
-          <Menu.Item key="14" icon={<HiMiniViewfinderCircle />}>
-            <Link to="/monitor_accesos">Seguimiento</Link>
-          </Menu.Item>
+          <SubMenu key="monitor-accesos" icon={<HiMiniViewfinderCircle />} title="Seguimiento">
+            <Menu.Item key="monitor-1">
+              <Link to="/imagenes">• Buscar hoja por ID</Link>
+            </Menu.Item>
+            <Menu.Item key="monitor-2">
+              <Link to="/monitoreo_lista">• Lecturas con filtros</Link>
+            </Menu.Item>
+            <Menu.Item key="monitor-3">
+              <Link to="/forms100">• Últimas 30 lecturas</Link>
+            </Menu.Item>
+            <Menu.Item key="monitor-4">
+              <Link to="/seguimientoplanilla">• Buscar planilla por nombre</Link>
+            </Menu.Item>
+            <Menu.Item key="monitor-5">
+              <Link to="/monitorasig">• Por asignatura</Link>
+            </Menu.Item>
+            <Menu.Item key="monitor-6">
+              <Link to="/monitorsede">• Por sede</Link>
+            </Menu.Item>
+            <Menu.Item key="monitor-7">
+              <Link to="/errores_lista">• Errores detectados</Link>
+            </Menu.Item>
+            <Menu.Item key="monitor-8">
+              <Link to="/listado_cantidad_notas">• Listado asig/nota</Link>
+            </Menu.Item>
+          </SubMenu>
+
           {/* ✅ Crear elementos */}
           <SubMenu key="crear-sub1" icon={<PlusOutlined />} title="Crear elemento">
             <Menu.Item key="sub1-1">
-              <Link to="/crear_alumno">Crear Alumno</Link>
+              <Link to="/crear_alumno">• Crear Alumno</Link>
             </Menu.Item>
             <Menu.Item key="sub1-2">
-              <Link to="/crear_docente">Crear Docente</Link>
+              <Link to="/crear_docente">• Crear Docente</Link>
             </Menu.Item>
             <Menu.Item key="sub1-3">
-              <Link to="/crear_matricula">Crear Matrícula</Link>
+              <Link to="/crear_matricula">• Crear Matrícula</Link>
             </Menu.Item>
-          </SubMenu>    
-          <Menu.Item key="18" icon={<TableOutlined />}>
-            <Link to="/accesos">Recursos</Link>
+            <Menu.Item key="sub1-4">
+              <Link to="/subirdocenteseccionmasivo">• Carga id seccion</Link>
+            </Menu.Item>
+          </SubMenu>
+
+          <Menu.Item key="13" icon={<ExclamationOutlined />}>
+            <Link to="/pendientes">Pendientes</Link>
           </Menu.Item>
-          <Menu.Item key="20" icon={<TableOutlined />}>
-            <Link to="/fidelizador">Fidelizador</Link>
-          </Menu.Item>              
         </Menu>
       </Sider>
-      <EnlacesFlotante />
+
+
+
       <Layout>
+        {/* 🚀 Top Bar (Header) */}
+        <TopBar />
         <Content
           style={{
-            margin: '24px 16px',
+            margin: '0px 16px 24px 16px',
             padding: 24,
             minHeight: 280,
             background: colorBgContainer,
@@ -244,17 +264,18 @@ const AppContent = () => {
             <Route path="/lectura_rescatar_rut/:rut" element={<RescatarLecturaPage />} />
             <Route path="/forms100" element={<Forms100Page />} />
             <Route path="/tickets" element={<TicketsPage />} />
-            
-            { /* rutas con python*/}
+            <Route path="/listado_cantidad_notas" element={<ListadoCantNotasPage />} />
+
+            {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />
             <Route path="/carga_tablas_especificaciones" element={<CargaTabla />} />
-            
           </Routes>
         </Content>
       </Layout>
     </Layout>
   );
 };
+
 
 const App = () => (
   <Router>

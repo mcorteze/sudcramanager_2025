@@ -1,0 +1,31 @@
+/* TopBar.css */
+.topbar-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.topbar-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.topbar-icon-wrapper:hover {
+  color: #118eb8;
+  background-color: #118eb81f;
+}
+
+.topbar-icon {
+  font-size: 24px;
+  color: #333;
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+
+.topbar-icon-wrapper:hover .topbar-icon {
+  color: #118eb8;
+}

@@ -3,6 +3,7 @@ import { Upload, Button, Table, message, Popconfirm, Space } from 'antd';
 import { UploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 
+
 export default function ExcelUploader() {
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -65,6 +66,7 @@ export default function ExcelUploader() {
           seccion: seccion.seccion,
           docente: docente.docente,
           username_doc: docente.username_doc,
+          inactivo: false,
         };
       }));
 
@@ -87,26 +89,29 @@ export default function ExcelUploader() {
       baseColumns.push({
         title: 'Acción',
         key: 'accion',
-        render: (_, record) => (
-          <Space>
-            <Popconfirm
-              title="¿Asignar como titular?"
-              onConfirm={() => handleRegistrar(record, 'titular')}
-              okText="Sí"
-              cancelText="Cancelar"
-            >
-              <Button type="primary">Asignar titular</Button>
-            </Popconfirm>
-            <Popconfirm
-              title="¿Agregar como reemplazo?"
-              onConfirm={() => handleRegistrar(record, 'reemplazo')}
-              okText="Sí"
-              cancelText="Cancelar"
-            >
-              <Button>Agregar reemplazo</Button>
-            </Popconfirm>
-          </Space>
-        ),
+        render: (_, record) =>
+          record.inactivo ? (
+            <span style={{ color: '#aaa' }}>Acción realizada</span>
+          ) : (
+            <Space>
+              <Popconfirm
+                title="¿Asignar como titular?"
+                onConfirm={() => handleRegistrar(record, 'titular')}
+                okText="Sí"
+                cancelText="Cancelar"
+              >
+                <Button type="primary">Asignar titular</Button>
+              </Popconfirm>
+              <Popconfirm
+                title="¿Agregar como reemplazo?"
+                onConfirm={() => handleRegistrar(record, 'reemplazo')}
+                okText="Sí"
+                cancelText="Cancelar"
+              >
+                <Button>Agregar reemplazo</Button>
+              </Popconfirm>
+            </Space>
+          ),
       });
 
       setColumns(baseColumns);
@@ -119,11 +124,7 @@ export default function ExcelUploader() {
 
   const handleRegistrar = async (record, tipo) => {
     const { id_seccion, rut_docente } = record;
-
-    const endpoint =
-      tipo === 'titular'
-        ? 'asignardocentetitular'
-        : 'asignardocentereemplazo';
+    const endpoint = tipo === 'titular' ? 'asignardocentetitular' : 'asignardocentereemplazo';
 
     try {
       const res = await fetch(`http://localhost:3001/api/${endpoint}`, {
@@ -139,6 +140,14 @@ export default function ExcelUploader() {
 
       if (res.ok) {
         message.success(`Éxito: ${result.message}`);
+
+        setData(prevData => {
+          const newData = prevData.map(item =>
+            item.key === record.key ? { ...item, inactivo: true } : item
+          );
+          newData.sort((a, b) => (a.inactivo === b.inactivo ? 0 : a.inactivo ? 1 : -1));
+          return newData;
+        });
       } else {
         message.error(`Error: ${result.error || 'No se pudo registrar'}`);
       }
@@ -149,16 +158,14 @@ export default function ExcelUploader() {
   };
 
   const handleDescargarFormato = () => {
-    const worksheet = XLSX.utils.aoa_to_sheet([
-      ['id_seccion', 'rut_docente'], // Cabeceras
-    ]);
+    const worksheet = XLSX.utils.aoa_to_sheet([['id_seccion', 'rut_docente']]);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Formato');
     XLSX.writeFile(workbook, 'formato_asignacion.xlsx');
   };
 
   return (
-    <div className='page-full'>
+    <div className="page-full">
       <h1>Cargar id seccion por rut docente</h1>
       <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
         <Button icon={<DownloadOutlined />} onClick={handleDescargarFormato}>
@@ -181,6 +188,7 @@ export default function ExcelUploader() {
             dataSource={data}
             columns={columns}
             pagination={false}
+            rowClassName={(record) => (record.inactivo ? 'fila-inactiva' : '')}
           />
         </div>
       )}
