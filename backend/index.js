@@ -2593,6 +2593,7 @@ app.get('/api/listado_cantidad_notas', async (req, res) => {
       asig.cod_programa,
       sd.nombre_sede,
       l.cod_interno
+       
   `;
 
   try {
