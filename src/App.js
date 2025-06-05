@@ -180,10 +180,12 @@ const AppContent = () => {
               <Link to="/subirdocenteseccionmasivo">• Carga id seccion</Link>
             </Menu.Item>
           </SubMenu>
-
           <Menu.Item key="13" icon={<ExclamationOutlined />}>
             <Link to="/pendientes">Pendientes</Link>
           </Menu.Item>
+          <Menu.Item key="18" icon={<TableOutlined />}>
+            <Link to="/accesos">Otros recursos</Link>
+          </Menu.Item>   
         </Menu>
       </Sider>
 
