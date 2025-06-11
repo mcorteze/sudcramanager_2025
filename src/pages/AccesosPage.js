@@ -11,7 +11,7 @@ export default function AccesosPage() {
       subtitle: "Tabla de especificaciones",
       description: "Permite ver todas las tablas de especificaciones cargadas en el SUDCRA.",
       icon: <ProfileOutlined />,
-      link: "/buscareval",
+      link: "/tablas_cargadas",
     },
     {
       title: "Rastrear planilla",

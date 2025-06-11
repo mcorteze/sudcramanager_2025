@@ -237,7 +237,7 @@ const AppContent = () => {
             <Route path="/secciones" element={<BuscarSeccion />} />
             <Route path="/secciones/:id_seccion" element={<BuscarSeccion />} />
             <Route path="/pruebas" element={<Pruebas />} />
-            <Route path="/buscareval" element={<BuscarEval />} />
+            <Route path="/tablas_cargadas" element={<BuscarEval />} />
             <Route path="/estadisticas" element={<EstadisticasPage />} />
             <Route path="/tareas" element={<TareasPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />

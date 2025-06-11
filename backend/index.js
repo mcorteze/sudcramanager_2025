@@ -11,11 +11,11 @@ app.use(express.json()); // Middleware para permitir que Express entienda JSON e
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  host: '10.12.1.235',
-  database: 'sudcra',
+  //host: '10.12.1.235',
+  //database: 'sudcra',
   // ******* bases de datos estáticas *******
-  //host: 'localhost',
-  //database: 'sudcra_20250514_1502', // final primer semestre
+  host: 'localhost',
+  database: 'sudcra_20250611_0001', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -2730,6 +2730,78 @@ app.get('/api/listado-informes-enviados', async (req, res) => {
   }
 });
 
+app.delete('/api/calificaciones_eval', async (req, res) => {
+  const { id_eval_list } = req.body;
+
+  if (!Array.isArray(id_eval_list) || id_eval_list.length === 0) {
+    return res.status(400).json({ error: 'Se requiere una lista no vacía de id_eval' });
+  }
+
+  const placeholders = id_eval_list.map((_, index) => `$${index + 1}`).join(',');
+
+  try {
+    await pool.query('BEGIN');
+
+    // Eliminar de informe_alumnos
+    await pool.query(
+      `DELETE FROM informe_alumnos WHERE id_matricula_eval IN (${placeholders})`,
+      id_eval_list
+    );
+
+    // Eliminar de informes_secciones
+    await pool.query(
+      `DELETE FROM informes_secciones WHERE id_eval IN (${placeholders})`,
+      id_eval_list
+    );
+
+    // Eliminar de calificaciones_obtenidas
+    await pool.query(
+      `DELETE FROM calificaciones_obtenidas WHERE id_matricula_eval IN (${placeholders})`,
+      id_eval_list
+    );
+
+    // Eliminar de matricula_eval
+    const result = await pool.query(
+      `DELETE FROM matricula_eval WHERE id_eval IN (${placeholders})`,
+      id_eval_list
+    );
+
+    await pool.query('COMMIT');
+
+    res.json({
+      message: 'Registros relacionados eliminados exitosamente',
+      deleted: result.rowCount
+    });
+  } catch (err) {
+    await pool.query('ROLLBACK');
+    console.error('Error en eliminación múltiple:', err);
+    res.status(500).json({ error: 'Error al eliminar los registros relacionados' });
+  }
+});
+
+
+app.delete('/api/eval', async (req, res) => {
+  try {
+    const { id_eval_list } = req.body;
+
+    if (!Array.isArray(id_eval_list) || id_eval_list.length === 0) {
+      return res.status(400).json({ error: 'Se requiere una lista no vacía de id_eval' });
+    }
+
+    const placeholders = id_eval_list.map((_, index) => `$${index + 1}`).join(',');
+    const query = `DELETE FROM eval WHERE id_eval IN (${placeholders})`;
+
+    const result = await pool.query(query, id_eval_list);
+
+    res.json({
+      message: 'Registros eliminados de la tabla eval',
+      deleted: result.rowCount
+    });
+  } catch (err) {
+    console.error('Error al eliminar de eval:', err);
+    res.status(500).json({ error: 'Error al eliminar registros de eval' });
+  }
+});
 
 // -----------------------------------------------
 
@@ -3091,24 +3163,19 @@ app.put('/api/reemplazar-docente', async (req, res) => {
 
 
 // Endpoint para obtener las evaluaciones ordenadas
-app.get('/api/evaluaciones', async (req, res) => {
+app.get('/api/tablas_cargadas', async (req, res) => {
   try {
     const query = `
-      SELECT 
-        a.programa,
+      select 
+        asig.programa,
         e.id_eval,
         e.cod_asig,
         e.num_prueba,
         e.nombre_prueba,
-        e.tiene_formas,
-        e.retro_alum,
-        e.retro_doc,
-        e.tiene_grupo,
-        e.cargado_fecha,
-        e.archivo_tabla
-      FROM eval as e
-      JOIN asignaturas as a ON a.cod_asig = e.cod_asig
-      ORDER BY a.programa ASC, e.cod_asig ASC, e.num_prueba ASC
+        e.cargado_fecha
+      from eval e
+      join asignaturas asig on asig.cod_asig = e.cod_asig
+      ORDER BY asig.programa ASC, e.cod_asig ASC, e.num_prueba ASC
     `;
 
     const result = await pool.query(query);
