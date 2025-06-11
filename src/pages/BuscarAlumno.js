@@ -56,35 +56,48 @@ const BuscarAlumno = () => {
     navigate(`/rut/${rut}`);
   };
 
-  // Columnas de la tabla
+  // Utilidad para generar filtros únicos
+  const generarFiltros = (campo) =>
+    alumnos
+      .map((item) => item[campo])
+      .filter((value, index, self) => value && self.indexOf(value) === index)
+      .map((valor) => ({ text: valor, value: valor }));
+
+  // Columnas de la tabla con filtros en todas
   const columns = [
     {
       title: 'SEDE',
       dataIndex: 'nombre_sede',
       key: 'nombre_sede',
-      filters: alumnos.map(item => item.nombre_sede).filter((value, index, self) => self.indexOf(value) === index).map(sede => ({ text: sede, value: sede })),
+      filters: generarFiltros('nombre_sede'),
       onFilter: (value, record) => record.nombre_sede === value,
     },
     {
       title: 'RUT',
       dataIndex: 'rut',
       key: 'rut',
+      filters: generarFiltros('rut'),
+      onFilter: (value, record) => record.rut === value,
     },
     {
       title: 'APELLIDOS',
       dataIndex: 'apellidos',
       key: 'apellidos',
+      filters: generarFiltros('apellidos'),
+      onFilter: (value, record) => record.apellidos === value,
     },
     {
       title: 'NOMBRES',
       dataIndex: 'nombres',
       key: 'nombres',
+      filters: generarFiltros('nombres'),
+      onFilter: (value, record) => record.nombres === value,
     },
     {
       title: 'USUARIO',
       dataIndex: 'user_alum',
       key: 'user_alum',
-      filters: alumnos.map(item => item.user_alum).filter((value, index, self) => self.indexOf(value) === index).map(usuario => ({ text: usuario, value: usuario })),
+      filters: generarFiltros('user_alum'),
       onFilter: (value, record) => record.user_alum === value,
     },
     {

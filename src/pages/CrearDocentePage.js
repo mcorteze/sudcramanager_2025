@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-
-
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const CrearDocentePage = () => {
   const [form] = Form.useForm();
@@ -29,6 +29,34 @@ const CrearDocentePage = () => {
       setLoading(false);
     }
   };
+
+  const handleDescargarPlantilla = () => {
+    const datos = [
+      {
+        'RUT(sin puntos ni guión)': '',
+        NOMBRES: '',
+        APELLIDOS: '',
+        EMAIL: ''
+      }
+    ];
+
+    const hoja = XLSX.utils.json_to_sheet(datos);
+
+    // Establecer el ancho de las columnas basado en la longitud del encabezado
+    const headers = Object.keys(datos[0]);
+    const anchoColumnas = headers.map(header => ({
+      wch: Math.max(header.length, 15)  // +2 de espacio adicional
+    }));
+    hoja['!cols'] = anchoColumnas;
+
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'NuevoDocente');
+
+    const excelBuffer = XLSX.write(libro, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    saveAs(blob, 'plantilla_nuevo_docente.xlsx');
+  };
+
 
   return (
     <div className="page-full">
@@ -93,6 +121,12 @@ const CrearDocentePage = () => {
           <Form.Item wrapperCol={{ span: 18, offset: 6 }}>
             <Button type="primary" htmlType="submit" loading={loading}>
               Crear Docente
+            </Button>
+          </Form.Item>
+
+          <Form.Item wrapperCol={{ span: 18, offset: 6 }}>
+            <Button onClick={handleDescargarPlantilla}>
+              Descargar formato
             </Button>
           </Form.Item>
         </Form>

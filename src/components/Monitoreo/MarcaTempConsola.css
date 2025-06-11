@@ -1,0 +1,51 @@
+/* MarcaTempConsola.css */
+
+.marca-temp-consola {
+  position: fixed;
+  top: 150px;
+  right: 20px;
+  width: 320px;
+  height: 500px;
+  overflow-y: auto;
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  font-family: monospace;
+  font-size: 10px !important;
+  z-index: 1000;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+}
+
+.marca-temp-consola .marca-temp-consola-span span {
+      font-size: 10px !important;
+}
+
+.marca-temp-consola .ant-card-body {
+  padding: 12px;
+}
+
+.marca-temp-title {
+  position: sticky;
+  top: 0;
+  background-color: #1e1e1e;
+  z-index: 20;
+  padding: 6px 12px;
+  border-bottom: 1px solid #333;
+  font-family: monospace;
+  color: #dcdcdc;
+}
+/* Ocultar por defecto en pantallas pequeñas */
+@media screen and (max-width: 1370px) {
+  .marca-temp-consola {
+    display: none !important;
+  }
+
+  body.force-show-marca-temp .marca-temp-consola {
+    display: block !important;
+  }
+}
+
+/* Ocultar manualmente sin importar tamaño */
+body.hide-marca-temp .marca-temp-consola {
+  display: none !important;
+}

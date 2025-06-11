@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Dropdown, Input, Menu, Spin } from 'antd';
 import { HiOutlineSquares2X2 } from 'react-icons/hi2';
+import { MdOutlineTerminal } from 'react-icons/md'; // <- nuevo ícono
 import EnlacesAplicaciones from './EnlacesAplicaciones';
 import NotificacionesCamapana from './NotificacionesCampana/NotificacionesCamapana';
 import './TopBar.css';
@@ -12,7 +13,32 @@ const TopBar = () => {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [consolaVisible, setConsolaVisible] = useState(true); // <- nuevo estado
   const searchRef = useRef(null);
+
+  const toggleConsola = () => {
+    const body = document.body;
+
+    const isHidden = body.classList.contains('hide-marca-temp');
+    const isForced = body.classList.contains('force-show-marca-temp');
+
+    if (isHidden || isForced) {
+      body.classList.remove('hide-marca-temp');
+      body.classList.remove('force-show-marca-temp');
+      setConsolaVisible(true);
+    } else {
+      const isSmallScreen = window.innerWidth <= 1370;
+
+      if (isSmallScreen) {
+        body.classList.add('force-show-marca-temp');
+      } else {
+        body.classList.add('hide-marca-temp');
+      }
+
+      setConsolaVisible(false);
+    }
+  };
+
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -139,7 +165,7 @@ const TopBar = () => {
       >
         <Input.Search
           ref={searchRef}
-          placeholder="Buscar..."
+          placeholder="Buscar por RUT, ID o Sección..."
           allowClear
           onSearch={() => searchRef.current?.blur()}
           onChange={e => setSearch(e.target.value)}
@@ -152,7 +178,21 @@ const TopBar = () => {
 
       {/* Derecha: Botones */}
       <div className="topbar-buttons">
-        <NotificacionesCamapana/>
+        {/* Botón de terminal para mostrar/ocultar la consola */}
+        <div
+          className="topbar-icon-wrapper"
+          onClick={toggleConsola}
+          title="Mostrar/Ocultar consola de informes"
+          style={{ cursor: 'pointer', marginRight: '8px' }}
+        >
+          <MdOutlineTerminal
+            className="topbar-icon"
+            style={{ opacity: consolaVisible ? 1 : 0.4 }}
+          />
+        </div>
+
+        <NotificacionesCamapana />
+
         <Dropdown overlay={<EnlacesAplicaciones />} placement="bottomRight" trigger={['click']}>
           <div className="topbar-icon-wrapper">
             <HiOutlineSquares2X2 className="topbar-icon" />

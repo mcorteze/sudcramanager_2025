@@ -22,37 +22,37 @@ const iconStyle = (img) => ({
 
 const links = [
   {
-    href: "https://apps.powerapps.com/play/e/default-.../a/48675829-d9db-...032f",
+    href: "https://apps.powerapps.com/play/e/default-72fd0b5a-8a6a-4cff-89f6-bde961f7e250/a/48675829-d9db-4fa7-ab75-8b6d6d2b032f?tenantId=72fd0b5a-8a6a-4cff-89f6-bde961f7e250&hint=c146b3e2-e175-46aa-9931-bd30bd54a870&sourcetime=1720104583100",
     label: "Sistema Tickets",
     icon: PowerAppsLogo,
   },
   {
-    href: "https://apps.powerapps.com/play/e/default-.../a/678f662e-2e2a-...1d951",
+    href: "https://apps.powerapps.com/play/e/default-72fd0b5a-8a6a-4cff-89f6-bde961f7e250/a/678f662e-2e2a-43da-abef-e7a009a1d951?tenantId=72fd0b5a-8a6a-4cff-89f6-bde961f7e250&hint=f3aa40ef-13fc-4fbd-92bd-622053fd035b&sourcetime=1720104629264",
     label: "Sudcra Upload",
     icon: PowerAppsLogo,
   },
   {
-    href: "https://app.powerbi.com/groups/.../reports/...17-7c49-...",
+    href: "https://app.powerbi.com/groups/530c4e63-77c1-4129-a317-088008da3b84/reports/26e99117-7c49-43b4-af77-aa357c5d8dbe?experience=power-bi",
     label: "Monitor planillas",
     icon: PowerBiLogo,
   },
   {
-    href: "https://app.powerbi.com/groups/.../reports/...244-0d8a-...",
+    href: "https://app.powerbi.com/groups/530c4e63-77c1-4129-a317-088008da3b84/reports/9c33f244-0d8a-46f1-a9a9-8009d894abb7/6e316e19d1c27603d315?experience=power-bi",
     label: "Monitor SUDCRA",
     icon: PowerBiLogo,
   },
   {
-    href: "https://duoccl0.sharepoint.com/.../imgenes20251/AllItems.aspx",
+    href: "https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20251/AllItems.aspx?sortField=ID&isAscending=false&viewid=62f72397-1211-4bc9-a7ca-7ecc0094a11e&env=WebViewList",
     label: "Imágenes 2025-1",
     icon: ListLogo,
   },
   {
-    href: "https://duoccl0.sharepoint.com/.../planillas_recibidas_2025",
+    href: "https://duoccl0.sharepoint.com/sites/SUDCRA1.5/Lists/planillas_recibidas_2025/AllItems.aspx?env=WebViewList",
     label: "Planillas recibidas 2025",
     icon: ListLogo,
   },
   {
-    href: "https://duoccl0.sharepoint.com/.../Solicitudes_sudcra",
+    href: "https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/Solicitudes_sudcra/AllItems.aspx?env=WebViewList",
     label: "Solicitudes (tickets)",
     icon: ListLogo,
   },

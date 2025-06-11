@@ -414,22 +414,62 @@ app.get('/api/buscar-alumno/:keyword', async (req, res) => {
   }
 });
 
-// Endpoint para buscar docentes por palabra clave
 app.get('/api/buscar-docente/:keyword', async (req, res) => {
   const { keyword } = req.params;
   try {
     const query = `
-      SELECT DISTINCT sd.nombre_sede, d.rut_docente, d.nombre_doc, d.apellidos_doc, d.username_doc, d.mail_doc
-      FROM docentes as d
-      JOIN secciones AS s ON s.rut_docente = d.rut_docente
-      JOIN sedes AS sd ON sd.id_sede = s.id_sede
-      WHERE d.rut_docente ILIKE $1
-         OR d.nombre_doc ILIKE $1
-         OR d.apellidos_doc ILIKE $1
-         OR d.username_doc ILIKE $1
-         OR d.mail_doc ILIKE $1
+      SELECT * FROM (
+        SELECT DISTINCT sd.nombre_sede, d.rut_docente, d.nombre_doc, d.apellidos_doc, d.username_doc, d.mail_doc
+        FROM docentes d
+        JOIN secciones s ON s.rut_docente = d.rut_docente
+        JOIN sedes sd ON sd.id_sede = s.id_sede
+        WHERE d.rut_docente ILIKE $1
+           OR d.nombre_doc ILIKE $1
+           OR d.apellidos_doc ILIKE $1
+           OR d.username_doc ILIKE $1
+           OR d.mail_doc ILIKE $1
+
+        UNION
+
+        SELECT DISTINCT sd.nombre_sede, d.rut_docente, d.nombre_doc, d.apellidos_doc, d.username_doc, d.mail_doc
+        FROM docentes d
+        JOIN seccion_docente sdct ON sdct.rut_docente = d.rut_docente
+        JOIN secciones s ON s.id_seccion = sdct.id_seccion
+        JOIN sedes sd ON sd.id_sede = s.id_sede
+        WHERE d.rut_docente ILIKE $1
+           OR d.nombre_doc ILIKE $1
+           OR d.apellidos_doc ILIKE $1
+           OR d.username_doc ILIKE $1
+           OR d.mail_doc ILIKE $1
+      ) AS resultados
+      ORDER BY nombre_sede, apellidos_doc, nombre_doc;
     `;
     const result = await pool.query(query, [`%${keyword}%`]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+app.get('/api/infodocente/:rut_docente', async (req, res) => {
+  const { rut_docente } = req.params;
+  try {
+    const query = `
+      SELECT DISTINCT d.rut_docente, d.nombre_doc, d.apellidos_doc, d.username_doc, d.mail_doc
+      FROM docentes d
+      JOIN secciones s ON s.rut_docente = d.rut_docente
+      WHERE d.rut_docente = $1
+
+      UNION
+
+      SELECT DISTINCT d.rut_docente, d.nombre_doc, d.apellidos_doc, d.username_doc, d.mail_doc
+      FROM docentes d
+      JOIN seccion_docente sdct ON sdct.rut_docente = d.rut_docente
+      WHERE d.rut_docente = $1;
+    `;
+
+    const result = await pool.query(query, [rut_docente]);
     res.json(result.rows);
   } catch (err) {
     console.error('Error en la consulta SQL:', err);
@@ -2665,6 +2705,32 @@ app.get('/api/topbar-buscar', async (req, res) => {
   }
 });
 
+app.get('/api/listado-informes-enviados', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        sd.nombre_sede,
+        s.seccion || ' - ' || e.num_prueba as eval,
+        ise.marca_temp_mail
+      FROM informes_secciones ise
+      JOIN secciones s ON s.id_seccion = ise.id_seccion
+      JOIN sedes sd ON sd.id_sede = s.id_sede 
+      JOIN asignaturas asig ON asig.cod_asig = s.cod_asig
+      JOIN eval e ON e.id_eval = ise.id_eval
+      WHERE ise.marca_temp_mail IS NOT NULL
+      ORDER BY ise.marca_temp_mail DESC
+      LIMIT 100;
+    `;
+
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+
 // -----------------------------------------------
 
 // API PARA ESCRIBIR
@@ -3362,6 +3428,34 @@ app.post('/crear_docente', async (req, res) => {
       error: 'Error interno del servidor al crear el docente.',
       detalle: error.message
     });
+  }
+});
+
+// Endpoint para actualizar el registro del docente en la tabla de docentes
+app.put('/api/actualizar-docente', async (req, res) => {
+  const { rut_docente, nombre_doc, apellidos_doc, username_doc, mail_doc } = req.body;
+
+  try {
+    const query = `
+      UPDATE public.docentes
+      SET 
+        nombre_doc = COALESCE($1, nombre_doc),
+        apellidos_doc = COALESCE($2, apellidos_doc),
+        username_doc = COALESCE($3, username_doc),
+        mail_doc = COALESCE($4, mail_doc)
+      WHERE rut_docente = $5
+      RETURNING *;`;
+
+    const result = await pool.query(query, [nombre_doc, apellidos_doc, username_doc, mail_doc, rut_docente]);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'Docente actualizado exitosamente.', docente: result.rows[0] });
+    } else {
+      res.status(404).json({ error: 'No se encontró ningún docente con el RUT especificado.' });
+    }
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
   }
 });
 

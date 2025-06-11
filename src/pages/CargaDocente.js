@@ -1,40 +1,44 @@
+// CargaDocente.js
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Table, Tooltip, message, Button } from 'antd';
-import { Link } from 'react-router-dom';
 import { CopyOutlined } from '@ant-design/icons';
 import DrawerReemplazoDocente from '../components/CargaDocente/DrawerReemplazoDocente';
 import DrawerAgregarDocente from '../components/CargaDocente/DrawerAgregarDocente';
+import DocenteInfo from '../components/CargaDocente/DocenteInfo'; // ✅ nueva importación
 
 export default function CargaDocente() {
-  const { rut } = useParams(); // Extraemos el RUT del docente desde los parámetros de la URL
+  const { rut } = useParams();
   const [docenteInfo, setDocenteInfo] = useState({});
   const [data, setData] = useState([]);
-  const [seccionesData, setSeccionesData] = useState([]); // Nuevo estado para las secciones
+  const [seccionesData, setSeccionesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [drawerReemplazoVisible, setDrawerReemplazoVisible] = useState(false);
   const [drawerAgregarVisible, setDrawerAgregarVisible] = useState(false);
 
-  // Función para cargar los datos del docente
-  const fetchDocenteData = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`http://localhost:3001/api/docente/${rut}`);
-      const result = await response.json();
-      if (result.length > 0) {
-        setDocenteInfo(result[0]);
-        setData(result);
-      }
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchDocenteData = async () => {
+  setLoading(true);
+  try {
+    // 1. Cargar secciones normales desde /api/docente/:rut
+    const seccionesRes = await fetch(`http://localhost:3001/api/docente/${rut}`);
+    const seccionesData = await seccionesRes.json();
+    setData(seccionesData);
 
-  // Función para cargar los datos de las secciones
+    // 2. Cargar info del docente desde el nuevo endpoint
+    const infoRes = await fetch(`http://localhost:3001/api/infodocente/${rut}`);
+    const infoData = await infoRes.json();
+    if (infoData.length > 0) {
+      setDocenteInfo(infoData[0]);
+    }
+  } catch (err) {
+    setError(err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   const fetchSeccionesData = async () => {
     setLoading(true);
     try {
@@ -52,7 +56,7 @@ export default function CargaDocente() {
 
   useEffect(() => {
     fetchDocenteData();
-    fetchSeccionesData(); // Llamamos a esta función también
+    fetchSeccionesData();
   }, [rut]);
 
   const copiarAlPortapapeles = (texto, label) => {
@@ -65,7 +69,6 @@ export default function CargaDocente() {
       });
   };
 
-  // Columnas para la primera tabla (datos del docente)
   const columns = [
     {
       title: 'Nombre de la Sede',
@@ -116,7 +119,6 @@ export default function CargaDocente() {
     },
   ];
 
-  // Columnas para la segunda tabla (secciones del docente)
   const seccionesColumns = [
     {
       title: 'Nombre de la Sede',
@@ -153,69 +155,25 @@ export default function CargaDocente() {
     <div className='page-full'>
       <h1>Información del Docente</h1>
 
-      <div>
-        <p>
-          <strong>RUT:</strong> {docenteInfo.rut_docente}{' '}
-          <Tooltip title="Copiar RUT">
-            <CopyOutlined
-              style={{ cursor: 'pointer', marginLeft: 8 }}
-              onClick={() => copiarAlPortapapeles(docenteInfo.rut_docente, 'RUT')}
-            />
-          </Tooltip>
-        </p>
-        <p><strong>Nombre:</strong> {docenteInfo.nombre_doc}</p>
-        <p><strong>Apellidos:</strong> {docenteInfo.apellidos_doc}</p>
-        <p><strong>Username:</strong> {docenteInfo.username_doc}</p>
-        <p>
-          <strong>Email:</strong> {docenteInfo.mail_doc}{' '}
-          <Tooltip title="Copiar Correo">
-            <CopyOutlined
-              style={{ cursor: 'pointer', marginLeft: 8 }}
-              onClick={() => copiarAlPortapapeles(docenteInfo.mail_doc, 'Correo')}
-            />
-          </Tooltip>
-        </p>
-      </div>
+      {/* ✅ Reemplazo por componente hijo */}
+      <DocenteInfo docente={docenteInfo} />
 
-      { /* Tabla con secciones de titularidad */ }
-      <Table 
-        dataSource={data} 
-        columns={columns} 
-        pagination={false}
-        style={{ marginBottom: 10 }}
-      />
-      <div>
-        <Button
-          type="primary"
-          onClick={() => setDrawerReemplazoVisible(true)}
-        >
-          Agregar sección titular
-        </Button>
-      </div>
+      <Table dataSource={data} columns={columns} pagination={false} style={{ marginBottom: 10 }} />
+      <Button type="primary" onClick={() => setDrawerReemplazoVisible(true)}>
+        Agregar sección titular
+      </Button>
 
-      { /* Tabla con secciones de agregar */ }
       <h2 style={{ marginTop: 32 }}>Secciones de reemplazo</h2>
-      <Table 
-        dataSource={seccionesData} 
-        columns={seccionesColumns} 
-        pagination={false}
-        style={{ marginBottom: 10 }}
-      />
-
-      <div>
-        <Button
-          type="primary"
-          onClick={() => setDrawerAgregarVisible(true)}
-        >
-          Agregar sección de reemplazo
-        </Button>
-      </div>
+      <Table dataSource={seccionesData} columns={seccionesColumns} pagination={false} style={{ marginBottom: 10 }} />
+      <Button type="primary" onClick={() => setDrawerAgregarVisible(true)}>
+        Agregar sección de reemplazo
+      </Button>
 
       <DrawerReemplazoDocente
         visible={drawerReemplazoVisible}
         onClose={() => {
           setDrawerReemplazoVisible(false);
-          fetchDocenteData(); // Refrescar datos al cerrar el drawer
+          fetchDocenteData();
         }}
         rutDocenteReemplazo={docenteInfo.rut_docente}
         nombreDocenteReemplazo={`${docenteInfo.nombre_doc} ${docenteInfo.apellidos_doc}`}
@@ -224,19 +182,16 @@ export default function CargaDocente() {
       <DrawerAgregarDocente
         visible={drawerAgregarVisible}
         onClose={() => {
-          setDrawerAgregarVisible(false);  // Esto cierra el drawer correctamente.
-          fetchDocenteData(); // Refresca datos del docente al cerrar el drawer.
+          setDrawerAgregarVisible(false);
+          fetchDocenteData();
         }}
         rutDocenteAgregar={docenteInfo.rut_docente}
         nombreDocenteAgregar={`${docenteInfo.nombre_doc} ${docenteInfo.apellidos_doc}`}
         onAgregarDocente={() => {
-          fetchSeccionesData(); // Refresca las secciones después de agregar el docente
-          setDrawerAgregarVisible(false); // Asegúrate de cerrar el drawer después de agregar el docente
+          fetchSeccionesData();
+          setDrawerAgregarVisible(false);
         }}
       />
-
-
-
     </div>
   );
 }

@@ -10,6 +10,7 @@ import EquiposEstado from '../components/Monitoreo/EquiposEstado';
 import NotificacionCampana from '../components/NotificacionesCampana/NotificacionesCamapana';
 import UltimasLecturasFormsTable from '../components/Monitoreo/UltimasLecturasFormsTable';
 import HistorialDiasChart from '../components/Monitoreo/HistorialDiasChart';
+import MarcaTempConsola from '../components/Monitoreo/MarcaTempConsola';
 
 import 'dayjs/locale/es';
 import esES from 'antd/locale/es_ES';
@@ -192,6 +193,7 @@ const HistorialProcesamientoTable = () => {
           <HistorialProcesamientoChart filteredData={filteredData} />
         </div>
       </Spin>
+      <MarcaTempConsola />
     </div>
     </ConfigProvider>
   );

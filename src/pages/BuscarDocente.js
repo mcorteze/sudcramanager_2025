@@ -29,73 +29,88 @@ const BuscarDocente = () => {
 
   const esCorreoElectronico = (texto) => {
     const regexCorreo = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return regexCorreo.test(texto.trim()); // trim por si viene con espacios
+    return regexCorreo.test(texto.trim());
   };
-  
+
   const limpiarTexto = (texto) => {
-    const textoLimpio = texto.trim(); // Siempre eliminar espacios iniciales/finales
+    const textoLimpio = texto.trim();
     if (esCorreoElectronico(textoLimpio)) {
-      return textoLimpio; // Si es correo, lo dejamos como está (solo sin espacios)
+      return textoLimpio;
     } else {
-      // Si no es correo, quitamos puntos y guiones además de los espacios
       return textoLimpio.replace(/\./g, '').replace(/-/g, '');
     }
   };
-  
+
   const onSearch = (value) => {
     const cleanedValue = limpiarTexto(value);
     navigate(`/buscar-docente/${cleanedValue}`);
   };
-  
 
   const handleCargaAcademica = (record) => {
     window.open(`/carga-docente/${record.rut_docente}`, '_blank');
   };
+
+  // Utilidad para generar filtros únicos
+  const generarFiltros = (campo) =>
+    docentes
+      .map((item) => item[campo])
+      .filter((value, index, self) => value && self.indexOf(value) === index)
+      .map((valor) => ({ text: valor, value: valor }));
 
   const columns = [
     {
       title: 'Sede',
       dataIndex: 'nombre_sede',
       key: 'nombre_sede',
+      filters: generarFiltros('nombre_sede'),
+      onFilter: (value, record) => record.nombre_sede === value,
     },
     {
       title: 'RUT',
       dataIndex: 'rut_docente',
       key: 'rut_docente',
+      filters: generarFiltros('rut_docente'),
+      onFilter: (value, record) => record.rut_docente === value,
     },
     {
       title: 'Nombre',
       dataIndex: 'nombre_doc',
       key: 'nombre_doc',
+      filters: generarFiltros('nombre_doc'),
+      onFilter: (value, record) => record.nombre_doc === value,
     },
     {
       title: 'Apellidos',
       dataIndex: 'apellidos_doc',
       key: 'apellidos_doc',
+      filters: generarFiltros('apellidos_doc'),
+      onFilter: (value, record) => record.apellidos_doc === value,
     },
     {
       title: 'Username',
       dataIndex: 'username_doc',
       key: 'username_doc',
+      filters: generarFiltros('username_doc'),
+      onFilter: (value, record) => record.username_doc === value,
     },
     {
       title: 'Correo',
       dataIndex: 'mail_doc',
       key: 'mail_doc',
+      filters: generarFiltros('mail_doc'),
+      onFilter: (value, record) => record.mail_doc === value,
     },
     {
       title: 'Acciones',
       key: 'acciones',
       render: (text, record) => (
-        <>
-          <Tooltip title="Carga Académica"> 
-            <Button
-              icon={<FolderOpenOutlined className="icon-tamano1" />}
-              onClick={() => handleCargaAcademica(record)}
-              style={{ marginRight: 8 }}
-            />
-          </Tooltip>
-        </>
+        <Tooltip title="Carga Académica">
+          <Button
+            icon={<FolderOpenOutlined className="icon-tamano1" />}
+            onClick={() => handleCargaAcademica(record)}
+            style={{ marginRight: 8 }}
+          />
+        </Tooltip>
       ),
     },
   ];
