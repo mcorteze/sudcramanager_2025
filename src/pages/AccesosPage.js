@@ -14,6 +14,13 @@ export default function AccesosPage() {
       link: "/tablas_cargadas",
     },
     {
+      title: "Cargar tablas de especificaciones",
+      subtitle: "Cargar tabla de especificaciones",
+      description: "Permite cargar tablas de especificaciones.",
+      icon: <ProfileOutlined />,
+      link: "/cargar_tablas",
+    },
+    {
       title: "Rastrear planilla",
       subtitle: "Planillas",
       description: "Ver registros de planillas a partir del nombre del archivo.",

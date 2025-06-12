@@ -2802,9 +2802,9 @@ app.delete('/api/eval', async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar registros de eval' });
   }
 });
-
 // -----------------------------------------------
-
+// -----------------------------------------------
+// 
 // API PARA ESCRIBIR
 app.put('/api/asignardocentetitular', async (req, res) => {
   const { idSeccion, rutDocente } = req.body;
@@ -3633,6 +3633,318 @@ app.delete('/api/eliminar_inscripcion/:id_inscripcion', async (req, res) => {
     res.status(500).json({ error: 'Error en la consulta SQL' });
   }
 });
+
+// -----------------------------------------------------
+app.post('/api/tablas_especificaciones_eval/', async (req, res) => {
+  const {
+    id_eval,
+    cod_asig,
+    ano,
+    periodo,
+    num_prueba,
+    nombre_prueba,
+    tiene_formas,
+    retro_alum,
+    retro_doc,
+    ver_correctas,
+    tiene_grupo,
+    archivo_tabla,
+    exigencia,
+    num_ppt,
+    tipo,
+    ponderacion
+  } = req.body;
+
+  // Marca temporal generada en el servidor
+  const cargado_fecha = new Date(); // ISO 8601: YYYY-MM-DDTHH:mm:ss.sssZ
+
+  const query = `
+    INSERT INTO eval (
+      id_eval, cod_asig, ano, periodo, num_prueba, nombre_prueba,
+      tiene_formas, retro_alum, retro_doc, ver_correctas, tiene_grupo,
+      archivo_tabla, cargado_fecha, exigencia, num_ppt, tipo, ponderacion
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6,
+      $7, $8, $9, $10, $11,
+      $12, $13, $14, $15, $16, $17
+    )
+    RETURNING *
+  `;
+
+  const values = [
+    id_eval,
+    cod_asig,
+    ano,
+    periodo,
+    num_prueba,
+    nombre_prueba,
+    tiene_formas,
+    retro_alum,
+    retro_doc,
+    ver_correctas,
+    tiene_grupo,
+    archivo_tabla,
+    cargado_fecha,     // Aquí se inserta la marca temporal generada
+    exigencia,
+    num_ppt,
+    tipo,
+    ponderacion
+  ];
+
+  try {
+    const result = await pool.query(query, values);
+    res.status(201).json({ message: 'Registro insertado correctamente', data: result.rows[0] });
+  } catch (error) {
+    console.error('Error al insertar en eval:', error);
+    res.status(500).json({ error: 'Error al insertar en eval', details: error.message });
+  }
+});
+
+// En rutas/medidas.js o directamente en tu archivo principal
+app.post('/api/tablas_especificaciones_medidas', async (req, res) => {
+  const medidas = req.body;
+
+  if (!Array.isArray(medidas) || medidas.length === 0) {
+    return res.status(400).json({ error: 'Se requiere un arreglo de medidas.' });
+  }
+
+  const values = medidas.map(m => [
+    m.tipo_medida_cod,
+    m.orden,
+    m.desc_corta,
+    m.desc_larga,
+    m.dependencia,
+    m.url_retro,
+    m.id_medida,
+    m.id_eval
+  ]);
+
+  const placeholders = values.map(
+    (_, i) => `($${i * 8 + 1}, $${i * 8 + 2}, $${i * 8 + 3}, $${i * 8 + 4}, $${i * 8 + 5}, $${i * 8 + 6}, $${i * 8 + 7}, $${i * 8 + 8})`
+  ).join(', ');
+
+  const flatValues = values.flat();
+
+  const insertQuery = `
+    INSERT INTO medidas (
+      tipo_medida_cod, orden, desc_corta, desc_larga,
+      dependencia, url_retro, id_medida, id_eval
+    ) VALUES ${placeholders}
+  `;
+
+  try {
+    await pool.query(insertQuery, flatValues);
+    res.json({ mensaje: 'Medidas insertadas correctamente.' });
+  } catch (err) {
+    console.error('Error al insertar medidas:', err);
+    res.status(500).json({ error: 'Error al insertar medidas.' });
+  }
+});
+
+app.post('/api/escala', async (req, res) => {
+  const escalas = req.body;
+
+  if (!Array.isArray(escalas) || escalas.length === 0) {
+    return res.status(400).json({ error: 'Se requiere un arreglo de registros de escala.' });
+  }
+
+  const values = escalas.map(e => [
+    e.cod_nivel,
+    e.nivel,
+    e.nivel_descripcion,
+    e.id_eval
+  ]);
+
+  const placeholders = values.map(
+    (_, i) => `($${i * 4 + 1}, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4})`
+  ).join(', ');
+
+  const flatValues = values.flat();
+
+  const insertQuery = `
+    INSERT INTO escala (
+      cod_nivel,
+      nivel,
+      nivel_descripcion,
+      id_eval
+    ) VALUES ${placeholders}
+  `;
+
+  try {
+    await pool.query(insertQuery, flatValues);
+    res.json({ mensaje: 'Escala insertada correctamente.' });
+  } catch (err) {
+    console.error('Error al insertar escala:', err);
+    res.status(500).json({ error: 'Error al insertar escala.' });
+  }
+});
+
+app.post('/api/calificaciones', async (req, res) => {
+  const calificaciones = req.body;
+
+  if (!Array.isArray(calificaciones) || calificaciones.length === 0) {
+    return res.status(400).json({ error: 'Se requiere un arreglo de calificaciones.' });
+  }
+
+  const values = calificaciones.map(c => [
+    c.puntaje_inf,
+    c.puntaje_sup,
+    c.condicion,
+    c.condicion_desc,
+    c.mensaje,
+    c.id_eval,
+    c.nota
+  ]);
+
+  const placeholders = values.map(
+    (_, i) => `($${i * 7 + 1}, $${i * 7 + 2}, $${i * 7 + 3}, $${i * 7 + 4}, $${i * 7 + 5}, $${i * 7 + 6}, $${i * 7 + 7})`
+  ).join(', ');
+
+  const flatValues = values.flat();
+
+  const insertQuery = `
+    INSERT INTO calificaciones (
+      puntaje_inf,
+      puntaje_sup,
+      condicion,
+      condicion_desc,
+      mensaje,
+      id_eval,
+      nota
+    ) VALUES ${placeholders}
+  `;
+
+  try {
+    await pool.query(insertQuery, flatValues);
+    res.json({ mensaje: 'Calificaciones insertadas correctamente.' });
+  } catch (err) {
+    console.error('Error al insertar calificaciones:', err);
+    res.status(500).json({ error: 'Error al insertar calificaciones.' });
+  }
+});
+
+app.post('/api/item', async (req, res) => {
+  const items = req.body;
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'Se requiere un arreglo de items.' });
+  }
+
+  const values = items.map(i => [
+    i.id_item,
+    i.forma,
+    i.item_num,
+    i.item_nombre,
+    i.item_orden,
+    i.item_tipo,
+    i.id_eval,
+    i.item_puntaje
+  ]);
+
+  // Correctamente genera 8 placeholders por fila
+  const placeholders = values.map((_, i) =>
+    `($${i * 8 + 1}, $${i * 8 + 2}, $${i * 8 + 3}, $${i * 8 + 4}, $${i * 8 + 5}, $${i * 8 + 6}, $${i * 8 + 7}, $${i * 8 + 8})`
+  ).join(', ');
+
+  const flatValues = values.flat();
+
+  const insertQuery = `
+    INSERT INTO item (
+      id_item,
+      forma,
+      item_num,
+      item_nombre,
+      item_orden,
+      item_tipo,
+      id_eval,
+      item_puntaje
+    ) VALUES ${placeholders}
+  `;
+
+  try {
+    await pool.query(insertQuery, flatValues);
+    res.json({ mensaje: 'Items insertados correctamente.' });
+  } catch (err) {
+    console.error('Error al insertar items:', err);
+    res.status(500).json({ error: 'Error al insertar items.' });
+  }
+});
+
+
+app.post('/api/item_medida', async (req, res) => {
+  const relaciones = req.body;
+
+  if (!Array.isArray(relaciones) || relaciones.length === 0) {
+    return res.status(400).json({ error: 'Se requiere un arreglo de relaciones item-medida.' });
+  }
+
+  const values = relaciones.map(r => [
+    r.id_item,
+    r.id_medida
+  ]);
+
+  const placeholders = values.map(
+    (_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`
+  ).join(', ');
+
+  const flatValues = values.flat();
+
+  const insertQuery = `
+    INSERT INTO item_medida (
+      id_item,
+      id_medida
+    ) VALUES ${placeholders}
+  `;
+
+  try {
+    await pool.query(insertQuery, flatValues);
+    res.json({ mensaje: 'Relaciones item-medida insertadas correctamente.' });
+  } catch (err) {
+    console.error('Error al insertar item_medida:', err);
+    res.status(500).json({ error: 'Error al insertar item_medida.' });
+  }
+});
+
+app.post('/api/itemrespuesta', async (req, res) => {
+  const respuestas = req.body;
+
+  if (!Array.isArray(respuestas) || respuestas.length === 0) {
+    return res.status(400).json({ error: 'Se requiere un arreglo de respuestas.' });
+  }
+
+  const values = respuestas.map(r => [
+    r.id_itemresp,
+    r.id_item,
+    r.registro,
+    r.puntaje_asignado
+  ]);
+
+  // 4 campos por fila
+  const placeholders = values.map((_, i) =>
+    `($${i * 4 + 1}, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4})`
+  ).join(', ');
+
+  const flatValues = values.flat();
+
+  const insertQuery = `
+    INSERT INTO itemrespuesta (
+      id_itemresp,
+      id_item,
+      registro,
+      puntaje_asignado
+    ) VALUES ${placeholders}
+  `;
+
+  try {
+    await pool.query(insertQuery, flatValues);
+    res.json({ mensaje: 'Respuestas insertadas correctamente.' });
+  } catch (err) {
+    console.error('Error al insertar respuestas:', err);
+    res.status(500).json({ error: 'Error al insertar respuestas.' });
+  }
+});
+
+// -----------------------------------------------------
 
 
 // Middleware de manejo de errores

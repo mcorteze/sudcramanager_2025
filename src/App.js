@@ -75,6 +75,7 @@ import AlumnosPage from './pages/AlumnosPage.js'
 import CargaTabla from './pages/CargaTabla.js'
 import ListadoCantNotasPage from './pages/ListadoCantNotasPage.js'
 import TopBar from './components/TopBar.js'
+import CargarTablaPage from './pages/CargarTablaPage.js'
 
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined } from '@ant-design/icons';
@@ -267,6 +268,7 @@ const AppContent = () => {
             <Route path="/forms100" element={<Forms100Page />} />
             <Route path="/tickets" element={<TicketsPage />} />
             <Route path="/listado_cantidad_notas" element={<ListadoCantNotasPage />} />
+            <Route path="/cargar_tablas" element={<CargarTablaPage />} />
 
             {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />
