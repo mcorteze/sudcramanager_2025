@@ -15,7 +15,7 @@ const pool = new Pool({
   //database: 'sudcra',
   // ******* bases de datos estáticas *******
   host: 'localhost',
-  database: 'sudcra_20250611_0001', // final primer semestre
+  database: 'sudcra_20250618_0001', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -1035,6 +1035,51 @@ GROUP BY e.rut, al.nombres, al.apellidos, mt.id_matricula, e.cod_interno, asig.c
   }
 });
 
+// Endpoint para obtener asignaturas con número de prueba
+app.get('/api/seleccion-cod-interno-prueba', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        asig.programa,
+        asig.cod_asig,
+        asig.cod_interno,
+        e.num_prueba
+      FROM asignaturas asig
+      JOIN eval e ON e.cod_asig = asig.cod_asig
+    `;
+    
+    const result = await pool.query(query);
+    res.json(result.rows); // Devuelve los resultados como JSON
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' }); // Error interno del servidor
+  }
+});
+
+// Endpoint para obtener imágenes distintas según cod_interno y num_prueba
+app.get('/api/buscar-imagenes-lectura', async (req, res) => {
+  const { cod_interno, num_prueba } = req.query;
+
+  if (!cod_interno || !num_prueba) {
+    return res.status(400).json({ error: 'Faltan parámetros cod_interno o num_prueba' });
+  }
+
+  try {
+    const query = `
+      SELECT DISTINCT imagen
+      FROM lectura
+      WHERE cod_interno = $1 AND num_prueba = $2
+    `;
+    const values = [cod_interno, num_prueba];
+    const result = await pool.query(query, values);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
 app.post('/lectura-temp-masivo', async (req, res) => {
   const { imagenes } = req.body;
 
@@ -1322,6 +1367,7 @@ app.get('/api/informes/pendientes', async (req, res) => {
       eval.nombre_prueba,
       CONCAT(informes_secciones.id_eval, '_', informes_secciones.id_seccion, '.html') AS informe,
       secciones.seccion,
+      secciones.cod_asig,
       secciones.id_seccion,
       asignaturas.programa,
       sd.nombre_sede,
@@ -2754,13 +2800,7 @@ app.delete('/api/calificaciones_eval', async (req, res) => {
       id_eval_list
     );
 
-    // Eliminar de calificaciones_obtenidas
-    await pool.query(
-      `DELETE FROM calificaciones_obtenidas WHERE id_matricula_eval IN (${placeholders})`,
-      id_eval_list
-    );
-
-    // Eliminar de matricula_eval
+    // Eliminar de matricula_eval. Esto elimina en cascada los registros de calificaciones_obtenidas y matricula_eval_itemresp
     const result = await pool.query(
       `DELETE FROM matricula_eval WHERE id_eval IN (${placeholders})`,
       id_eval_list
@@ -2802,6 +2842,30 @@ app.delete('/api/eval', async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar registros de eval' });
   }
 });
+
+// Endpoint para obtener la estructura de carpetas
+app.get('/api/datos_estructura_carpeta', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        asig.programa,
+        sd.nombre_sede,
+        asig.cod_asig,
+        s.seccion
+      FROM secciones s
+      JOIN asignaturas asig ON asig.cod_asig = s.cod_asig
+      JOIN sedes sd ON sd.id_sede = s.id_sede
+      ORDER BY asig.programa, sd.nombre_sede, asig.cod_asig, s.seccion ASC;
+    `;
+
+    const result = await pool.query(query);
+    res.json(result.rows); // Devuelve los datos como JSON
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' }); // Manejo de error estándar
+  }
+});
+
 // -----------------------------------------------
 // -----------------------------------------------
 // 

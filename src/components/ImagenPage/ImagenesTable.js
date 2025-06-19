@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { Table, Modal, Button, notification } from 'antd';
+import { Table, Modal, Button, notification, Typography } from 'antd';
 import { CopyOutlined, DownloadOutlined, EyeOutlined, ArrowsAltOutlined } from '@ant-design/icons';
 import { PiDotOutlineFill } from "react-icons/pi";
+import * as XLSX from 'xlsx'; // Importa la librería xlsx
 
 const ImagenesTable = ({ imagenesData, loading }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMaxHeightFull, setIsMaxHeightFull] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const { Link } = Typography;
 
   const openModal = (index) => {
     setCurrentImageIndex(index);
@@ -73,15 +76,38 @@ const ImagenesTable = ({ imagenesData, loading }) => {
     },
   ];
 
+// Función para exportar el listado de ID de imágenes únicos a un archivo Excel
+const exportToExcel = () => {
+  // Extrae y deduplica los ID de imágenes
+  const idImagenSet = new Set(imagenesData.map(item => item.id_imagen));
+  const idImagenesUnicas = Array.from(idImagenSet);
+
+  // Crea una hoja de trabajo con el título "ID_Imagen" en A1
+  const ws = XLSX.utils.aoa_to_sheet([['ID_Imagen'], ...idImagenesUnicas.map(id => [id])]);
+
+  // Crea un libro de trabajo
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Listado de ID_Imagenes');
+
+  // Exporta el archivo Excel
+  XLSX.writeFile(wb, 'Listado_ID_Imagenes.xlsx');
+};
+
+
+
   return (
     <div>
       <h2>Tabla Imágenes (registro preliminar de archivos, al descargarlas en el flujo de PowerAutomate, al contrastar con la subida se puede detectar imagenes no descargadas)</h2>
+
       <p style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <span>🧾 Total de registros: {totalRegistros}</span>
         <PiDotOutlineFill />
-        <span style = {{ fontWeight:'600' }}>🖼️ Imágenes únicas: {cantidadUnicas}</span>
+        <span style={{ fontWeight: '600' }}>🖼️ Imágenes únicas: {cantidadUnicas}</span>
         <PiDotOutlineFill />
         <span>♻️ Duplicados: {cantidadDuplicados}</span>
+        <Link onClick={exportToExcel} >
+          <DownloadOutlined /> Listado de imágenes
+        </Link>
       </p>
 
       <Table
@@ -96,6 +122,8 @@ const ImagenesTable = ({ imagenesData, loading }) => {
           onChange: (page) => setCurrentPage(page),
         }}
       />
+
+
 
       <Modal
         visible={isModalVisible}

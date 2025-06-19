@@ -105,27 +105,6 @@ export default function AccesosPage() {
       link: "/resumen_procesos",
     },
     {
-      title: "Crear alumno",
-      subtitle: "Crear registros",
-      description: "Permite crear el registro de un nuevo estudiante",
-      icon: <BuildOutlined />,
-      link: "/crear_alumno",
-    },
-    {
-      title: "Crear docente",
-      subtitle: "Crear registros",
-      description: "Permite crear el registro de un nuevo docente",
-      icon: <BuildOutlined />,
-      link: "/crear_docente",
-    },
-    {
-      title: "Crear matricula",
-      subtitle: "Crear registros",
-      description: "Permite crear el registro de una nueva matricula",
-      icon: <BuildOutlined />,
-      link: "/crear_matricula",
-    },
-    {
       title: "Asignar docentes masivo",
       subtitle: "Modificar registros",
       description: "Permite asignar rut de docente a seccion a partir de .xlsx",
@@ -138,6 +117,13 @@ export default function AccesosPage() {
       description: "Permite leer información resumida de SUDCRA Tickets (Polling 5m)",
       icon: <FormOutlined />,
       link: "/tickets",
+    },
+    {
+      title: "Crea estructura de carpetas",
+      subtitle: "Estructura de carpetas",
+      description: "Permite crear una estructura de carpetas para administrar imágenes de escáner.",
+      icon: <FormOutlined />,
+      link: "/crea_estructura_carpetas",
     },
   ];
 

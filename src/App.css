@@ -48,7 +48,6 @@
 }
 
 /* Componente layout */
-.ant-typography,
 .ant-form-item-required {
     color: hsl(215, 15%, 92%) !important;
 }
@@ -60,7 +59,6 @@
 }
 
 /* Color para los componentes tipo titulo y otros de Ant Design */
-.ant-typography,
 .ant-form-item-required {
     color: var(--color-primario) !important;
 }

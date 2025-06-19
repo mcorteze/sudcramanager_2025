@@ -76,6 +76,9 @@ import CargaTabla from './pages/CargaTabla.js'
 import ListadoCantNotasPage from './pages/ListadoCantNotasPage.js'
 import TopBar from './components/TopBar.js'
 import CargarTablaPage from './pages/CargarTablaPage.js'
+import CreaEstructuraCarpetaPage from './pages/CreaEstructuraCarpetaPage.js'
+
+
 
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined } from '@ant-design/icons';
@@ -129,16 +132,17 @@ const AppContent = () => {
           {/* ✅ Reprocesar */}
           <SubMenu key="repro-sub1" icon={<SyncOutlined />} title="Reprocesar">
             <Menu.Item key="sub1-1">
-              <Link to="/lectura_rescatar_rut">• Rescatar lectura</Link>
+              <Link to="/lectura_rescatar_rut">• RUT Error</Link>
             </Menu.Item>
             <Menu.Item key="sub1-2">
-              <Link to="/lecturas">• Reprocesar</Link>
+              <Link to="/lecturas">• RUT Correcto</Link>
             </Menu.Item>
             <Menu.Item key="sub1-3">
-              <Link to="/lecturas_masivo">• Reprocesar Masivo</Link>
+              <Link to="/lecturas_masivo">• Reprocesar Sigla</Link>
             </Menu.Item>
           </SubMenu>
 
+          {/* ✅ Seguimiento */}
           <SubMenu key="monitor-accesos" icon={<HiMiniViewfinderCircle />} title="Seguimiento">
             <Menu.Item key="monitor-1">
               <Link to="/imagenes">• Buscar hoja por ID</Link>
@@ -269,6 +273,7 @@ const AppContent = () => {
             <Route path="/tickets" element={<TicketsPage />} />
             <Route path="/listado_cantidad_notas" element={<ListadoCantNotasPage />} />
             <Route path="/cargar_tablas" element={<CargarTablaPage />} />
+            <Route path="/crea_estructura_carpetas" element={<CreaEstructuraCarpetaPage />} />
 
             {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />

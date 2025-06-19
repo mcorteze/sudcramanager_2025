@@ -141,6 +141,7 @@ export default function InformesPorDesbloquear() {
     { title: 'ID Evaluación', dataIndex: 'id_eval', key: 'id_eval' },
     { title: 'Programa', dataIndex: 'programa', key: 'programa' },
     { title: 'Sede', dataIndex: 'nombre_sede', key: 'nombre_sede' },
+    { title: 'Asignatura', dataIndex: 'cod_asig', key: 'cod_asig' },
     { title: 'Sección', dataIndex: 'seccion', key: 'seccion' },
     { 
       title: 'Marcatemporal', 
