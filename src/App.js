@@ -77,6 +77,7 @@ import ListadoCantNotasPage from './pages/ListadoCantNotasPage.js'
 import TopBar from './components/TopBar.js'
 import CargarTablaPage from './pages/CargarTablaPage.js'
 import CreaEstructuraCarpetaPage from './pages/CreaEstructuraCarpetaPage.js'
+import BuscarResultadosPage from './pages/BuscarResultadosPage.js'
 
 
 
@@ -126,6 +127,9 @@ const AppContent = () => {
             </Menu.Item>
             <Menu.Item key="sub1-3">
               <Link to="/secciones">• Buscar ID Sección</Link>
+            </Menu.Item>
+            <Menu.Item key="sub1-3">
+              <Link to="/buscar_resultados">• Buscar Resultados</Link>
             </Menu.Item>
           </SubMenu>
 
@@ -274,6 +278,7 @@ const AppContent = () => {
             <Route path="/listado_cantidad_notas" element={<ListadoCantNotasPage />} />
             <Route path="/cargar_tablas" element={<CargarTablaPage />} />
             <Route path="/crea_estructura_carpetas" element={<CreaEstructuraCarpetaPage />} />
+            <Route path="/buscar_resultados" element={<BuscarResultadosPage />} />
 
             {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />

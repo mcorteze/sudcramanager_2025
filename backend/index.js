@@ -2866,6 +2866,81 @@ app.get('/api/datos_estructura_carpeta', async (req, res) => {
   }
 });
 
+app.get('/api/explorar_resultados', async (req, res) => {
+  let id_eval_list = req.query.id_eval_list;
+
+  if (!id_eval_list) {
+    return res.status(400).json({ error: 'Falta el parámetro id_eval_list' });
+  }
+  if (!Array.isArray(id_eval_list)) {
+    id_eval_list = [id_eval_list];
+  }
+  if (id_eval_list.length === 0) {
+    return res.status(400).json({ error: 'Lista vacía de id_eval_list' });
+  }
+
+  const placeholders = id_eval_list.map((_, index) => `$${index + 1}`).join(', ');
+
+  const query = `
+    SELECT 
+      sd.nombre_sede,
+      s.cod_asig,
+      s.seccion,
+      s.id_seccion,
+      me.id_eval,
+      COUNT(*) as cantidad
+    FROM alumnos al
+    JOIN matricula mat ON mat.rut = al.rut
+    JOIN sedes sd ON sd.id_sede = mat.id_sede
+    JOIN inscripcion ins ON ins.id_matricula = mat.id_matricula
+    JOIN secciones s ON s.id_seccion = ins.id_seccion
+    JOIN matricula_eval me ON me.id_matricula = mat.id_matricula
+    JOIN eval e ON e.id_eval = me.id_eval
+    WHERE 
+      me.id_eval IN (${placeholders})
+      AND e.cod_asig = s.cod_asig
+    GROUP BY 
+      sd.nombre_sede, s.cod_asig, s.seccion, s.id_seccion, me.id_eval
+    ORDER BY 
+      sd.nombre_sede, s.cod_asig, s.seccion
+  `;
+
+  try {
+    const result = await pool.query(query, id_eval_list);
+
+    // Reestructurar la data para generar columnas dinámicas por id_eval
+    const resumen = {};
+    const evals = new Set();
+
+    result.rows.forEach(row => {
+      const key = `${row.nombre_sede}|${row.cod_asig}|${row.seccion}|${row.id_seccion}`;
+      evals.add(row.id_eval);
+
+      if (!resumen[key]) {
+        resumen[key] = {
+          nombre_sede: row.nombre_sede,
+          cod_asig: row.cod_asig,
+          seccion: row.seccion,
+          id_seccion: row.id_seccion,
+        };
+      }
+
+      resumen[key][`eval_${row.id_eval}`] = parseInt(row.cantidad, 10);
+    });
+
+    res.json({
+      columnas_dinamicas: Array.from(evals).map(id => `eval_${id}`),
+      resultados: Object.values(resumen),
+    });
+
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+
+
 // -----------------------------------------------
 // -----------------------------------------------
 // 
