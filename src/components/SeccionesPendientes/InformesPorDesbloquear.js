@@ -89,6 +89,7 @@ export default function InformesPorDesbloquear() {
           setUpdatedSwitches(new Set());
           fetchSeccionesPendientes(); // Refresca los datos de la tabla
           setIsModalVisible(false); // Cierra el modal
+          setKeyword(''); // <<<< LIMPIAR CLAVE
         })
         .catch(() => {
           message.error('Error al guardar los cambios');
@@ -262,6 +263,8 @@ export default function InformesPorDesbloquear() {
       >
         <p>Para confirmar el envío de los informes, ingresa la palabra clave:</p>
         <Input
+          type="password"
+          autoComplete="new-password"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="Ingrese la palabra clave"

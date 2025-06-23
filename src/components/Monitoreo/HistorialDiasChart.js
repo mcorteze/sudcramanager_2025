@@ -76,7 +76,10 @@ const HistorialProcesamiento = () => {
 
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={data}>
-              <XAxis dataKey="date" />
+              <XAxis
+                dataKey="date"
+                tickFormatter={(tick) => dayjs(tick).format('MM-DD')}
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo negro con 50% de transparencia

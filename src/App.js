@@ -128,7 +128,7 @@ const AppContent = () => {
             <Menu.Item key="sub1-3">
               <Link to="/secciones">• Buscar ID Sección</Link>
             </Menu.Item>
-            <Menu.Item key="sub1-3">
+            <Menu.Item key="sub1-4">
               <Link to="/buscar_resultados">• Buscar Resultados</Link>
             </Menu.Item>
           </SubMenu>
@@ -142,7 +142,7 @@ const AppContent = () => {
               <Link to="/lecturas">• RUT Correcto</Link>
             </Menu.Item>
             <Menu.Item key="sub1-3">
-              <Link to="/lecturas_masivo">• Reprocesar Sigla</Link>
+              <Link to="/lecturas_masivo">• Reprocesar Sigla HR</Link>
             </Menu.Item>
           </SubMenu>
 
