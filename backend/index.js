@@ -15,7 +15,7 @@ const pool = new Pool({
   //database: 'sudcra',
   // ******* bases de datos estáticas *******
   host: 'localhost',
-  database: 'sudcra_20250618_0001', // final primer semestre
+  database: 'sudcra_20250627_0001', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -2254,47 +2254,49 @@ app.get('/api/rut_lecturas/:rut', async (req, res) => {
 });
 
 
-// Endpoint para obtener calificaciones detalladas
+  // Endpoint para obtener calificaciones detalladas
 app.get('/api/historial_procesamiento', async (req, res) => {
   try {
     const query = `
-    SELECT 
-      co.id_matricula_eval,
-      me.id_matricula,
-      me.id_eval,
-      asig.programa,
-      asig.cod_programa,
-      e.cod_asig,
-      e.num_prueba,
-      e.nombre_prueba,
-      me.imagen,
-      me.id_archivoleido,
-      me.linea_leida,
-      al.archivoleido,
-      al.tipoarchivo,
-      al.marcatemporal,
-      co.puntaje_total_obtenido,
-      co.logro_obtenido,
-      co.id_calificacion,
-      co.lectura_fecha,
-      co.num_prueba,
-      co.informe_listo,
-      i.id_lista
-    FROM calificaciones_obtenidas co
-    JOIN matricula_eval me on me.id_matricula_eval = co.id_matricula_eval
-    JOIN archivosleidos al on al.id_archivoleido = me.id_archivoleido
-    JOIN eval e on e.id_eval = me.id_eval
-    JOIN asignaturas asig on asig.cod_asig = e.cod_asig
-    LEFT JOIN imagenes i on me.imagen = i.id_imagen
+      SELECT 
+        co.id_matricula_eval,
+        me.id_matricula,
+        me.id_eval,
+        asig.programa,
+        asig.cod_programa,
+        e.cod_asig,
+        e.num_prueba,
+        e.nombre_prueba,
+        me.imagen,
+        me.id_archivoleido,
+        me.linea_leida,
+        al.archivoleido,
+        al.tipoarchivo,
+        al.marcatemporal,
+        co.puntaje_total_obtenido,
+        co.logro_obtenido,
+        co.id_calificacion,
+        co.lectura_fecha,
+        co.num_prueba,
+        co.informe_listo,
+        i.id_lista
+      FROM calificaciones_obtenidas co
+      JOIN matricula_eval me on me.id_matricula_eval = co.id_matricula_eval
+      JOIN archivosleidos al on al.id_archivoleido = me.id_archivoleido
+      JOIN eval e on e.id_eval = me.id_eval
+      JOIN asignaturas asig on asig.cod_asig = e.cod_asig
+      LEFT JOIN imagenes i on me.imagen = i.id_imagen
+      WHERE co.lectura_fecha >= CURRENT_DATE - INTERVAL '14 days'
     `;
 
     const result = await pool.query(query);
-    res.json(result.rows); // Devuelve los resultados como JSON
+    res.json(result.rows);
   } catch (err) {
     console.error('Error al obtener calificaciones:', err);
     res.status(500).json({ error: 'Error al obtener calificaciones' });
   }
 });
+
 
 // Endpoint GET para obtener id_matricula por rut
 app.get('/rut_matricula/:rut', async (req, res) => {

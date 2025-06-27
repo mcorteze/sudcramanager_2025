@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Spin, message, Typography } from 'antd';
-import axios from 'axios';
+import { Spin, Typography } from 'antd';
 import dayjs from 'dayjs';
 import {
   BarChart, Bar, XAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer, LabelList
@@ -8,12 +7,10 @@ import {
 
 const { Title } = Typography;
 
-const HistorialProcesamiento = () => {
+const HistorialProcesamiento = ({ rawData, loading }) => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Función para obtener los últimos 5 días
+  // Función para obtener últimos 5 días
   const getLast5Days = () => {
     const days = [];
     for (let i = 4; i >= 0; i--) {
@@ -22,7 +19,7 @@ const HistorialProcesamiento = () => {
     return days;
   };
 
-  // Función para procesar y filtrar los datos
+  // Función para procesar los datos
   const processData = (rawData) => {
     const last5Days = getLast5Days();
     const result = last5Days.map(day => {
@@ -38,24 +35,13 @@ const HistorialProcesamiento = () => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://localhost:3001/api/historial_procesamiento');
-        const allData = response.data || [];
-        processData(allData);
-        setLastUpdated(new Date());
-      } catch (error) {
-        console.error('Error al obtener historial de procesamiento:', error);
-        message.error('No se pudo cargar el historial');
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (rawData?.length > 0) {
+      processData(rawData);
+    } else {
+      setData([]);
+    }
+  }, [rawData]);
 
-    fetchData();
-  }, []);
-
-  // Función para renderizar el texto solo si el valor es mayor que 0
   const renderLabel = (props) => {
     const { x, y, width, value } = props;
     if (value > 0) {
@@ -65,14 +51,16 @@ const HistorialProcesamiento = () => {
         </text>
       );
     }
-    return null; // No mostrar el texto si el valor es 0
+    return null;
   };
 
   return (
     <div style={{ height: '210px', width: '350px' }}>
       <Spin spinning={loading}>
         <div>
-          <Title level={5} style={{ marginBottom: '20px' }}>Total de Procesamientos por Día</Title>
+          <Title level={5} style={{ marginBottom: '20px' }}>
+            Total de Procesamientos por Día
+          </Title>
 
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={data}>
@@ -80,11 +68,11 @@ const HistorialProcesamiento = () => {
                 dataKey="date"
                 tickFormatter={(tick) => dayjs(tick).format('MM-DD')}
               />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo negro con 50% de transparencia
-                  border: 'none', // Eliminar el borde
-                  color: 'white', // Color del texto del tooltip
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  border: 'none',
+                  color: 'white',
                 }}
               />
               <Legend />

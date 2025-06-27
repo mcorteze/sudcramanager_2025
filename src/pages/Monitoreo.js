@@ -9,7 +9,7 @@ import HistorialProcesamientoChart from '../components/Monitoreo/HistorialProces
 import EquiposEstado from '../components/Monitoreo/EquiposEstado';
 import NotificacionCampana from '../components/NotificacionesCampana/NotificacionesCamapana';
 import UltimasLecturasFormsTable from '../components/Monitoreo/UltimasLecturasFormsTable';
-import HistorialDiasChart from '../components/Monitoreo/HistorialDiasChart';
+import HistorialProcesamiento from '../components/Monitoreo/HistorialProcesamiento';
 import MarcaTempConsola from '../components/Monitoreo/MarcaTempConsola';
 
 import 'dayjs/locale/es';
@@ -176,7 +176,7 @@ const HistorialProcesamientoTable = () => {
             <Space direction="horizontal" size="middle" style = {{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
               <EquiposEstado />
               <UltimasLecturasFormsTable />
-              <HistorialDiasChart />
+              <HistorialProcesamiento rawData={rawData} loading={loading} />
             </Space>
           </Space>
           <Divider />
