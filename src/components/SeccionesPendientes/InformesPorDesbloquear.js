@@ -232,7 +232,6 @@ export default function InformesPorDesbloquear() {
         <p>Para confirmar el envío de los informes, ingresa la palabra clave:</p>
         <Input
           type="password"
-          autoComplete="new-password"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="Ingrese la palabra clave"

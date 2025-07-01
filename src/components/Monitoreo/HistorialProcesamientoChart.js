@@ -8,7 +8,7 @@ import {
 const programColors = {
   'Programa de Matemáticas': '#28d0d4 ', 
   'Programa de Lenguaje y Comunicación': '#f67297', 
-  'Programa de Inglés': '#d1a90c'
+  'Programa de Inglés': '#ffb900'
 };
 
 // Paleta de respaldo para otros programas
@@ -110,7 +110,7 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
             stroke={programColors[programa]}
             connectNulls
           >
-            <LabelList dataKey={programa} position="top" />
+            <LabelList dataKey={programa} fill="#bbbbbb" position="top" />
           </Line>
         ))}
       </LineChart>

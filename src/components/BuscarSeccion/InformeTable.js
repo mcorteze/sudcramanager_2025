@@ -9,7 +9,7 @@ import axios from 'axios'; // Asegúrate de importar axios
 const handleReenviarInforme = async (id_informeseccion, id_eval, nombre_prueba) => {
   Modal.confirm({
     title: '¿Estás seguro de reenviar el informe?',
-    content: `Esta acción reenviará al alumno el informe ya creado. \n\n${nombre_prueba} - ${id_eval}`,
+    content: `Esta acción reenviará al docente el informe ya creado. \n\n${nombre_prueba} - ${id_eval}`,
     okText: 'Sí, reenviar',
     cancelText: 'Cancelar',
     onOk: async () => {
