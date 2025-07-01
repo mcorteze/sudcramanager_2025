@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Modal, Button, notification, Typography } from 'antd';
+import { Table, Modal, Button, notification, Typography, Tag } from 'antd';
 import { CopyOutlined, DownloadOutlined, EyeOutlined, ArrowsAltOutlined } from '@ant-design/icons';
 import { PiDotOutlineFill } from "react-icons/pi";
 import * as XLSX from 'xlsx'; // Importa la librería xlsx
@@ -62,7 +62,25 @@ const ImagenesTable = ({ imagenesData, loading }) => {
     { title: 'ID Sección', dataIndex: 'id_seccion', key: 'id_seccion' },
     { title: 'ID Lista', dataIndex: 'id_lista', key: 'id_lista' },
     { title: 'ID Imagen', dataIndex: 'id_imagen', key: 'id_imagen' },
-    { title: 'Imagen', dataIndex: 'imagen', key: 'imagen' },
+    { 
+      title: 'Imagen', 
+      dataIndex: 'imagen', 
+      key: 'imagen',
+      render: (text) => {
+        const extension = text?.split('.').pop()?.toLowerCase();
+        const esJpg = extension === 'jpg' || extension === 'jpeg';
+
+        if (esJpg) {
+          return text;
+        } else {
+          return (
+            <Tag color="red">
+              {text} ({extension})
+            </Tag>
+          );
+        }
+      },
+    },
     { 
       title: 'Acciones', 
       key: 'acciones',
@@ -76,24 +94,22 @@ const ImagenesTable = ({ imagenesData, loading }) => {
     },
   ];
 
-// Función para exportar el listado de ID de imágenes únicos a un archivo Excel
-const exportToExcel = () => {
-  // Extrae y deduplica los ID de imágenes
-  const idImagenSet = new Set(imagenesData.map(item => item.id_imagen));
-  const idImagenesUnicas = Array.from(idImagenSet);
+  // Función para exportar el listado de ID de imágenes únicos a un archivo Excel
+  const exportToExcel = () => {
+    // Extrae y deduplica los ID de imágenes
+    const idImagenSet = new Set(imagenesData.map(item => item.id_imagen));
+    const idImagenesUnicas = Array.from(idImagenSet);
 
-  // Crea una hoja de trabajo con el título "ID_Imagen" en A1
-  const ws = XLSX.utils.aoa_to_sheet([['ID_Imagen'], ...idImagenesUnicas.map(id => [id])]);
+    // Crea una hoja de trabajo con el título "ID_Imagen" en A1
+    const ws = XLSX.utils.aoa_to_sheet([['ID_Imagen'], ...idImagenesUnicas.map(id => [id])]);
 
-  // Crea un libro de trabajo
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Listado de ID_Imagenes');
+    // Crea un libro de trabajo
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Listado de ID_Imagenes');
 
-  // Exporta el archivo Excel
-  XLSX.writeFile(wb, 'Listado_ID_Imagenes.xlsx');
-};
-
-
+    // Exporta el archivo Excel
+    XLSX.writeFile(wb, 'Listado_ID_Imagenes.xlsx');
+  };
 
   return (
     <div>
@@ -122,8 +138,6 @@ const exportToExcel = () => {
           onChange: (page) => setCurrentPage(page),
         }}
       />
-
-
 
       <Modal
         visible={isModalVisible}
