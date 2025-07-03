@@ -1,28 +1,14 @@
 import React, { useState } from 'react';
 import {
-  FileExcelOutlined,
   SyncOutlined,
-  AppstoreOutlined,
-  DesktopOutlined,
-  DownloadOutlined,
   ExclamationOutlined,
-  FileImageOutlined,
-  UserOutlined,
-  FilterOutlined,
-  DropboxOutlined,
-  SlidersOutlined,
-  DashboardOutlined,
   TableOutlined,
-  SendOutlined
 } from '@ant-design/icons';
 import { HiMiniViewfinderCircle } from "react-icons/hi2";
-import { BiSolidError } from "react-icons/bi";
 import { RiRadarLine } from "react-icons/ri";
-import { SlNote } from "react-icons/sl";
 import { Layout, Menu, theme } from 'antd';
-import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import CabezalSidebar from './components/CabezalSidebar.js';
-import Home from './pages/ResumenProcesosPage.js';
 import Informe from './pages/Informe';
 import RutAlumno from './pages/RutAlumno';
 import BuscarAlumno from './pages/BuscarAlumno';
@@ -46,7 +32,7 @@ import BuscarSeccion from './pages/BuscarSeccion.js';
 import BuscarEval from './pages/BuscarEval.js';
 import EstadisticasPage from './pages/EstadisticasPage.js';
 import TareasPage from './pages/TareasPage.js';
-import DashboardPage from './pages/DashboardPage.js';
+// import DashboardPage from './pages/DashboardPage.js'; ← eliminado
 import AccesosPage from './pages/AccesosPage.js';
 import ArchivoLeidoPage from './pages/ArchivoLeidoPage.js';
 import SharepointPage from './pages/SharepointPage.js';
@@ -60,7 +46,6 @@ import ErroresIDPage from './pages/ErroresIDPage.js';
 import RutLecturas from './components/RutAlumno/RutLecturas.js';
 import MonitorPage from './pages/MonitorPage.js';
 import ResumenProcesosPage from './pages/ResumenProcesosPage.js';
-import Monitoreo from './pages/Monitoreo.js';
 import CrearAlumnoPage from './pages/CrearAlumnoPage.js';
 import CrearDocentePage from './pages/CrearDocentePage.js';
 import CrearMatriculaPage from './pages/CrearMatriculaPage.js';
@@ -79,16 +64,17 @@ import CargarTablaPage from './pages/CargarTablaPage.js'
 import CreaEstructuraCarpetaPage from './pages/CreaEstructuraCarpetaPage.js'
 import BuscarResultadosPage from './pages/BuscarResultadosPage.js'
 
-
-
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined } from '@ant-design/icons';
 
 import './App.css';
+import './pages/DashboardPage.css';
+import './pages/ResumenProcesosPage.css';
+import './components/Dashboard/PieChartComponent.css';
+import './components/Dashboard/styles.css';
 
 
-
-const { Sider, Content, Header  } = Layout;
+const { Sider, Content } = Layout;
 const { SubMenu } = Menu;
 
 const AppContent = () => {
@@ -97,16 +83,7 @@ const AppContent = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const location = useLocation(); // Obtener la ruta actual
-
-  // Verificar si la ruta actual es /dashboard
-  const isDashboardRoute = location.pathname === '/dashboard';
-
-  return isDashboardRoute ? (
-    // Renderizar el dashboard sin el layout
-    <DashboardPage />
-  ) : (
-    // Renderizar el resto de la app con el layout
+  return (
     <Layout>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <CabezalSidebar />
@@ -114,6 +91,7 @@ const AppContent = () => {
           <Menu.Item key="1" icon={<RiRadarLine />}>
             <Link to="/">Monitoreo</Link>
           </Menu.Item>
+
           {/* ✅ Buscar */}
           <SubMenu key="buscar-sub1" icon={<IoIosSearch />} title="Buscar">
             <Menu.Item key="sub1-0">
@@ -194,11 +172,9 @@ const AppContent = () => {
           </Menu.Item>
           <Menu.Item key="18" icon={<TableOutlined />}>
             <Link to="/accesos">Otros recursos</Link>
-          </Menu.Item>   
+          </Menu.Item>
         </Menu>
       </Sider>
-
-
 
       <Layout>
         {/* 🚀 Top Bar (Header) */}
@@ -249,7 +225,7 @@ const AppContent = () => {
             <Route path="/tablas_cargadas" element={<BuscarEval />} />
             <Route path="/estadisticas" element={<EstadisticasPage />} />
             <Route path="/tareas" element={<TareasPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
+            {/* <Route path="/dashboard" element={<DashboardPage />} /> */} {/* Eliminada */}
             <Route path="/accesos" element={<AccesosPage />} />
             <Route path="/listasharepoint" element={<SharepointPage />} />
             <Route path="/lecturas" element={<LecturasPage />} />
@@ -289,7 +265,6 @@ const AppContent = () => {
     </Layout>
   );
 };
-
 
 const App = () => (
   <Router>
