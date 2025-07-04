@@ -94,7 +94,7 @@ const UltimasLecturasFormsTable = () => {
 
   return (
     <div style={{ height: '210px' }}>
-      <Title level={5} style={{ marginBottom: '0px' }}>Resumen de últimos procesos de HR</Title>
+      <Title level={5} style={{ marginBottom: '0px' }}>último id_upload calificado</Title>
       
       <div style={{ fontSize: '12px', marginBottom: '12px' }} >
         {lastUpdated

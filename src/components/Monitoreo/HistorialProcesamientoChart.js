@@ -6,8 +6,8 @@ import {
 
 // Colores específicos para programas conocidos
 const programColors = {
-  'Programa de Matemáticas': '#28d0d4 ', 
-  'Programa de Lenguaje y Comunicación': '#f67297', 
+  'Programa de Matemáticas': '#28d0d4',
+  'Programa de Lenguaje y Comunicación': '#f67297',
   'Programa de Inglés': '#ffb900'
 };
 
@@ -20,12 +20,12 @@ const fallbackColors = [
 
 const HistorialProcesamientoChart = ({ filteredData }) => {
   const getChartData = () => {
-    // Crear un rango de 1440 minutos (24 horas * 60 minutos)
-    const minutesInDay = Array.from({ length: 1440 }, (_, i) => i);
+    // Crear rango de minutos en bloques de 5 minutos
+    const minutesInDay = Array.from({ length: Math.ceil(1440 / 5) }, (_, i) => i * 5);
     const programas = [...new Set(filteredData.map(item => item.programa))];
 
     const base = minutesInDay.map(m => {
-      const entry = { hora: m }; // Usar el número de minuto directamente
+      const entry = { hora: m };
       programas.forEach(programa => {
         entry[programa] = 0;
       });
@@ -34,11 +34,13 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
 
     filteredData.forEach((item) => {
       const date = new Date(item.lectura_fecha);
+      date.setSeconds(0);
+      date.setMilliseconds(0);
       const hour = date.getHours();
       const minutes = date.getMinutes();
-      const minuteOfDay = hour * 60 + minutes; // Calcular minuto del día
+      const roundedMinutes = Math.floor(minutes / 5) * 5;
+      const minuteOfDay = hour * 60 + roundedMinutes;
 
-      // Buscar el minuto exacto en el arreglo de base
       const entry = base.find(e => e.hora === minuteOfDay);
       if (entry) {
         const programa = item.programa;
@@ -56,7 +58,7 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
       });
     });
 
-    // Asignar colores a programas
+    // Asignar colores
     let fallbackIndex = 0;
     programas.forEach(programa => {
       if (!programColors[programa]) {
@@ -69,8 +71,10 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
   };
 
   const { data, programas } = getChartData();
+
   const now = new Date();
-  const currentMinuteOfDay = now.getHours() * 60 + now.getMinutes(); // Minuto actual del día
+  const currentMinutesRounded = Math.floor(now.getMinutes() / 5) * 5;
+  const currentMinuteOfDay = now.getHours() * 60 + currentMinutesRounded;
 
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -79,13 +83,13 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
         <XAxis
           dataKey="hora"
           type="number"
-          domain={[0, 1440]} // Rango de 0 a 1440 minutos
+          domain={[0, 1440]}
           tickFormatter={(tick) => {
             const hours = Math.floor(tick / 60);
             const minutes = tick % 60;
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
           }}
-          ticks={Array.from({ length: 25 }, (_, i) => i * 60)} // Mostrar un tick cada hora
+          ticks={Array.from({ length: Math.ceil(1440 / 60) + 1 }, (_, i) => i * 60)}
         />
         <YAxis allowDecimals={false} />
         <Tooltip
@@ -109,8 +113,10 @@ const HistorialProcesamientoChart = ({ filteredData }) => {
             dataKey={programa}
             stroke={programColors[programa]}
             connectNulls
+            dot={false}
+            activeDot={{ r: 4 }}
           >
-            <LabelList dataKey={programa} fill="#bbbbbb" position="top" />
+            <LabelList dataKey={programa} fill="transparent" position="top" />
           </Line>
         ))}
       </LineChart>

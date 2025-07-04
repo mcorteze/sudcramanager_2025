@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Upload, Button, Table, message, Popconfirm, Space } from 'antd';
+import { Upload, Button, Table, message, Popconfirm, Space, Divider } from 'antd';
 import { UploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
-
 
 export default function ExcelUploader() {
   const [data, setData] = useState([]);
@@ -157,6 +156,21 @@ export default function ExcelUploader() {
     }
   };
 
+  const handleAsignarMasivo = async (tipo) => {
+    const registrosActivos = data.filter(item => !item.inactivo);
+
+    if (registrosActivos.length === 0) {
+      message.info('No hay registros activos para asignar.');
+      return;
+    }
+
+    for (const record of registrosActivos) {
+      await handleRegistrar(record, tipo);
+    }
+
+    message.success(`Asignación masiva de ${tipo} completada.`);
+  };
+
   const handleDescargarFormato = () => {
     const worksheet = XLSX.utils.aoa_to_sheet([['id_seccion', 'rut_docente']]);
     const workbook = XLSX.utils.book_new();
@@ -182,15 +196,37 @@ export default function ExcelUploader() {
       </div>
 
       {data.length > 0 && (
-        <div style={{ marginTop: 20 }}>
-          <h3>Datos cargados</h3>
-          <Table
-            dataSource={data}
-            columns={columns}
-            pagination={false}
-            rowClassName={(record) => (record.inactivo ? 'fila-inactiva' : '')}
-          />
-        </div>
+        <>
+        <Divider />
+          <Space style={{ display: 'flex', justifyContent: 'end', width: '100%', marginBottom: 8 }}>
+            <Popconfirm
+              title="¡Advertencia! ¿Estás seguro de asignar a todos como titular?"
+              onConfirm={() => handleAsignarMasivo('titular')}
+              okText="Sí"
+              cancelText="Cancelar"
+            >
+              <Button type="primary">Asignar Titular a todo</Button>
+            </Popconfirm>
+
+            <Popconfirm
+              title="¡Advertencia! ¿Estás seguro de asignar a todos como reemplazo?"
+              onConfirm={() => handleAsignarMasivo('reemplazo')}
+              okText="Sí"
+              cancelText="Cancelar"
+            >
+              <Button>Asignar Reemplazo a todo</Button>
+            </Popconfirm>
+          </Space>
+
+          <div style={{ marginTop: 20 }}>
+            <Table
+              dataSource={data}
+              columns={columns}
+              pagination={false}
+              rowClassName={(record) => (record.inactivo ? 'fila-inactiva' : '')}
+            />
+          </div>
+        </>
       )}
     </div>
   );
