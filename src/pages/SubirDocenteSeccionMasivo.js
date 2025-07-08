@@ -99,10 +99,10 @@ export default function ExcelUploader() {
 
       const extendedHeaders = [
         ...headers,
-        'nombre_sede',
-        'seccion',
-        'docente',
-        'username_doc',
+        'SEDE',
+        'SECCIÓN',
+        'NUEVO DOCENTE TITUTLAR',
+        'USER',
       ];
 
       const baseColumns = extendedHeaders.map((header) => ({

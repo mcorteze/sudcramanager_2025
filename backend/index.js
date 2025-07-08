@@ -6,7 +6,7 @@ const app = express();
 const port = 3001;
 
 app.use(cors()); // Middleware para permitir solicitudes CORS desde cualquier origen
-app.use(express.json()); // Middleware para permitir que Express entienda JSON en las solicitudes
+app.use(express.json({ limit: '10mb' })); // Middleware para permitir que Express entienda JSON en las solicitudes
 
 const pool = new Pool({
   user: 'postgres',
@@ -2942,6 +2942,57 @@ app.get('/api/explorar_resultados', async (req, res) => {
 });
 
 
+app.get('/api/obtener_id_matricula_eval_por_eval', async (req, res) => {
+  const { id_eval } = req.query;
+
+  if (!id_eval) {
+    return res.status(400).json({ error: 'Falta el parámetro id_eval' });
+  }
+
+  const query = `
+    SELECT 
+      me.id_matricula_eval,
+      co.informe_listo
+    FROM matricula_eval me
+    JOIN calificaciones_obtenidas co 
+      ON co.id_matricula_eval = me.id_matricula_eval
+    WHERE me.id_eval = $1
+  `;
+
+  try {
+    const result = await pool.query(query, [id_eval]);
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+app.put('/api/marcar-informe-no-listo', async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'La lista de ids es requerida.' });
+    }
+
+    const query = `
+      UPDATE calificaciones_obtenidas
+      SET informe_listo = false
+      WHERE id_matricula_eval = ANY($1::text[])
+        AND informe_listo = true
+    `;
+
+    await pool.query(query, [ids]);
+
+    res.json({ message: 'Registros actualizados correctamente.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al actualizar registros.' });
+  }
+});
 
 // -----------------------------------------------
 // -----------------------------------------------

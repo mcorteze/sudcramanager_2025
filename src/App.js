@@ -63,6 +63,7 @@ import TopBar from './components/TopBar.js'
 import CargarTablaPage from './pages/CargarTablaPage.js'
 import CreaEstructuraCarpetaPage from './pages/CreaEstructuraCarpetaPage.js'
 import BuscarResultadosPage from './pages/BuscarResultadosPage.js'
+import ReprocesarSiglaPage from './pages/ReprocesarSiglaPage.js'
 
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined } from '@ant-design/icons';
@@ -120,7 +121,10 @@ const AppContent = () => {
               <Link to="/lecturas">• RUT Correcto</Link>
             </Menu.Item>
             <Menu.Item key="sub1-3">
-              <Link to="/lecturas_masivo">• Reprocesar Sigla HR</Link>
+              <Link to="/lecturas_masivo">• Lista id_upload</Link>
+            </Menu.Item>
+            <Menu.Item key="sub1-4">
+              <Link to="/reprocesar_sigla">• Rehacer inf sigla</Link>
             </Menu.Item>
           </SubMenu>
 
@@ -255,7 +259,7 @@ const AppContent = () => {
             <Route path="/cargar_tablas" element={<CargarTablaPage />} />
             <Route path="/crea_estructura_carpetas" element={<CreaEstructuraCarpetaPage />} />
             <Route path="/buscar_resultados" element={<BuscarResultadosPage />} />
-
+            <Route path="/reprocesar_sigla" element={<ReprocesarSiglaPage />} />
             {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />
             <Route path="/carga_tablas_especificaciones" element={<CargaTabla />} />
