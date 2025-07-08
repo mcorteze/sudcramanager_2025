@@ -15,7 +15,7 @@ const pool = new Pool({
   //database: 'sudcra',
   // ******* bases de datos estáticas *******
   host: 'localhost',
-  database: 'sudcra_20250701_0001', // final primer semestre
+  database: 'sudcra_20250708_0002', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
