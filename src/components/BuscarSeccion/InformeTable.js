@@ -1,11 +1,10 @@
 import React from 'react';
-import { Table, Tooltip, message, Modal } from 'antd'; // Añadimos Modal para la confirmación
+import { Table, Tooltip, message, Modal } from 'antd';
 import moment from 'moment';
-import { LinkOutlined, SendOutlined } from '@ant-design/icons'; // Importamos los íconos
+import { LinkOutlined, SendOutlined, RedoOutlined } from '@ant-design/icons';
+import axios from 'axios';
 
-import axios from 'axios'; // Asegúrate de importar axios
-
-// Función para manejar el envío del informe con confirmación
+// Función para reenviar informe (ya existente)
 const handleReenviarInforme = async (id_informeseccion, id_eval, nombre_prueba) => {
   Modal.confirm({
     title: '¿Estás seguro de reenviar el informe?',
@@ -14,13 +13,41 @@ const handleReenviarInforme = async (id_informeseccion, id_eval, nombre_prueba) 
     cancelText: 'Cancelar',
     onOk: async () => {
       try {
-        const response = await axios.put('http://localhost:3001/api/reenviarinformeseccion', {
+        await axios.put('http://localhost:3001/api/reenviarinformeseccion', {
           id_informeseccion,
         });
         message.success('Informe reenviado con éxito');
       } catch (error) {
         console.error('Error al reenviar el informe:', error);
         message.error('Error al reenviar el informe');
+      }
+    },
+    onCancel: () => {
+      message.info('Operación cancelada');
+    },
+  });
+};
+
+// 🔴 NUEVA FUNCIÓN: rehacer informe
+const handleRehacerInforme = async (id_informeseccion, id_eval, nombre_prueba) => {
+  Modal.confirm({
+    title: '¿Estás seguro de rehacer el informe?',
+    content: `Esta acción volverá a generar y enviará nuevamente los informes a los alumnos.\n\n${nombre_prueba} - ${id_eval}`,
+    okText: 'Sí, rehacer',
+    cancelText: 'Cancelar',
+    onOk: async () => {
+      try {
+        const response = await axios.put(
+          'http://localhost:3001/api/rehacerinforme_id_informeseccion',
+          {
+            id_informeseccion,
+          }
+        );
+        console.log('Respuesta rehacer informe:', response.data);
+        message.success('Informe rehecho correctamente. Calificaciones obtenidas asociadas a los alumnos quedaron marcadas como informe_listo = false.');
+      } catch (error) {
+        console.error('Error al rehacer el informe:', error);
+        message.error('Error al rehacer el informe');
       }
     },
     onCancel: () => {
@@ -48,18 +75,18 @@ const InformeTable = ({ data, loading }) => (
         dataIndex: 'marca_temp_mail',
         key: 'marca_temp_mail',
         render: (marca_temp_mail) =>
-          marca_temp_mail ? moment(marca_temp_mail).format('DD-MM-YYY, HH:mm:ss') : 'N/A',
+          marca_temp_mail ? moment(marca_temp_mail).format('DD-MM-YYYY, HH:mm:ss') : 'N/A',
       },
       {
         title: 'Link Informe',
         dataIndex: 'link_informe',
         key: 'link_informe',
         render: (link, record) => (
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {/* Icono: Ver Informe */}
             <Tooltip title="Ver Informe">
               <a href={link} target="_blank" rel="noopener noreferrer">
-                <LinkOutlined style={{ fontSize: '18px', color: '#1890ff', marginRight: '10px' }} />
+                <LinkOutlined style={{ fontSize: '18px', color: '#1890ff' }} />
               </a>
             </Tooltip>
 
@@ -70,8 +97,22 @@ const InformeTable = ({ data, loading }) => (
                 onClick={() =>
                   handleReenviarInforme(
                     record.id_informeseccion,
-                    record.id_eval, // Asegúrate de tener el código de asignatura
-                    record.nombre_prueba // Asegúrate de tener el nombre de la prueba
+                    record.id_eval,
+                    record.nombre_prueba
+                  )
+                }
+              />
+            </Tooltip>
+
+            {/* 🔴 Icono: Rehacer Informe */}
+            <Tooltip title="Rehacer Informe">
+              <RedoOutlined
+                style={{ fontSize: '18px', color: '#f5222d', cursor: 'pointer' }}
+                onClick={() =>
+                  handleRehacerInforme(
+                    record.id_informeseccion,
+                    record.id_eval,
+                    record.nombre_prueba
                   )
                 }
               />

@@ -148,7 +148,7 @@ export default function ImagenPage() {
 
         {hasResults && (
           <a
-            href="/upload/9698"
+            href={`/upload/${searchTerm}`}  
             target="_blank"
             rel="noopener noreferrer"
             style={{

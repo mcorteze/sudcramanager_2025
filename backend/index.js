@@ -3217,6 +3217,93 @@ app.put('/api/reenviarinformeseccion', async (req, res) => {
   }
 });
 
+app.put('/api/reenviarinformesecciontodos', async (req, res) => {  
+  const { id_seccion } = req.body; // Recibimos el id_seccion
+  console.log("id_seccion recibido:", id_seccion);
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN'); // Iniciamos la transacción
+
+    const query = `
+      UPDATE informes_secciones
+      SET mail_enviado = false
+      WHERE id_seccion = $1
+      RETURNING *;
+    `;
+
+    const result = await client.query(query, [id_seccion]);
+
+    console.log("Resultado de la consulta:", result.rows);
+
+    if (result.rowCount === 0) {
+      console.log("No se encontró ningún registro para actualizar.");
+      throw new Error('No se encontró ninguna sección para actualizar.');
+    }
+
+    await client.query('COMMIT'); // Confirmamos la transacción
+
+    res.status(200).json({
+      message: 'Campos mail_enviado actualizados correctamente a false.',
+      updatedRows: result.rows, // Retorna los registros actualizados
+    });
+  } catch (err) {
+    await client.query('ROLLBACK'); // Deshacemos cambios si ocurre un error
+    console.error('Error en el servidor:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release(); // Liberamos la conexión
+  }
+});
+
+app.put('/api/rehacerinforme_id_informeseccion', async (req, res) => {
+  const { id_informeseccion } = req.body; // Recibimos el id_informeseccion
+  console.log("id_informeseccion recibido:", id_informeseccion);
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN'); // Iniciamos la transacción
+
+    // Ejecutamos la consulta UPDATE
+    const updateQuery = `
+      UPDATE calificaciones_obtenidas
+      SET informe_listo = false
+      WHERE id_matricula_eval IN (
+          SELECT 
+              i.id_matricula || '.' || ise.id_eval
+          FROM informes_secciones ise
+          JOIN inscripcion i 
+              ON i.id_seccion = ise.id_seccion
+          WHERE ise.id_informeseccion = $1
+      )
+      RETURNING *;
+    `;
+
+    const result = await client.query(updateQuery, [id_informeseccion]);
+
+    console.log("Filas actualizadas:", result.rowCount);
+
+    if (result.rowCount === 0) {
+      console.log("No se encontraron registros para actualizar.");
+      throw new Error('No se encontraron calificaciones para actualizar.');
+    }
+
+    await client.query('COMMIT'); // Confirmamos la transacción
+
+    res.status(200).json({
+      message: 'Registros de calificaciones actualizados correctamente. Campo informe_listo = false.',
+      updatedRows: result.rows
+    });
+  } catch (err) {
+    await client.query('ROLLBACK'); // Revertimos en caso de error
+    console.error('Error en el servidor:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release(); // Liberamos la conexión
+  }
+});
 
 app.get('/api/listado_calificaciones_obtenidas', async (req, res) => { 
   try {

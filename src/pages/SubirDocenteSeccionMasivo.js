@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Upload, Button, Table, message, Popconfirm, Space, Divider } from 'antd';
 import { UploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
+import { CheckOutlined } from '@ant-design/icons';
+
 
 export default function ExcelUploader() {
   const [data, setData] = useState([]);
@@ -93,16 +95,17 @@ export default function ExcelUploader() {
             docente: docente.docente,
             username_doc: docente.username_doc,
             inactivo: false,
+            informesReenviados: false,
           };
         })
       );
 
       const extendedHeaders = [
         ...headers,
-        'SEDE',
-        'SECCIÓN',
-        'NUEVO DOCENTE TITUTLAR',
-        'USER',
+        'nombre_sede',
+        'seccion',
+        'docente',
+        'username_doc',
       ];
 
       const baseColumns = extendedHeaders.map((header) => ({
@@ -124,7 +127,7 @@ export default function ExcelUploader() {
       }));
 
       baseColumns.push({
-        title: 'Acción',
+        title: 'ASIGNAR DOCENTE NUEVO',
         key: 'accion',
         render: (_, record) =>
           record.inactivo ? (
@@ -150,6 +153,34 @@ export default function ExcelUploader() {
             </Space>
           ),
       });
+
+            // 🚀 NUEVA COLUMNA: Reenviar Informes
+baseColumns.push({
+  title: 'REENVIAR INFORMES',
+  key: 'reenviar',
+  render: (_, record) => (
+    record.informesReenviados ? (
+      <Space>
+        <Button type="default" disabled>
+          Reenviar todos los informes
+        </Button>
+        <CheckOutlined style={{ color: 'green' }} />
+      </Space>
+    ) : (
+      <Popconfirm
+        title="¿Estás seguro de reenviar todos los informes de esta sección?"
+        onConfirm={() => handleReenviarInformes(record)}
+        okText="Sí"
+        cancelText="Cancelar"
+      >
+        <Button type="default">
+          Reenviar todos los informes
+        </Button>
+      </Popconfirm>
+    )
+  )
+});
+
 
       setColumns(baseColumns);
       setData(enrichedRows);
@@ -241,6 +272,40 @@ export default function ExcelUploader() {
     );
     XLSX.writeFile(workbook, 'formato_asignacion.xlsx');
   };
+
+const handleReenviarInformes = async (record) => {
+  try {
+    const res = await fetch(
+      'http://localhost:3001/api/reenviarinformesecciontodos',
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_seccion: record.id_seccion,
+        }),
+      }
+    );
+
+    const result = await res.json();
+
+    if (res.ok) {
+      message.success(result.message || 'Informes reenviados correctamente.');
+      setData((prevData) => {
+        return prevData.map((item) =>
+          item.key === record.key
+            ? { ...item, informesReenviados: true }
+            : item
+        );
+      });
+    } else {
+      message.error(result.error || 'Error al reenviar informes.');
+    }
+  } catch (err) {
+    console.error('Error al reenviar informes:', err);
+    message.error('Error al conectar con el servidor.');
+  }
+};
+
 
   return (
     <div className="page-full">
