@@ -3296,9 +3296,26 @@ app.put('/api/reenviarinformesecciontodos', async (req, res) => {
     await client.query('BEGIN'); // Iniciamos la transacción
 
     const query = `
+      WITH secciones_max AS (
+        SELECT
+          id_informeseccion
+        FROM (
+          SELECT
+            id_informeseccion,
+            ROW_NUMBER() OVER (
+              PARTITION BY id_eval
+              ORDER BY id_informeseccion DESC
+            ) AS rn
+          FROM informes_secciones
+          WHERE id_seccion = $1
+        ) sub
+        WHERE sub.rn = 1
+      )
       UPDATE informes_secciones
       SET mail_enviado = false
-      WHERE id_seccion = $1
+      WHERE id_informeseccion IN (
+        SELECT id_informeseccion FROM secciones_max
+      )
       RETURNING *;
     `;
 
@@ -3325,6 +3342,7 @@ app.put('/api/reenviarinformesecciontodos', async (req, res) => {
     client.release(); // Liberamos la conexión
   }
 });
+
 
 app.put('/api/rehacerinforme_id_informeseccion', async (req, res) => {
   const { id_informeseccion } = req.body; // Recibimos el id_informeseccion
