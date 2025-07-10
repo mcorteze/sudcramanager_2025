@@ -90,26 +90,26 @@ const formatNumberCL = (num) => {
 
   const columns = [
     {
-      title: 'Programa',
+      title: 'Prog',
       dataIndex: 'cod_programa',
       key: 'cod_programa',
-      width: '80px',
+      width: '40px',
     },
     {
-      title: 'ID Upload Recepcionado',
+      title: 'Recepcionado',
       dataIndex: 'imagen_recepcionada',
       key: 'imagen_recepcionada',
-      width: '120px',
+      width: '100px',
       render: (value) =>
         value != null
           ? <span>{formatNumberCL(value)}</span>
           : <span className="texto-sin-datos">-</span>,
     },
     {
-      title: 'ID Upload Calificado',
+      title: 'Calificado',
       dataIndex: 'imagen_calificada',
       key: 'imagen_calificada',
-      width: '150px',
+      width: '180px',
       render: (_, record) => {
         const calificada = record.imagen_calificada;
         const recepcionada = record.imagen_recepcionada;
@@ -129,7 +129,7 @@ const formatNumberCL = (num) => {
         return (
           <>
             <span>{formatNumberCL(calificada)}</span>{' '}
-            <span className={className}>(restantes: {formatNumberCL(faltante)})</span>
+            <span className={className}>(faltan: {formatNumberCL(faltante)})</span>
           </>
         );
       },
@@ -137,7 +137,7 @@ const formatNumberCL = (num) => {
     {
       title: 'Marca Temporal Calificación',
       key: 'marcatemporal',
-      width: '140px',
+      width: '180px',
       render: (_, record) => {
         if (!record.marcatemporal) {
           return <span className="texto-sin-datos">-</span>;
@@ -161,7 +161,7 @@ const formatNumberCL = (num) => {
   return (
     <div className="ultimas-lecturas-container">
       <Title level={5} className="ultimas-lecturas-titulo">
-        Últimas imágenes recepcionadas y calificadas
+        Últimos ID Upload
       </Title>
 
       <div className="ultimas-lecturas-fecha">

@@ -55,7 +55,7 @@ const HistorialProcesamiento = ({ rawData, loading }) => {
   };
 
   return (
-    <div style={{ height: '210px', width: '350px' }}>
+    <div style={{ width: '350px' }}>
       <Spin spinning={loading}>
         <div>
           <Title level={5} style={{ marginBottom: '20px' }}>

@@ -173,7 +173,7 @@ const HistorialProcesamientoTable = () => {
                 allowClear={false}
               />
             </Space>
-            <Space direction="horizontal" size="middle" style = {{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+            <Space direction="horizontal" size="middle" style = {{ width: '100%', height: 'fit-content',display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
               <EquiposEstado />
               <UltimasLecturasFormsTable />
               <HistorialProcesamiento rawData={rawData} loading={loading} />
