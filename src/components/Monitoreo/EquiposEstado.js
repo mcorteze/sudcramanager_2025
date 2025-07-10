@@ -91,13 +91,23 @@ const EquiposEstado = () => {
 
           return (
             <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
-              <div className="equipos-rectangulo">
+              <div
+                className={`equipos-rectangulo ${
+                  enLinea ? 'equipos-rectangulo-online' : 'equipos-rectangulo-offline'
+                }`}
+              >
                 <Tooltip title={tooltipContent}>
                   <Icono
                     className={`equipos-icono ${enLinea ? 'equipos-icono-online' : 'equipos-icono-offline'}`}
                   />
                 </Tooltip>
-                <div className="equipos-nombre">{equipo.nombre_equipo}</div>
+                <div
+                  className={`equipos-nombre ${
+                    enLinea ? 'equipos-nombre-online' : 'equipos-nombre-offline'
+                  }`}
+                >
+                  {equipo.nombre_equipo}
+                </div>
               </div>
             </div>
           );

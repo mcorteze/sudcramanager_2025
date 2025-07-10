@@ -44,7 +44,23 @@
 }
 
 .equipos-icono-offline {
-  color: gray;
+  color: red;
+}
+
+.equipos-nombre-online {
+  color: #43b5f2;
+}
+
+.equipos-rectangulo-online {
+  border-color: #43b5f2;
+}
+
+.equipos-rectangulo-offline {
+  border-color: red;
+}
+
+.equipos-nombre-offline {
+  color: red;
 }
 
 /* Texto de error */
