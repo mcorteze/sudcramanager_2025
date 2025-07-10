@@ -131,7 +131,7 @@ export default function ExcelUploader() {
         key: 'accion',
         render: (_, record) =>
           record.inactivo ? (
-            <span style={{ color: '#aaa' }}>Acción realizada</span>
+            <span style={{ color: '#aaa' }}>¡Docente asignado!</span>
           ) : (
             <Space>
               <Popconfirm

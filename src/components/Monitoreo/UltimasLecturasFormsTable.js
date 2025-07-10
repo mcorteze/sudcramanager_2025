@@ -3,43 +3,52 @@ import axios from 'axios';
 import { Table, Spin, Alert, Typography } from 'antd';
 import moment from 'moment';
 import dayjs from 'dayjs';
+import './UltimasLecturasFormsTable.css';
 
 const { Title } = Typography;
 
 const UltimasLecturasFormsTable = () => {
-  const [data, setData] = useState([]); 
-  const [loading, setLoading] = useState(true); 
-  const [error, setError] = useState(null); 
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/api/ultimas-lecturas-form');
+        const response = await axios.get('http://localhost:3001/api/ultimas-lecturas-form-2');
 
         const formattedData = response.data.map(item => {
-          const marcatemporalFormatted = moment(item.marcatemporal);
-          const now = moment();
+          const marcaTemporal = item.marca_temporal_calificacion
+            ? moment(item.marca_temporal_calificacion)
+            : null;
 
-          // Criterio 1: texto en rojo si pasaron más de 24 horas reales
-          const diffHours = now.diff(marcatemporalFormatted, 'hours');
-          const isOld = diffHours >= 24;
-
-          // Criterio 2: texto de días por fecha calendario
+          let isOld = false;
           let daysAgoText = '';
-          if (now.isSame(marcatemporalFormatted, 'day')) {
-            daysAgoText = 'hoy';
-          } else if (now.subtract(1, 'day').isSame(marcatemporalFormatted, 'day')) {
-            daysAgoText = 'ayer';
-          } else {
-            const diffDays = now.diff(marcatemporalFormatted, 'days');
-            daysAgoText = `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+          let marcatemporalFormatted = null;
+
+          if (marcaTemporal) {
+            const now = moment();
+
+            const diffHours = now.diff(marcaTemporal, 'hours');
+            isOld = diffHours >= 24;
+
+            if (now.isSame(marcaTemporal, 'day')) {
+              daysAgoText = 'hoy';
+            } else if (now.subtract(1, 'day').isSame(marcaTemporal, 'day')) {
+              daysAgoText = 'ayer';
+            } else {
+              const diffDays = now.diff(marcaTemporal, 'days');
+              daysAgoText = `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+            }
+
+            marcatemporalFormatted = marcaTemporal.format('HH:mm:ss');
           }
 
           return {
             ...item,
-            marcatemporalRaw: marcatemporalFormatted,
-            marcatemporal: marcatemporalFormatted.format('HH:mm:ss'),
+            marcatemporalRaw: marcaTemporal,
+            marcatemporal: marcatemporalFormatted,
             daysAgoText,
             isOld,
           };
@@ -55,36 +64,93 @@ const UltimasLecturasFormsTable = () => {
     };
 
     fetchData();
-    const intervalId = setInterval(fetchData, 20000); // Polling cada 20 segundos
-    
-    return () => clearInterval(intervalId); // Limpiar intervalo
+    const intervalId = setInterval(fetchData, 20000);
+    return () => clearInterval(intervalId);
   }, []);
+
+  // Función para formatear números con separador de miles (Chile)
+const formatNumberCL = (num) => {
+  return num != null && !isNaN(num)
+    ? Number(num).toLocaleString('es-CL')
+    : '-';
+};
+
+
+  const getFaltanteClass = (faltante) => {
+    if (faltante >= 50) {
+      return 'faltante-rojo-fondo';
+    } else if (faltante >= 20) {
+      return 'faltante-rojo';
+    } else if (faltante >= 10) {
+      return 'faltante-naranjo';
+    } else {
+      return 'faltante-normal';
+    }
+  };
 
   const columns = [
     {
       title: 'Programa',
       dataIndex: 'cod_programa',
       key: 'cod_programa',
-      width: '60px',
-    },
-    {
-      title: 'ID Upload',
-      dataIndex: 'imagen',
-      key: 'imagen',
       width: '80px',
     },
     {
-      title: 'Marca Temporal',
-      key: 'marcatemporal',
+      title: 'ID Upload Recepcionado',
+      dataIndex: 'imagen_recepcionada',
+      key: 'imagen_recepcionada',
+      width: '120px',
+      render: (value) =>
+        value != null
+          ? <span>{formatNumberCL(value)}</span>
+          : <span className="texto-sin-datos">-</span>,
+    },
+    {
+      title: 'ID Upload Calificado',
+      dataIndex: 'imagen_calificada',
+      key: 'imagen_calificada',
       width: '150px',
-      render: (_, record) => (
-        <>
-          {record.marcatemporal}{' '}
-          <span style={{ color: record.isOld ? 'red' : 'inherit' }}>
-            ({record.daysAgoText})
-          </span>
-        </>
-      ),
+      render: (_, record) => {
+        const calificada = record.imagen_calificada;
+        const recepcionada = record.imagen_recepcionada;
+
+        if (calificada == null) {
+          return <span className="texto-sin-datos">-</span>;
+        }
+
+        const faltante = recepcionada - calificada;
+
+        if (faltante <= 0) {
+          return <span>{formatNumberCL(calificada)}</span>;
+        }
+
+        const className = getFaltanteClass(faltante);
+
+        return (
+          <>
+            <span>{formatNumberCL(calificada)}</span>{' '}
+            <span className={className}>(restantes: {formatNumberCL(faltante)})</span>
+          </>
+        );
+      },
+    },
+    {
+      title: 'Marca Temporal Calificación',
+      key: 'marcatemporal',
+      width: '140px',
+      render: (_, record) => {
+        if (!record.marcatemporal) {
+          return <span className="texto-sin-datos">-</span>;
+        }
+        return (
+          <>
+            {record.marcatemporal}{' '}
+            <span className={record.isOld ? 'marca-temporal-antigua' : ''}>
+              ({record.daysAgoText})
+            </span>
+          </>
+        );
+      }
     },
   ];
 
@@ -93,10 +159,12 @@ const UltimasLecturasFormsTable = () => {
   }
 
   return (
-    <div style={{ height: '210px' }}>
-      <Title level={5} style={{ marginBottom: '0px' }}>último id_upload calificado</Title>
-      
-      <div style={{ fontSize: '12px', marginBottom: '12px' }} >
+    <div className="ultimas-lecturas-container">
+      <Title level={5} className="ultimas-lecturas-titulo">
+        Últimas imágenes recepcionadas y calificadas
+      </Title>
+
+      <div className="ultimas-lecturas-fecha">
         {lastUpdated
           ? `Última actualización: ${dayjs(lastUpdated).format('HH:mm:ss')}, Polling (20s)`
           : 'Actualizando...'}
@@ -108,7 +176,9 @@ const UltimasLecturasFormsTable = () => {
         <Table
           dataSource={data}
           columns={columns}
-          rowKey="id_archivoleido"
+          rowKey={(record) =>
+            `${record.cod_programa}_${record.imagen_recepcionada}`
+          }
           pagination={false}
           size="small"
         />

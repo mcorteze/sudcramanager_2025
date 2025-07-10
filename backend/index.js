@@ -2648,6 +2648,75 @@ app.get('/api/ultimas-lecturas-form', async (req, res) => {
 });
 
 
+// Endpoint para obtener las últimas lecturas y la última imagen recepcionada por programa
+app.get('/api/ultimas-lecturas-form-2', async (req, res) => {
+  try {
+    const query = `
+      WITH RankedPrograms AS (
+        SELECT 
+          asig.cod_programa,
+          me.imagen,
+          al.marcatemporal,
+          ROW_NUMBER() OVER (
+            PARTITION BY asig.cod_programa 
+            ORDER BY al.marcatemporal DESC
+          ) AS rn,
+          al.id_archivoleido
+        FROM matricula_eval me
+        JOIN archivosleidos al 
+          ON al.id_archivoleido = me.id_archivoleido
+        JOIN eval e 
+          ON e.id_eval = me.id_eval
+        JOIN asignaturas asig 
+          ON asig.cod_asig = e.cod_asig
+        WHERE al.tipoarchivo = '.txt'
+      ),
+      imagenes_ordenadas AS (
+        SELECT
+          asig.cod_programa,
+          i.id_lista AS imagen_recepcionada,
+          ROW_NUMBER() OVER (
+            PARTITION BY asig.cod_programa
+            ORDER BY i.id_lista DESC
+          ) AS rn
+        FROM imagenes i
+        JOIN asignaturas asig 
+          ON asig.cod_asig = i.cod_asig
+        WHERE i.id_lista <= 19000
+      )
+      SELECT
+        io.cod_programa,
+        io.imagen_recepcionada,
+        CASE 
+          WHEN rp.imagen ~ '^[0-9]+_' THEN REGEXP_SUBSTR(rp.imagen, '^[0-9]+')
+          ELSE NULL
+        END AS imagen_calificada,
+        rp.marcatemporal AS marca_temporal_calificacion    
+      FROM imagenes_ordenadas io
+      LEFT JOIN RankedPrograms rp
+        ON rp.cod_programa = io.cod_programa
+        AND rp.rn = 1
+      WHERE io.rn = 1
+      ORDER BY io.cod_programa;
+    `;
+
+    // Ejecuta la consulta en la base de datos
+    const result = await pool.query(query);
+
+    // Verifica si hay resultados
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron registros' });
+    }
+
+    // Devuelve los resultados en formato JSON
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+
 app.get('/api/listado_cantidad_notas', async (req, res) => {
   const { cod_programa } = req.query;
 

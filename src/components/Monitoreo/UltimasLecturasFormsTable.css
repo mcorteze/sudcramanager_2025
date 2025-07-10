@@ -1,0 +1,50 @@
+/* UltimasLecturasFormsTable.css */
+
+/* Estilo por defecto si no hay diferencias significativas */
+.faltante-normal {
+  color: green;
+}
+
+/* Diferencia menor a 20 */
+.faltante-naranjo {
+  color: orange;
+}
+
+/* Diferencia menor a 50 */
+.faltante-rojo {
+  color: red;
+}
+
+/* Diferencia mayor o igual a 50 */
+.faltante-rojo-fondo {
+  color: white;
+  background-color: red;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+/* Texto gris claro si no hay datos */
+.texto-sin-datos {
+  color: #aaa;
+}
+
+/* Texto rojo si es antiguo */
+.marca-temporal-antigua {
+  color: red;
+}
+
+/* Contenedor principal */
+.ultimas-lecturas-container {
+  height: 240px;
+}
+
+/* Título */
+.ultimas-lecturas-titulo {
+  margin-bottom: 0px;
+}
+
+/* Fecha de actualización */
+.ultimas-lecturas-fecha {
+  font-size: 12px;
+  margin-bottom: 12px;
+}
