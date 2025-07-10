@@ -1,0 +1,65 @@
+/* Contenedor principal de las tarjetas */
+.equipos-contenedor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: start;
+  padding: 0;
+}
+
+/* Cada rectángulo de equipo */
+.equipos-rectangulo {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  background-color: #fff;
+  padding: 6px;
+}
+
+/* Nombre del equipo */
+.equipos-nombre {
+  font-size: 11px;
+  font-weight: 300;
+  margin-bottom: 6px;
+  text-align: center;
+  width: 45px;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+/* Icono (colores dinámicos con clases) */
+.equipos-icono {
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.equipos-icono-online {
+  color: #43b5f2;
+}
+
+.equipos-icono-offline {
+  color: gray;
+}
+
+/* Texto de error */
+.equipos-error {
+  color: red;
+}
+
+/* Última actualización */
+.equipos-actualizacion {
+  font-size: 12px;
+  color: red;
+  margin-bottom: 12px;
+}
+
+/* Contenedor del componente */
+.equipos-wrapper {
+  height: 210px;
+}

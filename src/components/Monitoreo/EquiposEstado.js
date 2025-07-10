@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react'; 
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Tag, Typography } from 'antd';
+import { Tag, Typography, Tooltip } from 'antd';
 import { MdLaptopChromebook } from "react-icons/md";
+import { TbBrandOnedrive } from "react-icons/tb";
 import dayjs from 'dayjs';
+import './EquiposEstado.css';
 
 const { Title } = Typography;
 
@@ -45,11 +47,9 @@ const EquiposEstado = () => {
 
   useEffect(() => {
     obtenerDatos();
-
     const interval = setInterval(() => {
       obtenerDatos();
     }, 5000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -58,70 +58,46 @@ const EquiposEstado = () => {
     return new Date(marcaTemporal) >= seisMinutosAtras;
   };
 
-  const estilos = {
-    contenedor: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '12px',
-      justifyContent: 'center',
-      padding: '0px',
-    },
-    rectangulo: {
-      width: 140,
-      height: 140,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: '10px',
-      border: '1px solid #ccc',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-      backgroundColor: '#fff',
-      padding: '10px',
-    },
-    iconoLaptop: (enLinea) => ({
-      fontSize: '36px',
-      color: enLinea ? 'green' : 'red',
-      marginBottom: '8px',
-    }),
-    nombre: {
-      fontSize: '13px',
-      fontWeight: 'bold',
-      marginBottom: '6px',
-      textAlign: 'center',
-    },
-    tag: {
-      fontSize: '11px',
-    },
-  };
-
   if (cargando) return <p>Cargando...</p>;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (error) return <p className="equipos-error">{error}</p>;
 
   return (
-    <div style = {{ height: '210px' }} >
-      <Title level={5} style = {{ marginBottom: '0px' }} >Monitor de red de equipos Forms</Title>
-      <Typography.Paragraph style={{ fontSize: '12px', color: 'red', marginBottom: '12px' }}>
+    <div className="equipos-wrapper">
+      <Title level={5} style={{ marginBottom: '0px' }}>
+        Monitor de red de equipos
+      </Title>
+      <Typography.Paragraph className="equipos-actualizacion">
         {lastUpdated
-          ? `Última actualización: ${dayjs(lastUpdated).format('HH:mm:ss')},  Polling (5s) | PC Input (5m)`
+          ? `Última actualización: ${dayjs(lastUpdated).format('HH:mm:ss')}, Polling (5s) | PC Input (5m)`
           : 'Actualizando...'}
       </Typography.Paragraph>
 
-      
-      <div style={estilos.contenedor}>
+      <div className="equipos-contenedor">
         {equipos.map((equipo, index) => {
           const enLinea = esEnLinea(equipo.marca_temporal);
+          const nombreMinuscula = equipo.nombre_equipo.toLowerCase();
+
+          let Icono = MdLaptopChromebook;
+          if (nombreMinuscula.startsWith('onedrive')) {
+            Icono = TbBrandOnedrive;
+          }
+
+          const tooltipContent = (
+            <div>
+              <div>Estado: {enLinea ? 'Online' : 'Offline'}</div>
+              <div>Staging area: {equipo.imagenes_pendientes_1}</div>
+            </div>
+          );
+
           return (
             <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={estilos.rectangulo}>
-                <MdLaptopChromebook style={estilos.iconoLaptop(enLinea)} />
-                <div style={estilos.nombre}>{equipo.nombre_equipo}</div>
-                <Tag color={enLinea ? 'green' : 'red'} style={estilos.tag}>
-                  {enLinea ? 'Online' : 'Offline'}
-                </Tag>
-                <div style={{ textAlign: 'center', marginTop: '4px' }}>
-                  <div>Staging area: {equipo.imagenes_pendientes_1}</div>
-                </div>
+              <div className="equipos-rectangulo">
+                <Tooltip title={tooltipContent}>
+                  <Icono
+                    className={`equipos-icono ${enLinea ? 'equipos-icono-online' : 'equipos-icono-offline'}`}
+                  />
+                </Tooltip>
+                <div className="equipos-nombre">{equipo.nombre_equipo}</div>
               </div>
             </div>
           );
