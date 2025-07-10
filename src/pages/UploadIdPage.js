@@ -109,18 +109,22 @@ const UploadIdPage = () => {
       key: 'accion',
       render: (record) => (
         <span>
-          <span
-            style={{ color: 'blue', cursor: 'pointer', marginRight: '10px' }}
-            onClick={() => handleVerLectura(record.id_archivoleido, record.linea_leida)}
+          <a
+            href={`/ruta/ver-lectura/${record.id_archivoleido}/${record.linea_leida}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'blue', marginRight: '10px' }}
           >
             Ver lectura
-          </span>
-          <span
-            style={{ color: 'blue', cursor: 'pointer' }}
-            onClick={() => handleVerErrores(record.id_archivoleido, record.linea_leida)}
+          </a>
+          <a
+            href={`/ruta/ver-errores/${record.id_archivoleido}/${record.linea_leida}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'blue' }}
           >
             Ver errores
-          </span>
+          </a>
         </span>
       ),
     },

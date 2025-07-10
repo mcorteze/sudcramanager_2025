@@ -79,8 +79,18 @@ const RutLecturas = ({ rut }) => {
       title: 'Acciones',
       key: 'acciones',
       render: (text, record) => {
-        const [idUpload, ...rest] = record.imagen.split('_');
-        const nombre_imagen = rest.join('_'); // Por si hay más de un "_" en el nombre
+      let idUpload = '';
+      let nombre_imagen = '';
+
+      if (record.imagen && record.imagen.includes('_')) {
+        const [id, ...rest] = record.imagen.split('_');
+        idUpload = id;
+        nombre_imagen = rest.join('_');
+      } else if (record.imagen) {
+        // Si no tiene "_", usamos todo el nombre como nombre_imagen
+        nombre_imagen = record.imagen;
+      }
+
     
         const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20251/Attachments/${idUpload}/${nombre_imagen}`;
         const lecturaUrl = `/lectura/${record.id_archivoleido}/${record.linea_leida}`;

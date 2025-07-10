@@ -96,7 +96,7 @@ const formatNumberCL = (num) => {
       width: '40px',
     },
     {
-      title: 'Recepcionado',
+      title: 'Último ID Recepcionado',
       dataIndex: 'imagen_recepcionada',
       key: 'imagen_recepcionada',
       width: '100px',
@@ -106,7 +106,7 @@ const formatNumberCL = (num) => {
           : <span className="texto-sin-datos">-</span>,
     },
     {
-      title: 'Calificado',
+      title: 'Último ID Calificado',
       dataIndex: 'imagen_calificada',
       key: 'imagen_calificada',
       width: '180px',
