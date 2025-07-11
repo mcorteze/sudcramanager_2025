@@ -110,7 +110,7 @@ const UploadIdPage = () => {
       render: (record) => (
         <span>
           <a
-            href={`/ruta/ver-lectura/${record.id_archivoleido}/${record.linea_leida}`}
+            href={`/lectura/${record.id_archivoleido}/${record.linea_leida}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: 'blue', marginRight: '10px' }}
@@ -118,7 +118,7 @@ const UploadIdPage = () => {
             Ver lectura
           </a>
           <a
-            href={`/ruta/ver-errores/${record.id_archivoleido}/${record.linea_leida}`}
+            href={`/errores/${record.id_archivoleido}/${record.linea_leida}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: 'blue' }}

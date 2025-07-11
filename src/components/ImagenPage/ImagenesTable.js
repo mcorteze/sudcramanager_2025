@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Table, Modal, Button, notification, Typography, Tag } from 'antd';
-import { CopyOutlined, DownloadOutlined, EyeOutlined, ArrowsAltOutlined } from '@ant-design/icons';
+import { CopyOutlined, DownloadOutlined, EyeOutlined, ArrowsAltOutlined, ReloadOutlined, SwapOutlined } from '@ant-design/icons';
 import { PiDotOutlineFill } from "react-icons/pi";
-import * as XLSX from 'xlsx'; // Importa la librería xlsx
+import * as XLSX from 'xlsx';
 
 const ImagenesTable = ({ imagenesData, loading }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -10,11 +10,17 @@ const ImagenesTable = ({ imagenesData, loading }) => {
   const [isMaxHeightFull, setIsMaxHeightFull] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // NUEVOS estados
+  const [rotation, setRotation] = useState(0);
+  const [flipH, setFlipH] = useState(false);
+
   const { Link } = Typography;
 
   const openModal = (index) => {
     setCurrentImageIndex(index);
     setIsModalVisible(true);
+    setRotation(0); // Reinicia rotación al abrir
+    setFlipH(false);
   };
 
   const closeModal = () => {
@@ -22,11 +28,19 @@ const ImagenesTable = ({ imagenesData, loading }) => {
   };
 
   const previousImage = () => {
-    if (currentImageIndex > 0) setCurrentImageIndex(currentImageIndex - 1);
+    if (currentImageIndex > 0) {
+      setCurrentImageIndex(currentImageIndex - 1);
+      setRotation(0);
+      setFlipH(false);
+    }
   };
 
   const nextImage = () => {
-    if (currentImageIndex < imagenesData.length - 1) setCurrentImageIndex(currentImageIndex + 1);
+    if (currentImageIndex < imagenesData.length - 1) {
+      setCurrentImageIndex(currentImageIndex + 1);
+      setRotation(0);
+      setFlipH(false);
+    }
   };
 
   const copyToClipboard = (url) => {
@@ -49,6 +63,14 @@ const ImagenesTable = ({ imagenesData, loading }) => {
     setIsMaxHeightFull(prev => !prev);
   };
 
+  const rotateImage = () => {
+    setRotation((prev) => prev + 90);
+  };
+
+  const flipImageHorizontal = () => {
+    setFlipH((prev) => !prev);
+  };
+
   const getAbsoluteIndex = (index) => {
     return (currentPage - 1) * 10 + index;
   };
@@ -62,9 +84,9 @@ const ImagenesTable = ({ imagenesData, loading }) => {
     { title: 'ID Sección', dataIndex: 'id_seccion', key: 'id_seccion' },
     { title: 'ID Lista', dataIndex: 'id_lista', key: 'id_lista' },
     { title: 'ID Imagen', dataIndex: 'id_imagen', key: 'id_imagen' },
-    { 
-      title: 'Imagen', 
-      dataIndex: 'imagen', 
+    {
+      title: 'Imagen',
+      dataIndex: 'imagen',
       key: 'imagen',
       render: (text) => {
         const extension = text?.split('.').pop()?.toLowerCase();
@@ -81,8 +103,8 @@ const ImagenesTable = ({ imagenesData, loading }) => {
         }
       },
     },
-    { 
-      title: 'Acciones', 
+    {
+      title: 'Acciones',
       key: 'acciones',
       render: (_, __, index) => (
         <div>
@@ -94,26 +116,18 @@ const ImagenesTable = ({ imagenesData, loading }) => {
     },
   ];
 
-  // Función para exportar el listado de ID de imágenes únicos a un archivo Excel
   const exportToExcel = () => {
-    // Extrae y deduplica los ID de imágenes
     const idImagenSet = new Set(imagenesData.map(item => item.id_imagen));
     const idImagenesUnicas = Array.from(idImagenSet);
-
-    // Crea una hoja de trabajo con el título "ID_Imagen" en A1
     const ws = XLSX.utils.aoa_to_sheet([['ID_Imagen'], ...idImagenesUnicas.map(id => [id])]);
-
-    // Crea un libro de trabajo
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Listado de ID_Imagenes');
-
-    // Exporta el archivo Excel
     XLSX.writeFile(wb, 'Listado_ID_Imagenes.xlsx');
   };
 
   return (
     <div>
-      <h2>Tabla Imágenes (registro preliminar de archivos, al descargarlas en el flujo de PowerAutomate, al contrastar con la subida se puede detectar imagenes no descargadas)</h2>
+      <h2>Tabla Imágenes (registro preliminar de archivos, al descargarlas en el flujo de PowerAutomate, al contrastar con la subida se puede detectar imágenes no descargadas)</h2>
 
       <p style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <span>🧾 Total de registros: {totalRegistros}</span>
@@ -121,7 +135,7 @@ const ImagenesTable = ({ imagenesData, loading }) => {
         <span style={{ fontWeight: '600' }}>🖼️ Imágenes únicas: {cantidadUnicas}</span>
         <PiDotOutlineFill />
         <span>♻️ Duplicados: {cantidadDuplicados}</span>
-        <Link onClick={exportToExcel} >
+        <Link onClick={exportToExcel}>
           <DownloadOutlined /> Listado de imágenes
         </Link>
       </p>
@@ -140,7 +154,7 @@ const ImagenesTable = ({ imagenesData, loading }) => {
       />
 
       <Modal
-        visible={isModalVisible}
+        open={isModalVisible}
         title={`Visor de Imagen: ${imagenesData[currentImageIndex]?.imagen || 'Sin nombre'}`}
         footer={null}
         onCancel={closeModal}
@@ -152,7 +166,12 @@ const ImagenesTable = ({ imagenesData, loading }) => {
           <img
             src={imagenesData[currentImageIndex]?.url_imagen}
             alt={imagenesData[currentImageIndex]?.imagen}
-            style={{ maxWidth: '100%', maxHeight: isMaxHeightFull ? '100%' : '80vh' }}
+            style={{
+              maxWidth: '100%',
+              maxHeight: isMaxHeightFull ? '100%' : '80vh',
+              transform: `rotate(${rotation}deg) scaleX(${flipH ? -1 : 1})`,
+              transition: 'transform 0.3s ease',
+            }}
           />
         </div>
 
@@ -178,6 +197,7 @@ const ImagenesTable = ({ imagenesData, loading }) => {
           display: 'flex',
           justifyContent: 'center',
           gap: '10px',
+          flexWrap: 'wrap',
           zIndex: 1000,
         }}>
           <Button onClick={previousImage} disabled={currentImageIndex === 0} type="primary">
@@ -188,6 +208,12 @@ const ImagenesTable = ({ imagenesData, loading }) => {
           </Button>
           <Button onClick={toggleImageSize} type="primary" icon={<ArrowsAltOutlined />}>
             Cambiar Tamaño
+          </Button>
+          <Button onClick={rotateImage} type="primary" icon={<ReloadOutlined />}>
+            Rotar 90°
+          </Button>
+          <Button onClick={flipImageHorizontal} type="primary" icon={<SwapOutlined />}>
+            Invertir Horizontal
           </Button>
         </div>
       </Modal>

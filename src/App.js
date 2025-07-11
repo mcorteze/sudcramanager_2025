@@ -133,6 +133,9 @@ const AppContent = () => {
             <Menu.Item key="monitor-1">
               <Link to="/imagenes">• Buscar hoja por ID</Link>
             </Menu.Item>
+            <Menu.Item key="monitor-1-2">
+              <Link to="/upload">• Buscar lectura por ID</Link>
+            </Menu.Item>
             <Menu.Item key="monitor-2">
               <Link to="/monitoreo_lista">• Lecturas con filtros</Link>
             </Menu.Item>
@@ -236,6 +239,7 @@ const AppContent = () => {
             <Route path="/lecturas_masivo" element={<LecturasMasivoPage />} />
             <Route path="/errores_lista" element={<ErroresPage />} />
             <Route path="/monitoreo_lista" element={<UploadListaPage />} />
+            <Route path="/upload" element={<UploadIdPage />} />
             <Route path="/upload/:id_upload" element={<UploadIdPage />} />
             <Route path="/lectura" element={<LecturaPage />} />
             <Route path="/lecturas_calificadas/:num_imagen" element={<ImagenPage />} />
