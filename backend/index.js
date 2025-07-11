@@ -15,7 +15,7 @@ const pool = new Pool({
   //database: 'sudcra',
   // ******* bases de datos estáticas *******
   host: 'localhost',
-  database: 'sudcra_20250708_0002', // final primer semestre
+  database: 'sudcra_20250711_0001', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -2643,6 +2643,88 @@ app.get('/api/ultimas-lecturas-form', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+app.post('/api/ids-restantes-lote', async (req, res) => {
+  const payload = req.body;
+
+  if (!Array.isArray(payload)) {
+    return res.status(400).json({ error: 'Body debe ser un array de objetos' });
+  }
+
+  try {
+    // Construir consultas individuales y ejecutarlas en lote
+    const results = [];
+
+    for (const item of payload) {
+      const { programa, id_upload } = item;
+
+      if (!programa || id_upload === undefined) {
+        results.push({
+          programa,
+          id_upload,
+          ids_restantes: null,
+          error: 'Faltan parámetros',
+        });
+        continue;
+      }
+
+      const sql = `
+        SELECT COUNT(*) AS total
+        FROM (
+            SELECT DISTINCT i.id_lista
+            FROM imagenes i
+            JOIN asignaturas asig ON asig.cod_asig = i.cod_asig
+            WHERE asig.cod_programa = $1
+              AND i.id_lista > $2
+        ) AS sub
+      `;
+
+      const queryResult = await pool.query(sql, [programa, id_upload]);
+
+      results.push({
+        programa,
+        id_upload,
+        ids_restantes: parseInt(queryResult.rows[0].total, 10),
+      });
+    }
+
+    res.json(results);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+app.get('/api/ultimo-id-recepcionado', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      WITH imagenes_ordenadas AS ( 
+        SELECT
+          asig.cod_programa,
+          i.id_lista AS imagen_recepcionada,
+          ROW_NUMBER() OVER (
+            PARTITION BY asig.cod_programa
+            ORDER BY i.id_lista DESC
+          ) AS rn
+        FROM imagenes i
+        JOIN asignaturas asig 
+          ON asig.cod_asig = i.cod_asig
+        WHERE i.id_lista <= 19000
+      )
+      SELECT
+        io.cod_programa,
+        io.imagen_recepcionada
+      FROM imagenes_ordenadas io
+      WHERE io.rn = 1
+      ORDER BY io.cod_programa;
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Error en la consulta SQL' });
   }
 });

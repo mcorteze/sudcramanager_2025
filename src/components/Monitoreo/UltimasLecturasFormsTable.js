@@ -8,56 +8,93 @@ import './UltimasLecturasFormsTable.css';
 const { Title } = Typography;
 
 const UltimasLecturasFormsTable = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [data, setData] = useState([]); 
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState(null); 
   const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/api/ultimas-lecturas-form-2');
+        // Paso 1: traer último id recepcionado (todos los programas)
+        const ultimosResponse = await axios.get(
+          'http://localhost:3001/api/ultimo-id-recepcionado'
+        );
 
-        const formattedData = response.data.map(item => {
-          const marcaTemporal = item.marca_temporal_calificacion
-            ? moment(item.marca_temporal_calificacion)
-            : null;
+        const programasUltimos = ultimosResponse.data;
 
-          let isOld = false;
+        // Paso 2: traer lecturas form
+        const response = await axios.get('http://localhost:3001/api/ultimas-lecturas-form');
+        
+        const lecturasData = response.data.map(item => {
+          const marcatemporalFormatted = moment(item.marcatemporal);
+          const now = moment();
+
+          const diffHours = now.diff(marcatemporalFormatted, 'hours');
+          const isOld = diffHours >= 24;
+
           let daysAgoText = '';
-          let marcatemporalFormatted = null;
-
-          if (marcaTemporal) {
-            const now = moment();
-
-            const diffHours = now.diff(marcaTemporal, 'hours');
-            isOld = diffHours >= 24;
-
-            if (now.isSame(marcaTemporal, 'day')) {
-              daysAgoText = 'hoy';
-            } else if (now.subtract(1, 'day').isSame(marcaTemporal, 'day')) {
-              daysAgoText = 'ayer';
-            } else {
-              const diffDays = now.diff(marcaTemporal, 'days');
-              daysAgoText = `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
-            }
-
-            marcatemporalFormatted = marcaTemporal.format('HH:mm:ss');
+          if (now.isSame(marcatemporalFormatted, 'day')) {
+            daysAgoText = 'hoy';
+          } else if (now.subtract(1, 'day').isSame(marcatemporalFormatted, 'day')) {
+            daysAgoText = 'ayer';
+          } else {
+            const diffDays = now.diff(marcatemporalFormatted, 'days');
+            daysAgoText = `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
           }
 
           return {
             ...item,
-            marcatemporalRaw: marcaTemporal,
-            marcatemporal: marcatemporalFormatted,
+            marcatemporalRaw: marcatemporalFormatted,
+            marcatemporal: marcatemporalFormatted.format('HH:mm:ss'),
             daysAgoText,
             isOld,
           };
         });
 
-        setData(formattedData);
-        setLoading(false);
+        // Paso 3: fusionar para construir payload
+        const allProgramas = programasUltimos.map(prog => {
+          const found = lecturasData.find(d => d.cod_programa === prog.cod_programa);
+          return {
+            cod_programa: prog.cod_programa,
+            ultimo_id_recepcionado: prog.imagen_recepcionada,
+            id_upload: found ? found.imagen : 0,
+            marcatemporal: found?.marcatemporal || null,
+            daysAgoText: found?.daysAgoText || null,
+            isOld: found?.isOld || false,
+          };
+        });
+
+        // Paso 4: construir payload para ids-restantes
+        const payload = allProgramas.map(p => ({
+          programa: p.cod_programa,
+          id_upload: p.id_upload
+        }));
+
+        // Paso 5: traer ids restantes
+        const idsResponse = await axios.post(
+          'http://localhost:3001/api/ids-restantes-lote',
+          payload
+        );
+
+        // Paso 6: mergear ids restantes
+        const finalData = allProgramas.map(item => {
+          const foundRestantes = idsResponse.data.find(
+            r => r.programa === item.cod_programa && Number(r.id_upload) === Number(item.id_upload)
+          );
+
+          return {
+            ...item,
+            ids_restantes: foundRestantes ? foundRestantes.ids_restantes : null,
+          };
+        });
+
+        setData(finalData);
         setLastUpdated(new Date());
+        setLoading(false);
+
       } catch (err) {
+        console.error(err);
         setError('Hubo un error al obtener los datos');
         setLoading(false);
       }
@@ -68,90 +105,73 @@ const UltimasLecturasFormsTable = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  // Función para formatear números con separador de miles (Chile)
-const formatNumberCL = (num) => {
-  return num != null && !isNaN(num)
-    ? Number(num).toLocaleString('es-CL')
-    : '-';
+  const getClassForFaltante = (item) => {
+  if (item.ids_restantes === null) {
+    return 'texto-sin-datos';
+  }
+
+  if (item.ids_restantes >= 50) {
+    return 'faltante-rojo-fondo';
+  } else if (item.ids_restantes >= 20) {
+    return 'faltante-rojo';
+  } else if (item.ids_restantes > 0) {
+    return 'faltante-naranjo';
+  } else {
+    return 'faltante-normal';
+  }
 };
 
 
-  const getFaltanteClass = (faltante) => {
-    if (faltante >= 50) {
-      return 'faltante-rojo-fondo';
-    } else if (faltante >= 20) {
-      return 'faltante-rojo';
-    } else if (faltante >= 10) {
-      return 'faltante-naranjo';
-    } else {
-      return 'faltante-normal';
-    }
-  };
-
   const columns = [
     {
-      title: 'Prog',
+      title: 'Programa',
       dataIndex: 'cod_programa',
       key: 'cod_programa',
-      width: '40px',
+      width: '60px',
     },
     {
       title: 'Último ID Recepcionado',
-      dataIndex: 'imagen_recepcionada',
-      key: 'imagen_recepcionada',
+      dataIndex: 'ultimo_id_recepcionado',
+      key: 'ultimo_id_recepcionado',
       width: '100px',
       render: (value) =>
-        value != null
-          ? <span>{formatNumberCL(value)}</span>
-          : <span className="texto-sin-datos">-</span>,
+        value !== null ? value : <span className="texto-sin-datos">—</span>,
     },
     {
-      title: 'Último ID Calificado',
-      dataIndex: 'imagen_calificada',
-      key: 'imagen_calificada',
-      width: '180px',
-      render: (_, record) => {
-        const calificada = record.imagen_calificada;
-        const recepcionada = record.imagen_recepcionada;
-
-        if (calificada == null) {
-          return <span className="texto-sin-datos">-</span>;
-        }
-
-        const faltante = recepcionada - calificada;
-
-        if (faltante <= 0) {
-          return <span>{formatNumberCL(calificada)}</span>;
-        }
-
-        const className = getFaltanteClass(faltante);
-
-        return (
-          <>
-            <span>{formatNumberCL(calificada)}</span>{' '}
-            <span className={className}>(faltan: {formatNumberCL(faltante)})</span>
-          </>
-        );
-      },
+      title: 'Último ID Upload calificado',
+      dataIndex: 'id_upload',
+      key: 'id_upload',
+      width: '100px',
+      render: (value) =>
+        value > 0 ? value : <span className="texto-sin-datos">—</span>,
     },
     {
       title: 'Marca Temporal Calificación',
       key: 'marcatemporal',
-      width: '180px',
-      render: (_, record) => {
-        if (!record.marcatemporal) {
-          return <span className="texto-sin-datos">-</span>;
-        }
-        return (
-          <>
-            {record.marcatemporal}{' '}
-            <span className={record.isOld ? 'marca-temporal-antigua' : ''}>
-              ({record.daysAgoText})
-            </span>
-          </>
-        );
-      }
+      width: '150px',
+      render: (_, record) => (
+        record.marcatemporal
+          ? <>
+              {record.marcatemporal}{' '}
+              <span className={record.isOld ? 'marca-temporal-antigua' : ''}>
+                ({record.daysAgoText})
+              </span>
+            </>
+          : <span className="texto-sin-datos">—</span>
+      ),
     },
+    {
+      title: 'IDs Restantes',
+      dataIndex: 'ids_restantes',
+      key: 'ids_restantes',
+      width: '80px',
+      render: (_, record) => {
+        const className = getClassForFaltante(record);
+        return record.ids_restantes !== null
+          ? <span className={className}>{record.ids_restantes}</span>
+          : <span className="texto-sin-datos">—</span>;
+      },
+    }
   ];
 
   if (error) {
@@ -159,9 +179,9 @@ const formatNumberCL = (num) => {
   }
 
   return (
-    <div className="ultimas-lecturas-container">
+    <div style={{ height: '300px' }}>
       <Title level={5} className="ultimas-lecturas-titulo">
-        Últimos ID Upload
+        Último id_upload calificado
       </Title>
 
       <div className="ultimas-lecturas-fecha">
@@ -176,9 +196,7 @@ const formatNumberCL = (num) => {
         <Table
           dataSource={data}
           columns={columns}
-          rowKey={(record) =>
-            `${record.cod_programa}_${record.imagen_recepcionada}`
-          }
+          rowKey="cod_programa"
           pagination={false}
           size="small"
         />
