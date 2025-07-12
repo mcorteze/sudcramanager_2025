@@ -2678,7 +2678,7 @@ app.post('/api/ids-restantes-lote', async (req, res) => {
             FROM imagenes i
             JOIN asignaturas asig ON asig.cod_asig = i.cod_asig
             WHERE asig.cod_programa = $1
-              AND i.id_lista > $2
+              AND i.id_lista > $2 AND i.id_lista < 19000
         ) AS sub
       `;
 
