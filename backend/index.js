@@ -11,11 +11,11 @@ app.use(express.json({ limit: '10mb' })); // Middleware para permitir que Expres
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  //host: '10.12.1.235',
-  //database: 'sudcra',
+  host: '10.211.128.151',
+  database: 'sudcra',
   // ******* bases de datos estáticas *******
-  host: 'localhost',
-  database: 'sudcra_20250711_0001', // final primer semestre
+  //host: 'localhost',
+  //database: 'sudcra_20250814_1004', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -23,7 +23,7 @@ const pool = new Pool({
 });
 
 // Definir la variable anio_periodo
-const anio_periodo = '2025001';
+const anio_periodo = '2025002';
 
 // -----------------------------------
 //          BUSCAR INFORME
@@ -794,7 +794,7 @@ app.get('/api/monitorasig/:programa/:asignatura', async (req, res) => {
   try {
     const query = `
 SELECT
-    (si.id_seccion || '_' || si.id_eval::text) AS id_seccion_eval,
+    (s.id_seccion::text || '_' || COALESCE(e.id_eval::text, '0')) AS id_seccion_eval,
     s.id_seccion,
     e.id_eval,
     e.cod_asig,
@@ -804,29 +804,28 @@ SELECT
     e.num_prueba,
     e.nombre_prueba,
     s.seccion,
-    doc.apellidos_doc || ' ' || doc.nombre_doc AS nombre_docente,
+    (doc.apellidos_doc || ' ' || doc.nombre_doc) AS nombre_docente,
     doc.rut_docente,
     sd.nombre_sede,
-    -- Convertimos a TEXT para manejar '-1' en caso de NULL
+    -- Si no hay registros en informes_secciones, devolvemos '-1'
     COALESCE(TO_CHAR(MAX(si.marca_temp_mail), 'YYYY-MM-DD HH24:MI:SS'), '-1') AS marca_temporal,
-    -- Se mantiene el mismo valor para enviado
-    CASE 
-        WHEN MAX(si.marca_temp_mail) IS NOT NULL 
-        THEN TO_CHAR(MAX(si.marca_temp_mail), 'YYYY-MM-DD HH24:MI:SS') 
-        ELSE '-1' 
-    END AS enviado
-FROM eval e
-JOIN asignaturas asig ON asig.cod_asig = e.cod_asig
-JOIN secciones s ON s.cod_asig = asig.cod_asig
-JOIN docentes doc ON doc.rut_docente = s.rut_docente
-JOIN sedes sd ON sd.id_sede = s.id_sede
-LEFT JOIN informes_secciones si ON si.id_seccion = s.id_seccion
-WHERE asig.cod_asig = $1 
-GROUP BY 
-    si.id_seccion, si.id_eval, s.id_seccion, e.id_eval, e.cod_asig, 
-    asig.asig, asig.programa, asig.cod_programa, e.num_prueba, 
-    e.nombre_prueba, s.seccion, doc.apellidos_doc, doc.nombre_doc, 
-    doc.rut_docente, sd.nombre_sede;
+    COALESCE(TO_CHAR(MAX(si.marca_temp_mail), 'YYYY-MM-DD HH24:MI:SS'), '-1') AS enviado
+FROM asignaturas asig
+JOIN secciones s   ON s.cod_asig     = asig.cod_asig
+JOIN docentes doc  ON doc.rut_docente = s.rut_docente
+JOIN sedes sd      ON sd.id_sede      = s.id_sede
+LEFT JOIN eval e   ON e.cod_asig      = asig.cod_asig
+LEFT JOIN informes_secciones si
+                   ON si.id_seccion   = s.id_seccion
+                  AND si.id_eval      = e.id_eval
+WHERE asig.cod_asig = $1
+GROUP BY
+    s.id_seccion, e.id_eval, e.cod_asig,
+    asig.asig, asig.programa, asig.cod_programa,
+    e.num_prueba, e.nombre_prueba, s.seccion,
+    doc.apellidos_doc, doc.nombre_doc, doc.rut_docente, sd.nombre_sede
+ORDER BY s.id_seccion, e.id_eval;
+
     `;
 
     const result = await pool.query(query, [asignatura]);
@@ -3571,6 +3570,44 @@ app.get('/api/listado_calificaciones_obtenidas_planilla', async (req, res) => {
     res.status(500).json({ error: 'Error en la consulta SQL' });
   }
 });
+
+// GET /api/log_actualizacion
+app.get('/api/log_actualizacion', async (req, res) => {
+  const { limit, order } = req.query;
+
+  // Valores por defecto seguros
+  const limitNum = Number.isInteger(Number(limit)) ? Math.min(Number(limit), 1000) : 200;
+  const orderDir = (order || 'desc').toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+
+  const sql = `
+    SELECT
+      id,
+      mes,
+      dia,
+      hora_inicio,
+      hora_fin,
+      estado,
+      carga,
+      access_final_alumnos,
+      access_final_asignatura,
+      access_final_docentes,
+      access_final_matricula,
+      access_final_secciones,
+      access_final_inscripcion_2
+    FROM log_actualizacion
+    ORDER BY id ${orderDir}
+    LIMIT $1
+  `;
+
+  try {
+    const result = await pool.query(sql, [limitNum]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
 // ---------------------------------
 //      API PARA ESCRIBIR !!!
 // ---------------------------------

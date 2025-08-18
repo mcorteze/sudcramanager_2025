@@ -64,9 +64,10 @@ import CargarTablaPage from './pages/CargarTablaPage.js'
 import CreaEstructuraCarpetaPage from './pages/CreaEstructuraCarpetaPage.js'
 import BuscarResultadosPage from './pages/BuscarResultadosPage.js'
 import ReprocesarSiglaPage from './pages/ReprocesarSiglaPage.js'
+import LogActualizacionPage from './pages/LogActualizacionPage.js'
 
 import { IoIosSearch } from "react-icons/io";
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, HistoryOutlined } from '@ant-design/icons';
 
 import './App.css';
 import './pages/DashboardPage.css';
@@ -146,10 +147,10 @@ const AppContent = () => {
               <Link to="/seguimientoplanilla">• Buscar planilla por nombre</Link>
             </Menu.Item>
             <Menu.Item key="monitor-5">
-              <Link to="/monitorasig">• Por asignatura</Link>
+              <Link to="/monitorasig">• Navegar prog-asig</Link>
             </Menu.Item>
             <Menu.Item key="monitor-6">
-              <Link to="/monitorsede">• Por sede</Link>
+              <Link to="/monitorsede">• Navegar prog-sede</Link>
             </Menu.Item>
             <Menu.Item key="monitor-7">
               <Link to="/errores_lista">• Errores detectados</Link>
@@ -179,6 +180,9 @@ const AppContent = () => {
           </Menu.Item>
           <Menu.Item key="18" icon={<TableOutlined />}>
             <Link to="/accesos">Otros recursos</Link>
+          </Menu.Item>
+          <Menu.Item key="20" icon={<HistoryOutlined />}>
+            <Link to="/log_actualizacion">Log actualización</Link>
           </Menu.Item>
         </Menu>
       </Sider>
@@ -264,6 +268,7 @@ const AppContent = () => {
             <Route path="/crea_estructura_carpetas" element={<CreaEstructuraCarpetaPage />} />
             <Route path="/buscar_resultados" element={<BuscarResultadosPage />} />
             <Route path="/reprocesar_sigla" element={<ReprocesarSiglaPage />} />
+            <Route path="/log_actualizacion" element={<LogActualizacionPage />} />
             {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />
             <Route path="/carga_tablas_especificaciones" element={<CargaTabla />} />

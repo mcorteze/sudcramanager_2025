@@ -1,4 +1,7 @@
 /* UltimasLecturasFormsTable.css */
+.ultimas-lecturas-fecha span {
+  font-size:10px;
+}
 
 /* Estilo por defecto si no hay diferencias significativas */
 .faltante-normal {
