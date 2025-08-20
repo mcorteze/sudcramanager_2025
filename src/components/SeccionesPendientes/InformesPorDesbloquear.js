@@ -134,7 +134,7 @@ export default function InformesPorDesbloquear() {
     }
   };
 
-  const baseUrl = 'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/2025001/secciones/';
+  const baseUrl = 'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/2025002/secciones/';
 
   const columns = getColumns(handleSwitchChange, confirmDelete, baseUrl);
 
