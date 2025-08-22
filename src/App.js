@@ -16,7 +16,7 @@ import BuscarDocente from './pages/BuscarDocente';
 import CargaDocente from './pages/CargaDocente';
 import SeguimientoPlanilla from './pages/SeguimientoPlanilla';
 import Apunte from './pages/Apunte';
-import MonitorAsigPage from './pages/MonitorAsigPage';
+import NavegarRegistrosPage from './pages/NavegarRegistrosPage';
 import MonitorSedePage from './pages/MonitorSedePage';
 import EnlacePage from './pages/EnlacePage';
 import SapMenu from './components/megamenu/sap/SapMenu';
@@ -220,9 +220,9 @@ const AppContent = () => {
             <Route path="/apuntes/sap/indice" element={<SapIndice />} />
             <Route path="/apuntes/sap/inscripcion" element={<SapInscripcion />} />
             <Route path="/apuntes/sap/sabana" element={<SapSabana />} />
-            <Route path="/monitorasig" element={<MonitorAsigPage />} />
-            <Route path="/monitorasig/:programa" element={<MonitorAsigPage />} />
-            <Route path="/monitorasig/:programa/:asignatura" element={<MonitorAsigPage />} />
+            <Route path="/monitorasig" element={<NavegarRegistrosPage />} />
+            <Route path="/monitorasig/:programa" element={<NavegarRegistrosPage />} />
+            <Route path="/monitorasig/:programa/:asignatura" element={<NavegarRegistrosPage />} />
             <Route path="/monitorsede" element={<MonitorSedePage />} />
             <Route path="/monitorsede/:programa" element={<MonitorSedePage />} />
             <Route path="/monitorsede/:programa/:sede" element={<MonitorSedePage />} />
