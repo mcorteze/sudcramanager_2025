@@ -145,7 +145,7 @@ const UploadIdPage = () => {
 
   return (
     <div className="page-full">
-      <h1>Monitoreo de Informes</h1>
+      <h1>Buscar lectura por ID</h1>
 
       <Space style={{ marginBottom: 16 }}>
         <Input

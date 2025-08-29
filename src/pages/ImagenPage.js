@@ -9,6 +9,11 @@ import LecturaTable from '../components/ImagenPage/LecturaTable';
 import LecturaTempTable from '../components/ImagenPage/LecturaTempTable';
 import './ImagenPage.css';
 
+// helper centralizado (ajusta la ruta si corresponde)
+import { getPeriodoStr } from '../utils/periodo';
+
+const SHAREPOINT_BASE = 'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes';
+
 export default function ImagenPage() {
   const { id_lista } = useParams();
   const [searchTerm, setSearchTerm] = useState(id_lista || '');
@@ -22,6 +27,9 @@ export default function ImagenPage() {
   const [loadingLectura, setLoadingLectura] = useState(false);
   const [loadingLecturaTemp, setLoadingLecturaTemp] = useState(false);
   const [hasResults, setHasResults] = useState(false);
+
+  // periodo dinámico para armar URLs
+  const periodoSafe = getPeriodoStr() || '0000000';
 
   useEffect(() => {
     if (id_lista) {
@@ -57,7 +65,6 @@ export default function ImagenPage() {
         setIdEval(null);
       }
 
-      // Verificar si hay resultados en cualquiera de las tablas
       setHasResults(
         erroresResponse.data.length > 0 ||
         imagenesResponse.data.length > 0 ||
@@ -91,11 +98,7 @@ export default function ImagenPage() {
                 to={`/secciones/${idSeccion}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  marginLeft: '5px',
-                  fontSize: '14px',
-                  textDecoration: 'none'
-                }}
+                style={{ marginLeft: '5px', fontSize: '14px', textDecoration: 'none' }}
               >
                 {idSeccion}
               </Link>
@@ -108,15 +111,10 @@ export default function ImagenPage() {
           )}
           {idEval && uniqueSecciones.length > 0 && (
             <a
-              href={`https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/2025001/secciones/${idEval}_${uniqueSecciones[0]}.html`}
+              href={`${SHAREPOINT_BASE}/${periodoSafe}/secciones/${idEval}_${uniqueSecciones[0]}.html`}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                fontSize: '14px',
-                textDecoration: 'none'
-              }}
+              style={{ display: 'flex', alignItems: 'center', fontSize: '14px', textDecoration: 'none' }}
             >
               <FaLink style={{ marginRight: '5px' }} />
               Ver Informe
@@ -132,14 +130,7 @@ export default function ImagenPage() {
     <div className="page-full">
       <h1>Seguimiento de imágenes</h1>
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          marginBottom: '20px'
-        }}
-      >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
         <SearchBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -148,7 +139,7 @@ export default function ImagenPage() {
 
         {hasResults && (
           <a
-            href={`/upload/${searchTerm}`}  
+            href={`/upload/${searchTerm}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{

@@ -5,7 +5,14 @@ import { getColumns } from './InformePorDesbloquear_columns.js';
 import 'antd/dist/reset.css';
 import './formato_tabla.css';
 
+// helper centralizado (ajusta la ruta si corresponde)
+import { getPeriodoStr } from '../../utils/periodo';
+
 const { confirm } = Modal;
+
+// Base sin período (lo añadimos dinámicamente)
+const SHAREPOINT_BASE =
+  'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes';
 
 export default function InformesPorDesbloquear() {
   const [seccionesPendientes, setSeccionesPendientes] = useState([]);
@@ -15,6 +22,11 @@ export default function InformesPorDesbloquear() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [selectedAsignatura, setSelectedAsignatura] = useState(null);
+
+  // período dinámico (ej. '2025001'); fallback por si acaso
+  const periodoSafe = getPeriodoStr() || '0000000';
+  // construir baseUrl con período dinámico
+  const baseUrl = `${SHAREPOINT_BASE}/${periodoSafe}/secciones/`;
 
   useEffect(() => {
     fetchSeccionesPendientes();
@@ -70,9 +82,7 @@ export default function InformesPorDesbloquear() {
         try {
           const response = await fetch('http://localhost:3001/api/eval/update-maildisponible', {
             method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_eval }),
           });
 
@@ -118,9 +128,10 @@ export default function InformesPorDesbloquear() {
 
   const handleDelete = async (id_seccion, id_eval, id_informeseccion) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/informes_secciones/${id_seccion}/${id_eval}/${id_informeseccion}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `http://localhost:3001/api/informes_secciones/${id_seccion}/${id_eval}/${id_informeseccion}`,
+        { method: 'DELETE' }
+      );
 
       if (!response.ok) {
         throw new Error('No se pudo eliminar el registro');
@@ -134,46 +145,36 @@ export default function InformesPorDesbloquear() {
     }
   };
 
-  const baseUrl = 'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/2025002/secciones/';
-
+  // Construye las columnas con el baseUrl dinámico
   const columns = getColumns(handleSwitchChange, confirmDelete, baseUrl);
 
   // ============================
   // Filtrado por asignatura
   // ============================
-  // Obtener todas las asignaturas únicas:
   const asignaturasUnicas = Array.from(
     new Set(seccionesPendientes.map(item => item.cod_asig))
   ).filter(item => item !== null && item !== undefined);
 
-  // Datos filtrados:
   const dataFiltrada = selectedAsignatura
     ? seccionesPendientes.filter(item => item.cod_asig === selectedAsignatura)
     : seccionesPendientes;
 
   const handleTagClick = (asig) => {
     if (selectedAsignatura === asig) {
-      // Quitar filtro si el mismo tag se selecciona de nuevo
       setSelectedAsignatura(null);
     } else {
       setSelectedAsignatura(asig);
     }
   };
 
-  if (loading) {
-    return <div><Spin /> Cargando...</div>;
-  }
-
-  if (error) {
-    return <Alert message="Información" description={error} type="info" />;
-  }
-
+  if (loading) return <div><Spin /> Cargando...</div>;
+  if (error) return <Alert message="Información" description={error} type="info" />;
   if (seccionesPendientes.length === 0) {
     return (
-      <Alert 
-        message="No hay secciones pendientes" 
-        description="No hay más secciones por revisar." 
-        type="info" 
+      <Alert
+        message="No hay secciones pendientes"
+        description="No hay más secciones por revisar."
+        type="info"
       />
     );
   }
@@ -212,9 +213,10 @@ export default function InformesPorDesbloquear() {
         pagination={false}
         className="table-small-font"
       />
-      <Button 
-        type="primary" 
-        onClick={handleSave} 
+
+      <Button
+        type="primary"
+        onClick={handleSave}
         disabled={updatedSwitches.size === 0}
         style={{ marginTop: 16 }}
       >

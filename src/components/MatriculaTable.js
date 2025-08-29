@@ -8,9 +8,15 @@ import axios from 'axios';
 import './MatriculaTable.css';
 import ModalMailsSeccion from './ModalMailsSeccion';
 import ModalMailsAlumno from './ModalMailsAlumno';
-import ModalImagenesErrores from './ModalImagenesErrores'; // Importa el nuevo modal
+import ModalImagenesErrores from './ModalImagenesErrores';
+
+// helper centralizado
+import { getPeriodoStr } from '../utils/periodo'; // ajusta la ruta si corresponde
 
 const { Search } = Input;
+
+// Base común
+const SHAREPOINT_BASE = 'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes';
 
 const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, nombreSede, numSeccion, jornada }) => {
   const [filterText, setFilterText] = useState('');
@@ -20,18 +26,21 @@ const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, no
   const [modalVisible, setModalVisible] = useState(false);
   const [alumnoMails, setAlumnoMails] = useState([]);
   const [alumnoModalVisible, setAlumnoModalVisible] = useState(false);
-  const [imagenesErrores, setImagenesErrores] = useState([]); // Estado para las imágenes con errores
-  const [imagenesModalVisible, setImagenesModalVisible] = useState(false); // Estado para el modal de imágenes con errores
-  const [seccionInfo, setSeccionInfo] = useState(null); // Estado para almacenar la información de la sección
+  const [imagenesErrores, setImagenesErrores] = useState([]);
+  const [imagenesModalVisible, setImagenesModalVisible] = useState(false);
+  const [seccionInfo, setSeccionInfo] = useState(null);
+
+  // periodo dinámico (año+periodo: ej. 2025001)
+  const periodoSafe = getPeriodoStr() || '0000000';
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(idSeccion).then(() => {
       message.success('ID Sección copiado al portapapeles');
-    }).catch(err => {
+    }).catch(() => {
       message.error('Error al copiar');
     });
   };
-  
+
   // Contar enlaces activos para cada prueba
   const countActiveLinks = (data, pruebaNum) => {
     return data.filter(entry => entry[`enlace_eval_${pruebaNum}`]).length;
@@ -45,26 +54,10 @@ const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, no
       render: (text, record, index) => index + 1,
       width: 50,
     },
-    {
-      title: 'RUT',
-      dataIndex: 'rut',
-      key: 'rut',
-    },
-    {
-      title: 'Apellidos',
-      dataIndex: 'apellidos',
-      key: 'apellidos',
-    },
-    {
-      title: 'Nombres',
-      dataIndex: 'nombres',
-      key: 'nombres',
-    },
-    {
-      title: 'Usuario Alumno',
-      dataIndex: 'user_alum',
-      key: 'user_alum',
-    },
+    { title: 'RUT', dataIndex: 'rut', key: 'rut' },
+    { title: 'Apellidos', dataIndex: 'apellidos', key: 'apellidos' },
+    { title: 'Nombres', dataIndex: 'nombres', key: 'nombres' },
+    { title: 'Usuario Alumno', dataIndex: 'user_alum', key: 'user_alum' },
     {
       title: 'Acciones',
       key: 'acciones',
@@ -87,25 +80,22 @@ const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, no
       return {
         title: (
           <Tooltip title={prueba.nombre_prueba}>
-          <a
-            href={`https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/2025001/secciones/${asignatura}-2025001-${prueba.num_prueba}_${idSeccion}.html`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {`E${prueba.num_prueba} (${activeLinksCount})`}
-          </a>
-        </Tooltip>
+            <a
+              href={`${SHAREPOINT_BASE}/${periodoSafe}/secciones/${asignatura}-${periodoSafe}-${prueba.num_prueba}_${idSeccion}.html`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {`E${prueba.num_prueba} (${activeLinksCount})`}
+            </a>
+          </Tooltip>
         ),
         dataIndex: `enlace_eval_${prueba.num_prueba}`,
         key: `enlace_eval_${prueba.num_prueba}`,
-        render: (enlace, record) => (
+        render: (enlace) => (
           <FileTextOutlined
             className={enlace ? 'icon-active' : 'icon-default'}
             onClick={() => {
-              if (enlace) {
-                const path = `${enlace}`;
-                window.open(path, '_blank');
-              }
+              if (enlace) window.open(`${enlace}`, '_blank');
             }}
           />
         ),
@@ -143,7 +133,6 @@ const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, no
         console.error('Error al obtener los correos:', error);
       }
     };
-
     if (idSeccion && modalVisible) {
       fetchEmails();
     }
@@ -154,12 +143,11 @@ const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, no
     const fetchSeccionInfo = async () => {
       try {
         const response = await axios.get(`http://localhost:3001/api/seccion/${idSeccion}`);
-        setSeccionInfo(response.data[0] || null); // Asume que la respuesta es un array con al menos un objeto
+        setSeccionInfo(response.data[0] || null);
       } catch (error) {
         console.error('Error al obtener la información de la sección:', error);
       }
     };
-
     if (idSeccion) {
       fetchSeccionInfo();
     }
@@ -178,21 +166,10 @@ const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, no
 
   const dataSource = showAll ? matriculas : filterText ? filteredDataSource : matriculas;
 
-  const showModal = () => {
-    setModalVisible(true);
-  };
-
-  const closeModal = () => {
-    setModalVisible(false);
-  };
-
-  const closeAlumnoModal = () => {
-    setAlumnoModalVisible(false);
-  };
-
-  const closeImagenesModal = () => {
-    setImagenesModalVisible(false);
-  };
+  const showModal = () => setModalVisible(true);
+  const closeModal = () => setModalVisible(false);
+  const closeAlumnoModal = () => setAlumnoModalVisible(false);
+  const closeImagenesModal = () => setImagenesModalVisible(false);
 
   return (
     <div className='matricula-table-container'>
@@ -218,35 +195,42 @@ const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, no
         Mails sección (error hojas de lectura)
       </Button>
       <p>
-          ID sección: 
-          <a 
-            href={`/secciones/${idSeccion}`} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            style={{ textDecoration: 'none', color: 'blue' }}
-          >
-            {idSeccion}
-          </a> 
-          <Tooltip title="Copiar ID sección">
-            <CopyOutlined style={{ cursor: 'pointer', color: '#1890ff' }} onClick={copyToClipboard} />
-          </Tooltip>
-          | Asignatura: {asignatura} | Docente : 
-          {seccionInfo ? 
-            `${seccionInfo.nombre_doc} ${seccionInfo.apellidos_doc} | RUT: ${seccionInfo.rut_docente} | mail: ${seccionInfo.mail_doc}` 
-            : 'Cargando...'}
+        ID sección:{' '}
+        <a
+          href={`/secciones/${idSeccion}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ textDecoration: 'none', color: 'blue' }}
+        >
+          {idSeccion}
+        </a>
+        <Tooltip title="Copiar ID sección">
+          <CopyOutlined style={{ cursor: 'pointer', color: '#1890ff' }} onClick={copyToClipboard} />
+        </Tooltip>
+        {' '}| Asignatura: {asignatura} | Docente :{' '}
+        {seccionInfo
+          ? `${seccionInfo.nombre_doc} ${seccionInfo.apellidos_doc} | RUT: ${seccionInfo.rut_docente} | mail: ${seccionInfo.mail_doc}`
+          : 'Cargando...'}
       </p>
-      <Table dataSource={dataSource} columns={columns} rowKey="id_matricula" pagination={showAll ? false : {}} />
-      <ModalMailsSeccion 
+
+      <Table
+        dataSource={dataSource}
+        columns={columns}
+        rowKey="id_matricula"
+        pagination={showAll ? false : {}}
+      />
+
+      <ModalMailsSeccion
         visible={modalVisible}
         mailsEnviados={mailsEnviados}
         closeModal={closeModal}
       />
-      <ModalMailsAlumno 
+      <ModalMailsAlumno
         visible={alumnoModalVisible}
         mailsEnviados={alumnoMails}
         closeModal={closeAlumnoModal}
       />
-      <ModalImagenesErrores 
+      <ModalImagenesErrores
         visible={imagenesModalVisible}
         data={imagenesErrores}
         closeModal={closeImagenesModal}

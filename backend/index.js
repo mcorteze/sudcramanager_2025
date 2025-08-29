@@ -15,7 +15,7 @@ const pool = new Pool({
   database: 'sudcra',
   // ******* bases de datos estáticas *******
   //host: 'localhost',
-  //database: 'sudcra_20250814_1004', // final primer semestre
+  //database: 'sudcra_20250825_0001', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -24,6 +24,17 @@ const pool = new Pool({
 
 // Definir la variable anio_periodo
 const anio_periodo = '2025002';
+
+// año - periodo
+app.get('/api/anioperiodo', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT anio, periodo FROM periodo LIMIT 1;');
+    res.json(result.rows); 
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' }); 
+  }
+});
 
 // -----------------------------------
 //          BUSCAR INFORME
@@ -1682,45 +1693,56 @@ app.get('/api/imagenes/:id_lista', async (req, res) => {
 
 // Endpoint para obtener lecturas con los campos específicos
 app.get('/api/lecturas_calificadas/:num_imagen', async (req, res) => {
-  const { num_imagen } = req.params; // Obtener parámetro de la URL
+  const { num_imagen } = req.params; // p.ej., 15941
   try {
-    const result = await pool.query(
-      `
-      SELECT *
-        FROM (
-            SELECT DISTINCT ON (l.rut)
-                l.id_lectura,
-                m.id_matricula || '.' || i.id_eval AS id_matricula_eval,
-                l.rut, 
-                l.id_archivoleido, 
-                c.logro_obtenido,
-                l.reproceso, 
-                l.imagen, 
-                l.instante_forms, 
-                l.num_prueba, 
-                l.forma, 
-                l.grupo
-            FROM lectura AS l
-            LEFT JOIN matricula AS m ON l.rut = m.rut
-            LEFT JOIN item_respuesta AS ir ON ir.id_itemresp = l.id_itemresp
-            LEFT JOIN item AS i ON i.id_item = ir.id_item
-            LEFT JOIN calificaciones_obtenidas AS c 
-                ON c.id_matricula_eval = (m.id_matricula || '.' || i.id_eval)
-            WHERE l.imagen LIKE $1 ESCAPE '\\'
-            ORDER BY l.rut, l.imagen ASC
-        ) AS subquery
-        ORDER BY subquery.imagen ASC;
-      `,
-      [`${num_imagen}\\_%`] // Patrón con escape del guion bajo
-    );
+    const SQL = `
+      WITH base AS (
+        SELECT
+          l.id_archivoleido,
+          l.imagen,
+          l.instante_forms,
+          l.rut,
+          me.id_matricula_eval,
+          co.logro_obtenido,
+          l.num_prueba,
+          l.reproceso
+        FROM lectura l 
+        JOIN matricula_eval me ON me.id_archivoleido = l.id_archivoleido
+        JOIN calificaciones_obtenidas co ON co.id_matricula_eval = me.id_matricula_eval
+        WHERE l.imagen LIKE $1 ESCAPE '\\'
+      ),
+      ranked AS (
+        SELECT
+          base.*,
+          ROW_NUMBER() OVER (
+            PARTITION BY base.imagen
+            ORDER BY base.instante_forms DESC NULLS LAST, base.id_archivoleido DESC
+          ) AS rn
+        FROM base
+      )
+      SELECT
+        id_archivoleido,
+        imagen,
+        instante_forms,
+        rut,
+        id_matricula_eval,
+        logro_obtenido,
+        num_prueba,
+        reproceso
+      FROM ranked
+      WHERE rn = 1
+      ORDER BY imagen ASC, id_archivoleido ASC;
+    `;
 
-    // Responder con los resultados
-    res.json(result.rows);
+    const pattern = `${num_imagen}\\_%`; // '15941\_%' => '15941_' + sufijo; '_' literal
+    const { rows } = await pool.query(SQL, [pattern]);
+    res.json(rows);
   } catch (err) {
     console.error('Error en la consulta SQL:', err.message);
     res.status(500).json({ error: 'Error en la consulta SQL' });
   }
 });
+
 
 
 // Endpoint para obtener lectura_temp
@@ -3141,6 +3163,50 @@ app.put('/api/marcar-informe-no-listo', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al actualizar registros.' });
+  }
+});
+
+// Alumnos por asignatura
+// Ejemplo: GET /api/alumnosporasig?cod_asig=MAT2121
+app.get('/api/alumnosporasig', async (req, res) => {
+  const { cod_asig } = req.query;
+
+  // Validación simple del parámetro requerido
+  if (!cod_asig || typeof cod_asig !== 'string' || !cod_asig.trim()) {
+    return res.status(400).json({ error: "Falta el parámetro 'cod_asig' (ej: MAT2121)" });
+  }
+
+  const sql = `
+    SELECT
+      sd.nombre_sede,
+      s.seccion,
+      a.rut,
+      a.apellidos,
+      a.nombres,
+      a.user_alum,
+      p.cod_plan,
+      p.nombre_plan, 
+      p.cod_carrera,
+      p.nombre_carrera,
+      p.escuela
+    FROM alumnos a
+    JOIN matricula   mat  ON mat.rut = a.rut
+    JOIN planes p ON p.cod_plan = mat.cod_plan
+    JOIN inscripcion i    ON i.id_matricula = mat.id_matricula
+    JOIN secciones   s    ON s.id_seccion = i.id_seccion
+    JOIN sedes       sd   ON sd.id_sede = s.id_sede
+    JOIN asignaturas asig ON asig.cod_asig = s.cod_asig
+    WHERE UPPER(asig.cod_asig) = UPPER($1) AND i.vigente = true
+    ORDER BY sd.nombre_sede, s.seccion, a.apellidos, a.nombres ASC;
+  `;
+
+  try {
+    const result = await pool.query(sql, [cod_asig.trim()]);
+    // Devuelve un arreglo (posiblemente vacío) con los alumnos
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
   }
 });
 

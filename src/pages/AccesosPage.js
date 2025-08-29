@@ -125,6 +125,13 @@ export default function AccesosPage() {
       icon: <FormOutlined />,
       link: "/crea_estructura_carpetas",
     },
+    {
+      title: "Alumnos por asignatura",
+      subtitle: "Reporte de alumnos por asignatura",
+      description: "Permite obtener un reporte con el listado de alumnos en una determina asignatura.",
+      icon: <FormOutlined />,
+      link: "/alumnosporasig",
+    },
   ];
 
   return (

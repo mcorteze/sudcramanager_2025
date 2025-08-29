@@ -65,6 +65,7 @@ import CreaEstructuraCarpetaPage from './pages/CreaEstructuraCarpetaPage.js'
 import BuscarResultadosPage from './pages/BuscarResultadosPage.js'
 import ReprocesarSiglaPage from './pages/ReprocesarSiglaPage.js'
 import LogActualizacionPage from './pages/LogActualizacionPage.js'
+import AlumnosAsigPage from './pages/AlumnosAsigPage.js'
 
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined, HistoryOutlined } from '@ant-design/icons';
@@ -269,6 +270,7 @@ const AppContent = () => {
             <Route path="/buscar_resultados" element={<BuscarResultadosPage />} />
             <Route path="/reprocesar_sigla" element={<ReprocesarSiglaPage />} />
             <Route path="/log_actualizacion" element={<LogActualizacionPage />} />
+            <Route path="/alumnosporasig" element={<AlumnosAsigPage />} />
             {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />
             <Route path="/carga_tablas_especificaciones" element={<CargaTabla />} />

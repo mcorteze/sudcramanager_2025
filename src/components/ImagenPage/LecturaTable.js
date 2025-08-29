@@ -4,7 +4,6 @@ import { PiDotOutlineFill } from "react-icons/pi";
 
 const LecturaTable = ({ lecturaData, loading }) => {
   const lecturaColumns = [
-    { title: 'ID Lectura', dataIndex: 'id_lectura', key: 'id_lectura' },
     { title: 'Imagen', dataIndex: 'imagen', key: 'imagen' },
     { title: 'Instante Forms', dataIndex: 'instante_forms', key: 'instante_forms' },
     { title: 'RUT', dataIndex: 'rut', key: 'rut' },
