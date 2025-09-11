@@ -1,3 +1,4 @@
+// src/components/SeccionesTabla.jsx
 import React, { useMemo } from "react";
 import { Table, Tooltip } from "antd";
 import { MailOutlined, MailTwoTone } from "@ant-design/icons";
@@ -7,7 +8,7 @@ function useTransformSecciones(data) {
     const seccionesMap = {};
     const evalsPresent = new Set();
     const pruebaNames = {};
-    const enviadosPorEval = {}; // 👈 conteo global de enviados por evaluación
+    const enviadosPorEval = {};
 
     data.forEach((item) => {
       if (!seccionesMap[item.id_seccion]) {
@@ -39,7 +40,6 @@ function useTransformSecciones(data) {
           seccionesMap[item.id_seccion].pruebasRegistradas += 1;
         }
 
-        // 👇 conteo global de enviados por evaluación
         if (item.enviado && item.enviado !== "-1") {
           enviadosPorEval[`E${item.num_prueba}`] =
             (enviadosPorEval[`E${item.num_prueba}`] || 0) + 1;
@@ -80,7 +80,6 @@ function useTransformSecciones(data) {
         ),
     }));
 
-    // === Totales globales ===
     const totalSecciones = seccionesArray.length;
     const totalDocentes = new Set(seccionesArray.map((s) => s.rut_docente)).size;
 
@@ -94,7 +93,7 @@ function useTransformSecciones(data) {
   }, [data]);
 }
 
-export default function SeccionesPorSede({ data, loading }) {
+export default function SeccionesTabla({ data, loading }) {
   const {
     seccionesArray,
     dynamicColumns,
@@ -167,7 +166,6 @@ export default function SeccionesPorSede({ data, loading }) {
 
   return (
     <>
-      {/* Totales globales de la vista */}
       <div
         style={{ textAlign: "right", color: "red", marginBottom: 12, fontWeight: 300 }}
       >

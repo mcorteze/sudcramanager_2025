@@ -3210,6 +3210,39 @@ app.get('/api/alumnosporasig', async (req, res) => {
   }
 });
 
+app.get('/api/total-matricula_eval/:cod_asig', async (req, res) => {
+  const { cod_asig } = req.params;
+
+  const query = `
+    SELECT COUNT(*) AS total_secciones
+    FROM (
+        SELECT s.id_seccion
+        FROM asignaturas asig
+        JOIN secciones s   ON s.cod_asig     = asig.cod_asig
+        JOIN docentes doc  ON doc.rut_docente = s.rut_docente
+        JOIN sedes sd      ON sd.id_sede      = s.id_sede
+        LEFT JOIN eval e   ON e.cod_asig      = asig.cod_asig
+        LEFT JOIN informes_secciones si
+               ON si.id_seccion = s.id_seccion
+              AND si.id_eval    = e.id_eval
+        WHERE asig.cod_asig = $1 AND si.marca_temp_mail IS NOT NULL
+        GROUP BY
+            s.id_seccion, e.id_eval, e.cod_asig,
+            asig.asig, asig.programa, asig.cod_programa,
+            e.num_prueba, e.nombre_prueba, s.seccion,
+            doc.apellidos_doc, doc.nombre_doc, doc.rut_docente, sd.nombre_sede
+    ) t;
+  `;
+
+  try {
+    const result = await pool.query(query, [cod_asig]);
+    res.json(result.rows[0]); // { total_secciones: X }
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
 // -----------------------------------------------
 // -----------------------------------------------
 // 

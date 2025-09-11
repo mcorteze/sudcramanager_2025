@@ -1,5 +1,7 @@
 import React from 'react';
 import { FaCheck } from 'react-icons/fa';
+import PersonajesGraph, { demoData } from "./0_mapa";
+import Tablero from "./0_tablero";
 
 import './Pruebas.css';
 
@@ -51,6 +53,19 @@ export default function Pruebas() {
             <p className="fbcards-card-description">Descripción breve del contenido {index + 1}.</p>
           </div>
         ))}
+      </div>
+      
+      <div style={{ height: "600px", padding: "20px" }}>
+        <h2>Mapa de relaciones</h2>
+        <PersonajesGraph data={demoData} />
+      </div>
+
+      <div className="p-6 bg-black min-h-screen">
+        <Tablero
+          onSelect={(item) => {
+            console.log("Seleccionaste:", item);
+          }}
+        />
       </div>
     </div>
   );

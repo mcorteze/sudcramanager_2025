@@ -4,7 +4,7 @@ import { Breadcrumb } from "antd";
 import { Link, useParams } from "react-router-dom";
 import ProgramList from "../components/navergar_registros/ProgramList";
 import AsignaturaList from "../components/navergar_registros/AsignaturaList";
-import SeccionesPorSede from "../components/navergar_registros/SeccionesPorSede";
+import SeccionesPorSedeTabs from "../components/navergar_registros/SeccionesPorSedeTabs";
 import "./MonitorPage.css";
 
 export default function NavegarRegistrosPage() {
@@ -104,7 +104,7 @@ export default function NavegarRegistrosPage() {
 
       {programa && asignatura && (
         <div className="monitor-container">
-          <SeccionesPorSede data={secciones} loading={loading} />
+          <SeccionesPorSedeTabs data={secciones} loading={loading} />
         </div>
       )}
     </div>

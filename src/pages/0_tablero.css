@@ -1,0 +1,120 @@
+/* tablero.css — estilos encapsulados del componente Tablero */
+.tablero {
+  width: 100%;
+  background: #0a1226; /* azul muy oscuro */
+  border-radius: 18px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 40, 0.7);
+}
+
+.tablero__header { margin-bottom: 8px; }
+.tablero__heading {
+  color: #e8f0ff;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.tablero__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+/* Tarjetas pequeñas, horizontales */
+.tablero__card {
+  position: relative;
+  width: 280px;
+  height: 110px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: linear-gradient(160deg, #15294a 0%, #0d1a33 100%); /* azul profundo */
+  color: #fff;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: center;
+
+  /* vaivén mental */
+  animation: tablero-sway 3s ease-in-out infinite;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+
+  /* box-shadow interior sutil */
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.4),
+    0 6px 18px rgba(0, 0, 30, 0.6);
+}
+
+.tablero__card:hover {
+  animation: none;
+  transform: rotate(0deg) translateY(0) scale(1.02);
+  border-color: rgba(200, 220, 255, 0.35);
+  box-shadow:
+    inset 0 0 16px rgba(0, 0, 0, 0.45),
+    0 14px 36px rgba(0, 0, 50, 0.7);
+  transition: transform 0.25s ease-out,
+              box-shadow 0.25s ease-out,
+              border-color 0.25s ease-out;
+}
+
+.tablero__cardBody {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.tablero__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #f0f6ff;
+  text-shadow: 0 0 1px rgba(200, 220, 255, 0.25);
+}
+
+.tablero__subtitle {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.3;
+  color: rgba(220, 230, 255, 0.8);
+  max-width: 34ch;
+}
+
+/* Ruido sutil para atmósfera mental */
+.tablero__noise {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-image:
+    radial-gradient(1px 1px at 10px 8px, #ffffff 1px, transparent 0),
+    radial-gradient(1px 1px at 26px 22px, #ffffff 1px, transparent 0),
+    radial-gradient(1px 1px at 46px 16px, #ffffff 1px, transparent 0),
+    radial-gradient(1px 1px at 60px 34px, #ffffff 1px, transparent 0);
+  background-size: 64px 64px;
+}
+
+/* Animación de vaivén (ajustada: más ágil pero aún suave) */
+@keyframes tablero-sway {
+  0%   { transform: rotate(-0.8deg) translateY(0px); }
+  50%  { transform: rotate(0.8deg) translateY(-2px); }
+  100% { transform: rotate(-0.8deg) translateY(0px); }
+}
+
+/* Responsivo */
+@media (max-width: 520px) {
+  .tablero__card { width: 100%; height: 96px; }
+  .tablero__title { font-size: 15px; }
+  .tablero__subtitle { font-size: 11px; }
+}
