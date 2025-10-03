@@ -3,6 +3,8 @@ import { Table, Input, Button, message, Space, Row, Col, Select, Statistic } fro
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './UploadListaPage.css';
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 import InfoBox from '../components/InfoBox/InfoBox';
 import UploadListaList from '../components/InfoBox/UploadListaList';
@@ -178,10 +180,27 @@ const UploadListaPage = () => {
     URL.revokeObjectURL(url);
   };
 
+  // 🔹 Nueva función para exportar todo a Excel
+  const handleDownloadExcel = () => {
+    if (!filteredData || filteredData.length === 0) {
+      message.warning("No hay datos para exportar.");
+      return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(filteredData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Calificaciones");
+
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(data, "calificaciones.xlsx");
+  };
+
   return (
     <div className="page-full">
       <h1>Total de Calificaciones por ID Upload</h1>
       <InfoBox items={UploadListaList} />
+
       <Space style={{ marginBottom: 16, marginLeft: 10 }}>
         <Input
           placeholder="Desde ID Upload"
@@ -213,6 +232,9 @@ const UploadListaPage = () => {
       <Space style={{ marginBottom: 16, marginLeft: 10 }}>
         <Button type="primary" onClick={handleDownloadFaltantes}>
           Descargar faltantes
+        </Button>
+        <Button type="primary" onClick={handleDownloadExcel}>
+          Descargar todo (Excel)
         </Button>
       </Space>
 

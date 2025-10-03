@@ -5,7 +5,7 @@ import moment from 'moment';
 import * as XLSX from 'xlsx';
 
 const { Option } = Select;
-const PASSWORD_REQUERIDA = 'arcdus';
+const PASSWORD_REQUERIDA = 'arcdus20252';
 
 export default function EvaluacionesFiltradas() {
   const [evaluaciones, setEvaluaciones] = useState([]);
@@ -62,7 +62,6 @@ export default function EvaluacionesFiltradas() {
   const confirmarEliminacionMasiva = (accion) => {
     let inputValue = '';
     const id_eval_list = evaluacionesFiltradas.map(e => e.id_eval);
-    const esEliminarTabla = accion === 'tabla';
 
     if (id_eval_list.length === 0) {
       message.warning('No hay registros filtrados para eliminar');
@@ -70,16 +69,18 @@ export default function EvaluacionesFiltradas() {
     }
 
     Modal.confirm({
-      title: `¿Desea eliminar ${esEliminarTabla ? 'las evaluaciones y sus calificaciones' : 'las calificaciones'} de todos los registros filtrados?`,
+      title: `¿Desea eliminar según la acción seleccionada?`,
       width: 600,
       content: (
         <div>
-          {esEliminarTabla ? (
-            <>
-              <p>⚠️ Esto eliminará primero todas las <strong>calificaciones</strong> y luego las <strong>evaluaciones</strong> correspondientes.</p>
-            </>
-          ) : (
+          {accion === 'calificaciones' && (
             <p>⚠️ Esto eliminará todas las <strong>calificaciones</strong> de los registros filtrados.</p>
+          )}
+          {accion === 'todo' && (
+            <p>⚠️ Esto eliminará primero todas las <strong>calificaciones</strong> y luego las <strong>evaluaciones</strong>.</p>
+          )}
+          {accion === 'soloTabla' && (
+            <p>⚠️ Esto eliminará únicamente las <strong>evaluaciones</strong> (sin calificaciones).</p>
           )}
           <p><strong>Registros a eliminar:</strong></p>
           <ul style={{ maxHeight: 150, overflowY: 'auto', paddingLeft: 20 }}>
@@ -103,24 +104,32 @@ export default function EvaluacionesFiltradas() {
             throw new Error('Contraseña inválida');
           }
 
-          // Paso 1: Eliminar calificaciones
-          await axios.delete('http://localhost:3001/api/calificaciones_eval', {
-            data: { id_eval_list }
-          });
-          message.success('Calificaciones eliminadas correctamente');
+          if (accion === 'calificaciones') {
+            await axios.delete('http://localhost:3001/api/calificaciones_eval', {
+              data: { id_eval_list }
+            });
+            message.success('Calificaciones eliminadas correctamente');
+          } else if (accion === 'todo') {
+            await axios.delete('http://localhost:3001/api/calificaciones_eval', {
+              data: { id_eval_list }
+            });
+            message.success('Calificaciones eliminadas correctamente');
 
-          // Paso 2: Eliminar evaluaciones (si aplica)
-          if (esEliminarTabla) {
             await axios.delete('http://localhost:3001/api/eval', {
               data: { id_eval_list }
             });
             message.success('Evaluaciones eliminadas correctamente');
+          } else if (accion === 'soloTabla') {
+            await axios.delete('http://localhost:3001/api/eval', {
+              data: { id_eval_list }
+            });
+            message.success('Evaluaciones eliminadas correctamente (sólo tabla)');
           }
 
           fetchEvaluaciones();
         } catch (err) {
           console.error('Error en eliminación masiva:', err);
-          message.error(`Error al eliminar ${esEliminarTabla ? 'evaluaciones' : 'calificaciones'}`);
+          message.error('Error al eliminar registros');
           throw err;
         }
       }
@@ -129,21 +138,22 @@ export default function EvaluacionesFiltradas() {
 
   const mostrarConfirmacion = (accion, registro) => {
     let inputValue = '';
-    const esEliminarTabla = accion === 'tabla';
     const id_eval_list = [registro.id_eval];
 
     Modal.confirm({
-      title: `¿Está seguro que desea eliminar ${esEliminarTabla ? 'la tabla (y sus calificaciones)' : 'las calificaciones'}?`,
+      title: `¿Está seguro que desea eliminar este registro?`,
       content: (
         <div>
-          {esEliminarTabla ? (
-            <>
-              <p>⚠️ Esta acción eliminará primero las <strong>calificaciones</strong> asociadas y luego eliminará la <strong>evaluación</strong>.</p>
-              <p>❌ Esta operación no se puede deshacer.</p>
-            </>
-          ) : (
-            <p>⚠️ Esta acción eliminará las calificaciones asociadas. Esta operación no se puede deshacer.</p>
+          {accion === 'calificaciones' && (
+            <p>⚠️ Esta acción eliminará las <strong>calificaciones</strong> asociadas.</p>
           )}
+          {accion === 'todo' && (
+            <p>⚠️ Esta acción eliminará las <strong>calificaciones</strong> asociadas y luego la <strong>evaluación</strong>.</p>
+          )}
+          {accion === 'soloTabla' && (
+            <p>⚠️ Esta acción eliminará únicamente la <strong>evaluación</strong> (sin calificaciones).</p>
+          )}
+          <p>❌ Esta operación no se puede deshacer.</p>
           <p>Ingrese la contraseña para continuar:</p>
           <Input.Password
             placeholder="Contraseña"
@@ -160,22 +170,32 @@ export default function EvaluacionesFiltradas() {
             throw new Error('Contraseña inválida');
           }
 
-          await axios.delete('http://localhost:3001/api/calificaciones_eval', {
-            data: { id_eval_list }
-          });
-          message.success('Calificaciones eliminadas correctamente');
+          if (accion === 'calificaciones') {
+            await axios.delete('http://localhost:3001/api/calificaciones_eval', {
+              data: { id_eval_list }
+            });
+            message.success('Calificaciones eliminadas correctamente');
+          } else if (accion === 'todo') {
+            await axios.delete('http://localhost:3001/api/calificaciones_eval', {
+              data: { id_eval_list }
+            });
+            message.success('Calificaciones eliminadas correctamente');
 
-          if (esEliminarTabla) {
             await axios.delete('http://localhost:3001/api/eval', {
               data: { id_eval_list }
             });
             message.success('Evaluación eliminada correctamente');
+          } else if (accion === 'soloTabla') {
+            await axios.delete('http://localhost:3001/api/eval', {
+              data: { id_eval_list }
+            });
+            message.success('Evaluación eliminada correctamente (sólo tabla)');
           }
 
           fetchEvaluaciones();
         } catch (err) {
           console.error(`Error al eliminar ${accion}:`, err);
-          message.error(`Error al eliminar ${esEliminarTabla ? 'tabla' : 'calificaciones'}`);
+          message.error(`Error al eliminar ${accion}`);
           throw err;
         }
       }
@@ -195,22 +215,28 @@ export default function EvaluacionesFiltradas() {
       render: (text) => moment(text).format('HH:mm:ss - DD/MM/YYYY')
     },
     {
-      title: 'Acciones',
+      title: 'Eliminar registros',
       key: 'acciones',
       render: (_, record) => (
         <Space>
           <Button
+            style={{ backgroundColor: '#1677ff', color: '#fff' }}
+            onClick={() => mostrarConfirmacion('soloTabla', record)}
+          >
+            Sólo tabla
+          </Button>
+          <Button
             danger
             onClick={() => mostrarConfirmacion('calificaciones', record)}
           >
-            Eliminar calificaciones
+            Sólo calificaciones
           </Button>
           <Button
             danger
             type="primary"
-            onClick={() => mostrarConfirmacion('tabla', record)}
+            onClick={() => mostrarConfirmacion('todo', record)}
           >
-            Eliminar tabla
+            Eliminar todo
           </Button>
         </Space>
       ),
@@ -266,6 +292,13 @@ export default function EvaluacionesFiltradas() {
         </Select>
 
         <Button
+          style={{ backgroundColor: '#1677ff', color: '#fff', marginRight: 10 }}
+          onClick={() => confirmarEliminacionMasiva('soloTabla')}
+        >
+          Eliminar sólo tabla filtradas
+        </Button>
+
+        <Button
           danger
           onClick={() => confirmarEliminacionMasiva('calificaciones')}
           style={{ marginRight: 10 }}
@@ -276,9 +309,9 @@ export default function EvaluacionesFiltradas() {
         <Button
           danger
           type="primary"
-          onClick={() => confirmarEliminacionMasiva('tabla')}
+          onClick={() => confirmarEliminacionMasiva('todo')}
         >
-          Eliminar tablas filtradas
+          Eliminar todo filtradas
         </Button>
       </div>
 

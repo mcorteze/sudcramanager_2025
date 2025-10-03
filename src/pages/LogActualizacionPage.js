@@ -1,38 +1,23 @@
-// LogActualizacionPage.jsx (versión mínima)
 import React, { useEffect, useState } from 'react';
 import { Table, Tag, Button } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 
-const normalizeEstado = (estado) => {
-  if (estado == null) return 'Null';
-  const v = String(estado).trim().toLowerCase();
-  if (v.includes('terminado')) return 'Terminado';
-  if (v.includes('proceso')) return 'En proceso';
-  if (v === 'null' || v === '' || v === '0') return 'Null';
-  return String(estado);
-};
 const estadoToTag = (estado) => {
-  const n = normalizeEstado(estado);
-  if (n === 'Terminado') return { color: 'success', text: 'Terminado' };
-  if (n === 'En proceso') return { color: 'processing', text: 'En proceso' };
-  return { color: 'default', text: 'Null' };
+  const value = String(estado ?? '').trim();
+  if (value.toLowerCase() === 'completado') {
+    return { color: 'success', text: 'Completado' };
+  }
+  return { color: 'blue', text: value || '—' }; // por defecto azul
 };
 
-const normalizeCarga = (carga) => {
-  if (carga == null) return 'No ejecutada';
-  const v = String(carga).trim().toLowerCase();
-  if (v.includes('complet')) return 'Completada';
-  if (v.includes('interrump')) return 'Interrumpida';
-  if (v.includes('fall')) return 'Fallida';
-  if (v === 'null' || v === '') return 'No ejecutada';
-  return String(carga);
-};
 const cargaToTag = (carga) => {
-  const n = normalizeCarga(carga);
-  if (n === 'Completada') return { color: 'success', text: 'Completada' };
-  if (n === 'Interrumpida') return { color: 'warning', text: 'Interrumpida' };
-  if (n === 'Fallida') return { color: 'error', text: 'Fallida' };
-  return { color: 'default', text: 'No ejecutada' };
+  const value = String(carga ?? '').trim().toLowerCase();
+
+  if (value === 'completado') return { color: 'success', text: 'Completado' };
+  if (value === 'preparado') return { color: 'blue', text: 'Preparado' };
+  if (value === 'sin archivo') return { color: 'default', text: 'sin archivo' };
+
+  return { color: 'orange', text: carga || '—' }; // por defecto naranja
 };
 
 export default function LogActualizacionPage() {
@@ -57,11 +42,11 @@ export default function LogActualizacionPage() {
   const columns = [
     { title: 'ID', dataIndex: 'id', width: 90 },
     { title: 'Mes', dataIndex: 'mes', width: 110 },
-    { title: 'Dia', dataIndex: 'dia', width: 110 },      
+    { title: 'Dia', dataIndex: 'dia', width: 110 },
     { title: 'Inicio', dataIndex: 'hora_inicio', width: 110 },
     { title: 'Fin', dataIndex: 'hora_fin', width: 110 },
     {
-      title: 'Estado de datos preparados',
+      title: 'Estado Descargas',
       dataIndex: 'estado',
       width: 170,
       render: (estado) => {
@@ -70,7 +55,7 @@ export default function LogActualizacionPage() {
       },
     },
     {
-      title: 'Ejecución de carga final',
+      title: 'Actualización BBDD',
       dataIndex: 'carga',
       width: 180,
       render: (carga) => {
@@ -95,8 +80,7 @@ export default function LogActualizacionPage() {
         dataSource={data}
         columns={columns}
         pagination={{ pageSize: 20 }}
-        tableLayout="fixed"     /* layout estable, sin cálculos raros */
-        // sin scroll.x, sin sorters, sin filters → menos ResizeObserver interno
+        tableLayout="fixed"
       />
     </div>
   );

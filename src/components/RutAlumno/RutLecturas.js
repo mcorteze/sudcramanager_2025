@@ -73,6 +73,7 @@ const RutLecturas = ({ rut }) => {
         return `${formattedDate}, ${formattedTime}`;
       }
     },
+    { title: 'Archivo Leído', dataIndex: 'archivoleido', key: 'archivoleido' },
     { title: 'ID Upload', dataIndex: 'id_upload', key: 'id_upload' },
     { title: 'Tipo Archivo', dataIndex: 'tipoarchivo', key: 'tipoarchivo' },
     {

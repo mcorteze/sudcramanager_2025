@@ -1590,62 +1590,87 @@ app.get('/subidasporidseccion/:id_seccion', async (req, res) => {
   }
 });
 
-// nombre archivo con registro en matricula_eval es decir con calificacion
+// Endpoint: una fila más reciente por rut + indicador de logro
 app.get('/api/archivosleidosconcalificacion', async (req, res) => {
-  const { string1 = '', string2 = '', string3 = '', string4 = '' } = req.query;
-
-  // Construcción dinámica del patrón de búsqueda
-  const searchPattern = `%${string1}%${string2}%${string3}%${string4}%`;
+  const { search = '' } = req.query;
+  const searchPattern = `%${search}%`;
 
   const query = `
-    SELECT DISTINCT ON (al.id_archivoleido)
-        al.id_archivoleido,
-        al.marcatemporal,
-      EXTRACT(YEAR FROM al.marcatemporal) AS anio,
-      EXTRACT(MONTH FROM al.marcatemporal) AS mes,
-      EXTRACT(DAY FROM al.marcatemporal) AS dia,
-        me.id_matricula,
-        me.id_eval,
-        me.id_seccion,
-        al.archivoleido,
+    SELECT DISTINCT ON (l.rut) 
+        l.id_lectura, 
+        l.rut,
+        l.id_archivoleido,
+        l.linea_leida,
+        l.reproceso,
+        l.instante_forms,
+        l.num_prueba, 
+        l.forma,
+        l.grupo,
+        l.cod_interno,
         CASE 
-            WHEN me.id_archivoleido IS NOT NULL THEN 'Sí'
-            ELSE 'No'
-        END AS tiene_coincidencia
-    FROM 
-        public.archivosleidos al
-    LEFT JOIN 
-        (
-            SELECT 
-                me.id_archivoleido,
-                me.id_matricula,
-                me.id_eval,
-                ins.id_seccion,
-                s.id_seccion AS id_seccion_s,
-                s.cod_asig
-            FROM 
-                matricula_eval me
-            LEFT JOIN 
-                inscripcion ins ON ins.id_matricula = me.id_matricula
-            LEFT JOIN 
-                secciones s ON s.id_seccion = ins.id_seccion
-                AND s.cod_asig = split_part(me.id_eval, '-', 1)
-        ) AS me ON al.id_archivoleido = me.id_archivoleido
-    WHERE 
-        al.archivoleido LIKE $1
-    ORDER BY 
-        al.id_archivoleido, me.id_matricula;
+          WHEN EXISTS (
+            SELECT 1 
+            FROM matricula_eval me
+            LEFT JOIN calificaciones_obtenidas co 
+              ON co.id_matricula_eval = me.id_matricula_eval
+            WHERE me.id_archivoleido = l.id_archivoleido 
+              AND co.logro_obtenido IS NOT NULL
+          ) THEN 'Sí'
+          ELSE 'No'
+        END AS tiene_logro
+    FROM archivosleidos al
+    JOIN lectura l ON al.id_archivoleido = l.id_archivoleido
+    WHERE al.archivoleido LIKE $1
+    ORDER BY l.rut, l.instante_forms DESC;
   `;
-  const values = [searchPattern];
 
   try {
-      const result = await pool.query(query, values);
-      res.json(result.rows);
+    const result = await pool.query(query, [searchPattern]);
+    res.json(result.rows);
   } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Error al consultar la base de datos' });
+    console.error('Error ejecutando query:', error);
+    res.status(500).json({ error: 'Error al consultar la base de datos' });
   }
 });
+
+
+// Endpoint: planilla-calificaciones-matricula
+app.get('/api/planilla-calificaciones-matricula', async (req, res) => {
+  const { id_archivoleido, matricula = '' } = req.query;
+
+  if (!id_archivoleido) {
+    return res.status(400).json({ error: 'Falta el parámetro id_archivoleido' });
+  }
+
+  const query = `
+    SELECT
+      me.id_matricula_eval,
+      me.id_matricula,
+      me.id_eval,
+      me.forma,
+      me.grupo,
+      co.puntaje_total_obtenido,
+      co.logro_obtenido,
+      co.num_prueba,
+      co.informe_listo
+    FROM matricula_eval me
+    LEFT JOIN calificaciones_obtenidas co 
+      ON co.id_matricula_eval = me.id_matricula_eval
+    WHERE me.id_archivoleido = $1
+      AND me.id_matricula LIKE $2;
+  `;
+
+  const values = [id_archivoleido, `%${matricula}%`];
+
+  try {
+    const result = await pool.query(query, values);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error ejecutando query:', error);
+    res.status(500).json({ error: 'Error al consultar la base de datos' });
+  }
+});
+
 
 
 // Endpoint para obtener imágenes con campos específicos
@@ -2241,6 +2266,7 @@ app.get('/api/rut_lecturas/:rut', async (req, res) => {
         asig.programa,
         asig.cod_asig,
         l.id_archivoleido,
+        al.archivoleido,
         l.linea_leida,
         l.num_prueba,
         l.reproceso,
@@ -3243,6 +3269,68 @@ app.get('/api/total-matricula_eval/:cod_asig', async (req, res) => {
   }
 });
 
+// 1. Listar matrículas de un archivo leído con joins
+app.get('/api/archivos_leidos/:id_archivoleido/matriculas', async (req, res) => {
+  const { id_archivoleido } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT DISTINCT 
+          me.id_matricula_eval,
+          me.id_matricula,
+          me.id_eval,
+          me.forma,
+          me.grupo,
+          me.imagen,
+          me.id_archivoleido,
+          me.linea_leida,
+          al.apellidos || ' ' || al.nombres AS nombre_alum
+        FROM matricula_eval me
+        JOIN matricula m ON m.id_matricula = me.id_matricula
+        JOIN alumnos al ON al.rut = m.rut
+        JOIN inscripcion i ON i.id_matricula = m.id_matricula
+        JOIN secciones s ON s.id_seccion = i.id_seccion
+        JOIN asignaturas asig ON asig.cod_asig = s.cod_asig
+        WHERE me.id_archivoleido = $1`,
+      [id_archivoleido]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en consulta matricula_eval:', err.message);
+    res.status(500).json({ error: 'Error al obtener matrículas' });
+  }
+});
+
+
+// 2. Listar itemresp de una matrícula
+app.get('/api/archivos_leidos/itemresp/:id_matricula_eval', async (req, res) => {
+  const { id_matricula_eval } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT * FROM matricula_eval_itemresp WHERE id_matricula_eval = $1',
+      [id_matricula_eval]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en consulta itemresp:', err.message);
+    res.status(500).json({ error: 'Error al obtener itemresp' });
+  }
+});
+
+// 3. Listar itemresp2 de un itemresp
+app.get('/api/archivos_leidos/itemresp2/:id_matricula_eval', async (req, res) => {
+  const { id_matricula_eval } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT * FROM matricula_eval_itemresp2 WHERE id_matricula_eval = $1',
+      [id_matricula_eval]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en consulta itemresp2:', err.message);
+    res.status(500).json({ error: 'Error al obtener itemresp2' });
+  }
+});
+
 // -----------------------------------------------
 // -----------------------------------------------
 // 
@@ -3692,7 +3780,8 @@ app.get('/api/log_actualizacion', async (req, res) => {
       access_final_docentes,
       access_final_matricula,
       access_final_secciones,
-      access_final_inscripcion_2
+      access_final_inscripcion_2,
+      ruta_consolidado
     FROM log_actualizacion
     ORDER BY id ${orderDir}
     LIMIT $1

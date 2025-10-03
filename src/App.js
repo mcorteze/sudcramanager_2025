@@ -66,6 +66,9 @@ import BuscarResultadosPage from './pages/BuscarResultadosPage.js'
 import ReprocesarSiglaPage from './pages/ReprocesarSiglaPage.js'
 import LogActualizacionPage from './pages/LogActualizacionPage.js'
 import AlumnosAsigPage from './pages/AlumnosAsigPage.js'
+import BuscarArchivoLeidoPage from './pages/BuscarArchivoLeidoPage.js'
+import PlanillasAnalizaPage from './pages/PlanillasAnalizaPage.js'
+
 
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined, HistoryOutlined } from '@ant-design/icons';
@@ -133,31 +136,37 @@ const AppContent = () => {
           {/* ✅ Seguimiento */}
           <SubMenu key="monitor-accesos" icon={<HiMiniViewfinderCircle />} title="Seguimiento">
             <Menu.Item key="monitor-1">
-              <Link to="/imagenes">• Buscar hoja por ID</Link>
+              <Link to="/buscar_archivo_leido">Archivo leído</Link>
+            </Menu.Item>
+            <Menu.Item key="monitor-1">
+              <Link to="/imagenes">Hoja por ID</Link>
             </Menu.Item>
             <Menu.Item key="monitor-1-2">
-              <Link to="/upload">• Buscar lectura por ID</Link>
+              <Link to="/upload">Lectura por ID</Link>
             </Menu.Item>
             <Menu.Item key="monitor-2">
-              <Link to="/monitoreo_lista">• Lecturas con filtros</Link>
+              <Link to="/monitoreo_lista">Lecturas con filtros</Link>
             </Menu.Item>
             <Menu.Item key="monitor-3">
-              <Link to="/forms100">• Últimas 30 lecturas</Link>
+              <Link to="/forms100">Últimas 30 lecturas</Link>
             </Menu.Item>
             <Menu.Item key="monitor-4">
-              <Link to="/seguimientoplanilla">• Buscar planilla por nombre</Link>
+              <Link to="/seguimientoplanilla">Buscar planilla por nombre</Link>
             </Menu.Item>
             <Menu.Item key="monitor-5">
-              <Link to="/monitorasig">• Navegar prog-asig</Link>
+              <Link to="/monitorasig">Navegar prog-asig</Link>
             </Menu.Item>
             <Menu.Item key="monitor-6">
-              <Link to="/monitorsede">• Navegar prog-sede</Link>
+              <Link to="/monitorsede">Navegar prog-sede</Link>
             </Menu.Item>
             <Menu.Item key="monitor-7">
-              <Link to="/errores_lista">• Errores detectados</Link>
+              <Link to="/errores_lista">Errores detectados</Link>
             </Menu.Item>
             <Menu.Item key="monitor-8">
-              <Link to="/listado_cantidad_notas">• Listado asig/nota</Link>
+              <Link to="/listado_cantidad_notas">Listado asig/nota</Link>
+            </Menu.Item>
+            <Menu.Item key="monitor-9">
+              <Link to="/planillasanaliza">Planillas Analiza</Link>
             </Menu.Item>
           </SubMenu>
 
@@ -271,9 +280,13 @@ const AppContent = () => {
             <Route path="/reprocesar_sigla" element={<ReprocesarSiglaPage />} />
             <Route path="/log_actualizacion" element={<LogActualizacionPage />} />
             <Route path="/alumnosporasig" element={<AlumnosAsigPage />} />
+            <Route path="/planillasanaliza" element={<PlanillasAnalizaPage />} />
+            
             {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />
             <Route path="/carga_tablas_especificaciones" element={<CargaTabla />} />
+            <Route path="/buscar_archivo_leido/" element={<BuscarArchivoLeidoPage />} />
+            <Route path="/buscar_archivo_leido/:id_archivo_leido" element={<BuscarArchivoLeidoPage />} />
           </Routes>
         </Content>
       </Layout>
