@@ -35,7 +35,7 @@ export default function GraficoAcumulado({ data, loading }) {
       if (!item.enviado || item.enviado === "-1") return;
       const fechaObj = new Date(item.enviado.replace(" ", "T"));
       if (isNaN(fechaObj.getTime())) return;
-      const fechaStr = fechaObj.toISOString().split("T")[0]; // YYYY-MM-DD
+      const fechaStr = fechaObj.toISOString().split("T")[0];
 
       if (item.num_prueba >= 0 && item.num_prueba <= 14) {
         const evalKey = `E${item.num_prueba}`;
@@ -44,21 +44,19 @@ export default function GraficoAcumulado({ data, loading }) {
       }
     });
 
-    // Conteo diario por fecha/evaluación
     const grouped = {};
     registros.forEach((r) => {
       if (!grouped[r.fecha]) grouped[r.fecha] = { fecha: r.fecha };
       grouped[r.fecha][r.evalKey] = (grouped[r.fecha][r.evalKey] || 0) + 1;
     });
 
-    // Fechas (solo días con actividad)
     const sortedDays = Object.keys(grouped).sort(
       (a, b) => new Date(a) - new Date(b)
     );
 
     const chartData = [];
     const acumulado = {};
-    const firstSeen = {}; // marca el primer día en que aparece cada evaluación
+    const firstSeen = {};
 
     const keys = Array.from(evalKeysSet).sort(
       (a, b) => parseInt(a.slice(1), 10) - parseInt(b.slice(1), 10)
@@ -74,14 +72,13 @@ export default function GraficoAcumulado({ data, loading }) {
 
       keys.forEach((k) => {
         const inc = daily[k] || 0;
-
         if (!firstSeen[k]) {
           if (inc > 0) {
             firstSeen[k] = true;
             acumulado[k] = inc;
-            entry[k] = acumulado[k]; // comienza aquí
+            entry[k] = acumulado[k];
           } else {
-            entry[k] = undefined; // no dibujar antes del primer registro
+            entry[k] = undefined;
           }
         } else {
           acumulado[k] += inc;
@@ -98,49 +95,69 @@ export default function GraficoAcumulado({ data, loading }) {
   if (loading) return <p>Cargando gráfico acumulado...</p>;
   if (!chartData.length) return <p>No hay datos de envíos para graficar.</p>;
 
+  // 🎨 Paleta minimalista (pastel con transparencia)
+  const palette = [
+    "rgba(66, 133, 244, 0.25)", // azul suave
+    "rgba(219, 68, 55, 0.25)",  // rojo coral
+    "rgba(244, 180, 0, 0.25)",  // dorado pastel
+    "rgba(15, 157, 88, 0.25)",  // verde menta
+    "rgba(171, 71, 188, 0.25)", // violeta suave
+    "rgba(0, 172, 193, 0.25)",  // celeste
+    "rgba(255, 112, 67, 0.25)", // naranja coral
+  ];
+
   return (
     <div style={{ width: "100%", height: 500 }}>
-      <h3 style={{ marginBottom: 20 }}>Evolución acumulada de envíos por evaluación</h3>
+      <h3 style={{ marginBottom: 20 }}>
+        Evolución acumulada de envíos por evaluación
+      </h3>
       <ResponsiveContainer>
         <AreaChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
           <XAxis
             dataKey="fecha"
             type="category"
             allowDuplicatedCategory={false}
             tickFormatter={(tick) =>
-              new Intl.DateTimeFormat("es-CL", { day: "2-digit", month: "short" })
-                .format(new Date(tick))
+              new Intl.DateTimeFormat("es-CL", {
+                day: "2-digit",
+                month: "short",
+              }).format(new Date(tick))
             }
           />
           <YAxis allowDecimals={false} />
           <Tooltip
             labelFormatter={(label) =>
               label
-                ? new Intl.DateTimeFormat("es-CL", { day: "2-digit", month: "short" })
-                    .format(new Date(label))
+                ? new Intl.DateTimeFormat("es-CL", {
+                    day: "2-digit",
+                    month: "short",
+                  }).format(new Date(label))
                 : ""
             }
           />
           <Legend />
-          {evalKeys.map((evalKey, index) => (
-            <Area
-              key={evalKey}
-              type="monotone"
-              dataKey={evalKey}
-              stackId="1"
-              stroke={`hsl(${(index * 60) % 360}, 70%, 45%)`}
-              fill={`hsl(${(index * 60) % 360}, 70%, 70%)`}
-              isAnimationActive={false}
-            >
-              <LabelList
+          {evalKeys.map((evalKey, index) => {
+            const color = palette[index % palette.length];
+            return (
+              <Area
+                key={evalKey}
+                type="monotone"
                 dataKey={evalKey}
-                content={(props) => (
-                  <CustomLabel {...props} data={chartData} dataKey={evalKey} />
-                )}
-              />
-            </Area>
-          ))}
+                stroke={color.replace("0.25", "1")} // misma paleta, sin transparencia
+                fill={color}
+                strokeWidth={2}
+                isAnimationActive={false}
+              >
+                <LabelList
+                  dataKey={evalKey}
+                  content={(props) => (
+                    <CustomLabel {...props} data={chartData} dataKey={evalKey} />
+                  )}
+                />
+              </Area>
+            );
+          })}
         </AreaChart>
       </ResponsiveContainer>
     </div>
