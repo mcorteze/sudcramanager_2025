@@ -29,7 +29,7 @@ function CustomLabel({ x, y, value, index, dataKey, data }) {
   return null;
 }
 
-export default function SeccionesGrafico({ data, loading }) {
+export default function GraficoDiario({ data, loading }) {
   const { chartData, evalKeys } = useMemo(() => {
     const registros = [];
     const evalKeysSet = new Set();

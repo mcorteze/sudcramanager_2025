@@ -1,7 +1,8 @@
-// src/components/SeccionesTabla.jsx
 import React, { useMemo } from "react";
-import { Table, Tooltip } from "antd";
-import { MailOutlined, MailTwoTone } from "@ant-design/icons";
+import { Table, Tooltip, Button } from "antd";
+import { MailOutlined, MailTwoTone, DownloadOutlined } from "@ant-design/icons";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 function useTransformSecciones(data) {
   return useMemo(() => {
@@ -18,8 +19,8 @@ function useTransformSecciones(data) {
           rut_docente: item.rut_docente,
           nombre_sede: item.nombre_sede,
           seccion: item.seccion,
-          pruebasRegistradas: 0,
           totalEvaluaciones: 0,
+          enviadas: 0,
           ...Array.from({ length: 15 }, (_, i) => ({ [`E${i}`]: null })).reduce(
             (acc, curr) => ({ ...acc, ...curr }),
             {}
@@ -28,57 +29,58 @@ function useTransformSecciones(data) {
       }
 
       if (item.num_prueba >= 0 && item.num_prueba <= 14) {
-        seccionesMap[item.id_seccion][`E${item.num_prueba}`] = item.nombre_prueba;
-        seccionesMap[item.id_seccion][`E${item.num_prueba}_id_eval`] =
-          item.id_seccion_eval;
-        seccionesMap[item.id_seccion][`E${item.num_prueba}_enviado`] = item.enviado;
+        const evalKey = `E${item.num_prueba}`;
+        seccionesMap[item.id_seccion][evalKey] = item.nombre_prueba;
+        seccionesMap[item.id_seccion][`${evalKey}_id_eval`] = item.id_seccion_eval;
+        seccionesMap[item.id_seccion][`${evalKey}_enviado`] = item.enviado;
 
         if (item.nombre_prueba) {
           seccionesMap[item.id_seccion].totalEvaluaciones += 1;
         }
-        if (item.id_seccion_eval) {
-          seccionesMap[item.id_seccion].pruebasRegistradas += 1;
-        }
-
         if (item.enviado && item.enviado !== "-1") {
-          enviadosPorEval[`E${item.num_prueba}`] =
-            (enviadosPorEval[`E${item.num_prueba}`] || 0) + 1;
+          seccionesMap[item.id_seccion].enviadas += 1;
+          enviadosPorEval[evalKey] = (enviadosPorEval[evalKey] || 0) + 1;
         }
 
         evalsPresent.add(item.num_prueba);
-        pruebaNames[`E${item.num_prueba}`] = item.nombre_prueba;
+        pruebaNames[evalKey] = item.nombre_prueba;
       }
     });
 
     const seccionesArray = Object.values(seccionesMap).map((seccion) => {
+      const { enviadas, totalEvaluaciones } = seccion;
       const porcentajeAvance =
-        seccion.totalEvaluaciones > 0
-          ? Math.round((seccion.pruebasRegistradas / seccion.totalEvaluaciones) * 100)
+        totalEvaluaciones > 0
+          ? Math.round((enviadas / totalEvaluaciones) * 100)
           : 0;
       return { ...seccion, porcentajeAvance };
     });
 
     const sortedEvals = Array.from(evalsPresent).sort((a, b) => a - b);
 
-    const dynamicColumns = sortedEvals.map((num) => ({
-      title: (
-        <Tooltip title={pruebaNames[`E${num}`] || "Sin nombre"}>
-          <span>{`E${num}`}</span>
-        </Tooltip>
-      ),
-      dataIndex: `E${num}`,
-      key: `E${num}`,
-      render: (_, record) =>
-        record[`E${num}`] &&
-        record[`E${num}_id_eval`] &&
-        record[`E${num}_enviado`] !== "-1" ? (
-          <MailOutlined
-            style={{ fontSize: 15, background: "yellow", color: "#1890ff" }}
-          />
-        ) : (
-          <MailTwoTone twoToneColor="#ccc" style={{ fontSize: 15 }} />
+    const dynamicColumns = sortedEvals.map((num) => {
+      const evalKey = `E${num}`;
+      return {
+        title: (
+          <Tooltip title={pruebaNames[evalKey] || "Sin nombre"}>
+            <span>{evalKey}</span>
+          </Tooltip>
         ),
-    }));
+        dataIndex: evalKey,
+        key: evalKey,
+        render: (_, record) => {
+          const enviadoVal = record[`${evalKey}_enviado`];
+          const enviado = enviadoVal && enviadoVal !== "-1";
+          return enviado ? (
+            <MailOutlined
+              style={{ fontSize: 15, background: "yellow", color: "#1890ff" }}
+            />
+          ) : (
+            <MailTwoTone twoToneColor="#ccc" style={{ fontSize: 15 }} />
+          );
+        },
+      };
+    });
 
     const totalSecciones = seccionesArray.length;
     const totalDocentes = new Set(seccionesArray.map((s) => s.rut_docente)).size;
@@ -89,6 +91,7 @@ function useTransformSecciones(data) {
       totalSecciones,
       totalDocentes,
       enviadosPorEval,
+      evalsPresent: sortedEvals,
     };
   }, [data]);
 }
@@ -100,6 +103,7 @@ export default function SeccionesTabla({ data, loading }) {
     totalSecciones,
     totalDocentes,
     enviadosPorEval,
+    evalsPresent,
   } = useTransformSecciones(data);
 
   const columnsSecciones = [
@@ -164,20 +168,68 @@ export default function SeccionesTabla({ data, loading }) {
     return acc;
   }, {});
 
+  // 🔽 Descargar Excel (.xlsx) ordenado por sede y sección
+  const handleDownloadXlsx = () => {
+    // Ordenar primero por sede, luego por sección
+    const ordered = [...seccionesArray].sort((a, b) => {
+      const sedeA = (a.nombre_sede || "").toLowerCase();
+      const sedeB = (b.nombre_sede || "").toLowerCase();
+      if (sedeA < sedeB) return -1;
+      if (sedeA > sedeB) return 1;
+      const seccionA = (a.seccion || "").toLowerCase();
+      const seccionB = (b.seccion || "").toLowerCase();
+      return seccionA.localeCompare(seccionB, "es", { numeric: true });
+    });
+
+    const rows = ordered.map((s) => {
+      const row = {
+        Sede: s.nombre_sede,
+        Sección: s.seccion,
+        ID_Seccion: s.id_seccion,
+        Docente: s.nombre_docente,
+        RUT_Docente: s.rut_docente,
+      };
+      evalsPresent.forEach((num) => {
+        const evalKey = `E${num}`;
+        const enviado = s[`${evalKey}_enviado`] && s[`${evalKey}_enviado`] !== "-1";
+        row[evalKey] = enviado ? "SI" : "NO";
+      });
+      row.Avance = `${s.porcentajeAvance}`;
+      return row;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Secciones");
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    saveAs(new Blob([wbout], { type: "application/octet-stream" }), "secciones.xlsx");
+  };
+
   return (
     <>
       <div
-        style={{ textAlign: "right", color: "red", marginBottom: 12, fontWeight: 300 }}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 12,
+        }}
       >
-        Secciones: {totalSecciones} • Docentes (únicos): {totalDocentes}
-        <br />
-        {Object.entries(enviadosPorEval)
-          .sort(([a], [b]) => parseInt(a.substring(1)) - parseInt(b.substring(1)))
-          .map(([evalKey, count]) => (
-            <span key={evalKey} style={{ marginLeft: 12 }}>
-              {evalKey}: {count} enviados
-            </span>
-          ))}
+        <div style={{ color: "red", fontWeight: 300 }}>
+          Secciones: {totalSecciones} • Docentes (únicos): {totalDocentes}
+          <br />
+          {Object.entries(enviadosPorEval)
+            .sort(([a], [b]) => parseInt(a.substring(1)) - parseInt(b.substring(1)))
+            .map(([evalKey, count]) => (
+              <span key={evalKey} style={{ marginLeft: 12 }}>
+                {evalKey}: {count} enviados
+              </span>
+            ))}
+        </div>
+
+        <Button type="primary" icon={<DownloadOutlined />} onClick={handleDownloadXlsx}>
+          Descargar .xlsx
+        </Button>
       </div>
 
       {Object.keys(groupedSecciones)

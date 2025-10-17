@@ -68,7 +68,7 @@ import LogActualizacionPage from './pages/LogActualizacionPage.js'
 import AlumnosAsigPage from './pages/AlumnosAsigPage.js'
 import BuscarArchivoLeidoPage from './pages/BuscarArchivoLeidoPage.js'
 import PlanillasAnalizaPage from './pages/PlanillasAnalizaPage.js'
-
+import JsonTablaPage from './pages/JsonTablaPage.js'
 
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined, HistoryOutlined } from '@ant-design/icons';
@@ -281,6 +281,7 @@ const AppContent = () => {
             <Route path="/log_actualizacion" element={<LogActualizacionPage />} />
             <Route path="/alumnosporasig" element={<AlumnosAsigPage />} />
             <Route path="/planillasanaliza" element={<PlanillasAnalizaPage />} />
+            <Route path="/jsontable" element={<JsonTablaPage />} />
             
             {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />

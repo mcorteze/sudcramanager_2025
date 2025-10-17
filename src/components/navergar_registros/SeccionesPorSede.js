@@ -1,201 +1,105 @@
 import React, { useMemo } from "react";
-import { Table, Tooltip } from "antd";
-import { MailOutlined, MailTwoTone } from "@ant-design/icons";
+import {
+  BarChart,
+  Bar,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  LabelList,
+} from "recharts";
 
-function useTransformSecciones(data) {
-  return useMemo(() => {
-    const seccionesMap = {};
-    const evalsPresent = new Set();
+export default function SeccionesSedeGrafico({ data, loading }) {
+  // Transformar los datos en estructura por sede y evaluación
+  const { evalsPorSede, evalKeys, pruebaNames } = useMemo(() => {
+    const conteo = {}; // { E0: { "Sede A": 10, "Sede B": 5, ... } }
     const pruebaNames = {};
-    const enviadosPorEval = {}; // 👈 conteo global de enviados por evaluación
+    const evalKeysSet = new Set();
 
     data.forEach((item) => {
-      if (!seccionesMap[item.id_seccion]) {
-        seccionesMap[item.id_seccion] = {
-          id_seccion: item.id_seccion,
-          nombre_docente: item.nombre_docente,
-          rut_docente: item.rut_docente,
-          nombre_sede: item.nombre_sede,
-          seccion: item.seccion,
-          pruebasRegistradas: 0,
-          totalEvaluaciones: 0,
-          ...Array.from({ length: 15 }, (_, i) => ({ [`E${i}`]: null })).reduce(
-            (acc, curr) => ({ ...acc, ...curr }),
-            {}
-          ),
-        };
-      }
+      if (!item.enviado || item.enviado === "-1") return;
+      if (item.num_prueba < 0 || item.num_prueba > 14) return;
 
-      if (item.num_prueba >= 0 && item.num_prueba <= 14) {
-        seccionesMap[item.id_seccion][`E${item.num_prueba}`] = item.nombre_prueba;
-        seccionesMap[item.id_seccion][`E${item.num_prueba}_id_eval`] =
-          item.id_seccion_eval;
-        seccionesMap[item.id_seccion][`E${item.num_prueba}_enviado`] = item.enviado;
+      const evalKey = `E${item.num_prueba}`;
+      const sede = item.nombre_sede || "Sin sede";
 
-        if (item.nombre_prueba) {
-          seccionesMap[item.id_seccion].totalEvaluaciones += 1;
-        }
-        if (item.id_seccion_eval) {
-          seccionesMap[item.id_seccion].pruebasRegistradas += 1;
-        }
+      if (!conteo[evalKey]) conteo[evalKey] = {};
+      conteo[evalKey][sede] = (conteo[evalKey][sede] || 0) + 1;
 
-        // 👇 conteo global de enviados por evaluación
-        if (item.enviado && item.enviado !== "-1") {
-          enviadosPorEval[`E${item.num_prueba}`] =
-            (enviadosPorEval[`E${item.num_prueba}`] || 0) + 1;
-        }
-
-        evalsPresent.add(item.num_prueba);
-        pruebaNames[`E${item.num_prueba}`] = item.nombre_prueba;
-      }
+      evalKeysSet.add(evalKey);
+      pruebaNames[evalKey] = item.nombre_prueba || evalKey;
     });
 
-    const seccionesArray = Object.values(seccionesMap).map((seccion) => {
-      const porcentajeAvance =
-        seccion.totalEvaluaciones > 0
-          ? Math.round((seccion.pruebasRegistradas / seccion.totalEvaluaciones) * 100)
-          : 0;
-      return { ...seccion, porcentajeAvance };
-    });
-
-    const sortedEvals = Array.from(evalsPresent).sort((a, b) => a - b);
-
-    const dynamicColumns = sortedEvals.map((num) => ({
-      title: (
-        <Tooltip title={pruebaNames[`E${num}`] || "Sin nombre"}>
-          <span>{`E${num}`}</span>
-        </Tooltip>
-      ),
-      dataIndex: `E${num}`,
-      key: `E${num}`,
-      render: (_, record) =>
-        record[`E${num}`] &&
-        record[`E${num}_id_eval`] &&
-        record[`E${num}_enviado`] !== "-1" ? (
-          <MailOutlined
-            style={{ fontSize: 15, background: "yellow", color: "#1890ff" }}
-          />
-        ) : (
-          <MailTwoTone twoToneColor="#ccc" style={{ fontSize: 15 }} />
-        ),
-    }));
-
-    // === Totales globales ===
-    const totalSecciones = seccionesArray.length;
-    const totalDocentes = new Set(seccionesArray.map((s) => s.rut_docente)).size;
+    // Convertir cada evaluación en un array compatible con recharts
+    const evalsPorSede = {};
+    Array.from(evalKeysSet)
+      .sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)))
+      .forEach((key) => {
+        const sedeData = conteo[key] || {};
+        evalsPorSede[key] = Object.entries(sedeData)
+          .map(([sede, count]) => ({ sede, count }))
+          .sort((a, b) => b.count - a.count); // ordenar por cantidad descendente
+      });
 
     return {
-      seccionesArray,
-      dynamicColumns,
-      totalSecciones,
-      totalDocentes,
-      enviadosPorEval,
+      evalsPorSede,
+      evalKeys: Array.from(evalKeysSet).sort(
+        (a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1))
+      ),
+      pruebaNames,
     };
   }, [data]);
-}
 
-export default function SeccionesPorSede({ data, loading }) {
-  const {
-    seccionesArray,
-    dynamicColumns,
-    totalSecciones,
-    totalDocentes,
-    enviadosPorEval,
-  } = useTransformSecciones(data);
+  if (loading) {
+    return <p>Cargando gráficos por sede...</p>;
+  }
 
-  const columnsSecciones = [
-    {
-      title: "ID Sección",
-      dataIndex: "id_seccion",
-      width: 80,
-      key: "id_seccion",
-      render: (id) => (
-        <a href={`/secciones/${id}`} target="_blank" rel="noopener noreferrer">
-          {id}
-        </a>
-      ),
-    },
-    {
-      title: "Docente",
-      dataIndex: "nombre_docente",
-      width: 300,
-      key: "nombre_docente",
-      render: (nombre, record) => (
-        <a
-          href={`/carga-docente/${record.rut_docente}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {nombre}
-        </a>
-      ),
-    },
-    {
-      title: "Sección",
-      dataIndex: "seccion",
-      key: "seccion",
-    },
-    ...dynamicColumns,
-    {
-      title: "Avance (%)",
-      dataIndex: "porcentajeAvance",
-      key: "avance",
-      sorter: (a, b) => a.porcentajeAvance - b.porcentajeAvance,
-      sortDirections: ["descend", "ascend"],
-      render: (porcentaje) => {
-        const isBelow100 = porcentaje < 100;
-        return (
-          <span
-            style={{
-              color: isBelow100 ? "red" : "black",
-              fontWeight: isBelow100 ? "bold" : "normal",
-            }}
-          >
-            {porcentaje}%
-          </span>
-        );
-      },
-    },
-  ];
-
-  const groupedSecciones = seccionesArray.reduce((acc, seccion) => {
-    const sede = seccion.nombre_sede || "Sin sede";
-    if (!acc[sede]) acc[sede] = [];
-    acc[sede].push(seccion);
-    return acc;
-  }, {});
+  if (!Object.keys(evalsPorSede).length) {
+    return <p>No hay datos de envíos por sede para graficar.</p>;
+  }
 
   return (
-    <>
-      {/* Totales globales de la vista */}
-      <div
-        style={{ textAlign: "right", color: "red", marginBottom: 12, fontWeight: 300 }}
-      >
-        Secciones: {totalSecciones} • Docentes (únicos): {totalDocentes}
-        <br />
-        {Object.entries(enviadosPorEval)
-          .sort(([a], [b]) => parseInt(a.substring(1)) - parseInt(b.substring(1)))
-          .map(([evalKey, count]) => (
-            <span key={evalKey} style={{ marginLeft: 12 }}>
-              {evalKey}: {count} enviados
-            </span>
-          ))}
-      </div>
+    <div style={{ width: "100%", padding: 20 }}>
+      <h2 style={{ marginBottom: 20 }}>Distribución de envíos por sede</h2>
 
-      {Object.keys(groupedSecciones)
-        .sort()
-        .map((sede) => (
-          <div key={sede} className="seccion-sede" style={{ marginBottom: 24 }}>
-            <h3 style={{ marginBottom: 8 }}>{sede}</h3>
-            <Table
-              dataSource={groupedSecciones[sede]}
-              columns={columnsSecciones}
-              rowKey="id_seccion"
-              loading={loading}
-              pagination={false}
-            />
+      {evalKeys.map((evalKey, index) => {
+        const sedeData = evalsPorSede[evalKey];
+        if (!sedeData || !sedeData.length) return null;
+
+        return (
+          <div key={evalKey} style={{ marginBottom: 60 }}>
+            <h3 style={{ marginBottom: 12 }}>
+              {evalKey} — {pruebaNames[evalKey] || "Sin nombre"}
+            </h3>
+            <div style={{ width: "100%", height: 400 }}>
+              <ResponsiveContainer>
+                <BarChart data={sedeData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="sede"
+                    tick={{ fontSize: 12 }}
+                    interval={0}
+                    angle={-20}
+                    textAnchor="end"
+                  />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar
+                    dataKey="count"
+                    fill={`hsl(${(index * 60) % 360}, 65%, 55%)`}
+                    barSize={35}
+                  >
+                    <LabelList dataKey="count" position="top" fontSize={12} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        ))}
-    </>
+        );
+      })}
+    </div>
   );
 }

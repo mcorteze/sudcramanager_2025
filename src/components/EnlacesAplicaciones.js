@@ -37,7 +37,7 @@ const links = [
     icon: PowerBiLogo,
   },
   {
-    href: "https://app.powerbi.com/groups/530c4e63-77c1-4129-a317-088008da3b84/reports/9c33f244-0d8a-46f1-a9a9-8009d894abb7/6e316e19d1c27603d315?experience=power-bi",
+    href: "https://app.powerbi.com/groups/530c4e63-77c1-4129-a317-088008da3b84/reports/9c299bcd-fa80-4493-ba63-4dee5747dbb7/df567fc01f528be306c1?experience=power-bi",
     label: "Monitor SUDCRA",
     icon: PowerBiLogo,
   },
