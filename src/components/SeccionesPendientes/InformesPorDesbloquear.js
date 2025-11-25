@@ -2,15 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Spin, Alert, Button, message, Modal, Input, Tag } from 'antd';
 import { getColumns } from './InformePorDesbloquear_columns.js';
+import * as XLSX from 'xlsx';
 import 'antd/dist/reset.css';
 import './formato_tabla.css';
 
-// helper centralizado (ajusta la ruta si corresponde)
+// helper centralizado
 import { getPeriodoStr } from '../../utils/periodo';
 
 const { confirm } = Modal;
 
-// Base sin período (lo añadimos dinámicamente)
 const SHAREPOINT_BASE =
   'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes';
 
@@ -23,9 +23,7 @@ export default function InformesPorDesbloquear() {
   const [keyword, setKeyword] = useState('');
   const [selectedAsignatura, setSelectedAsignatura] = useState(null);
 
-  // período dinámico (ej. '2025001'); fallback por si acaso
   const periodoSafe = getPeriodoStr() || '0000000';
-  // construir baseUrl con período dinámico
   const baseUrl = `${SHAREPOINT_BASE}/${periodoSafe}/secciones/`;
 
   useEffect(() => {
@@ -122,7 +120,6 @@ export default function InformesPorDesbloquear() {
       okType: 'danger',
       cancelText: 'Cancelar',
       onOk: () => handleDelete(id_seccion, id_eval, id_informeseccion),
-      onCancel: () => console.log('Cancelado'),
     });
   };
 
@@ -145,12 +142,9 @@ export default function InformesPorDesbloquear() {
     }
   };
 
-  // Construye las columnas con el baseUrl dinámico
-  const columns = getColumns(handleSwitchChange, confirmDelete, baseUrl);
-
-  // ============================
-  // Filtrado por asignatura
-  // ============================
+  // ==============================
+  // Filtrado por Asignatura
+  // ==============================
   const asignaturasUnicas = Array.from(
     new Set(seccionesPendientes.map(item => item.cod_asig))
   ).filter(item => item !== null && item !== undefined);
@@ -160,12 +154,43 @@ export default function InformesPorDesbloquear() {
     : seccionesPendientes;
 
   const handleTagClick = (asig) => {
-    if (selectedAsignatura === asig) {
-      setSelectedAsignatura(null);
-    } else {
-      setSelectedAsignatura(asig);
-    }
+    setSelectedAsignatura(prev => (prev === asig ? null : asig));
   };
+
+  // ==========================================
+  //   🟦 FUNCIÓN PARA DESCARGAR EXCEL
+  // ==========================================
+  const descargarExcel = () => {
+    if (dataFiltrada.length === 0) {
+      message.warning("No hay datos para exportar.");
+      return;
+    }
+
+    // Construir los objetos para Excel con columnas explícitas
+    const datosExcel = dataFiltrada.map(item => ({
+      "ID Informe Sección": item.id_informeseccion,
+      "ID Evaluación": item.id_eval,
+      "Programa": item.programa,
+      "Sede": item.nombre_sede,
+      "Asignatura": item.cod_asig,
+      "Sección": item.seccion,
+      "Marcatemporal": item.marca_temporal,
+      "ID Sección": item.id_seccion,
+      "Evaluación": item.nombre_prueba,
+      "Docente": item.docente,
+      "Rut Docente": item.rut_docente,
+      "Nombre Informe": item.informe,
+      "URL Informe": `${baseUrl}${item.informe}`  // 🔥 se incluye la URL completa
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(datosExcel);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Informes");
+
+    XLSX.writeFile(wb, "informes_por_desbloquear.xlsx");
+  };
+
+  const columns = getColumns(handleSwitchChange, confirmDelete, baseUrl);
 
   if (loading) return <div><Spin /> Cargando...</div>;
   if (error) return <Alert message="Información" description={error} type="info" />;
@@ -181,7 +206,8 @@ export default function InformesPorDesbloquear() {
 
   return (
     <div>
-      {/* Bloque de tags */}
+      
+      {/* FILTRO */}
       <div style={{ marginBottom: 16 }}>
         <strong>Filtrar por Asignatura:</strong>{' '}
         {asignaturasUnicas.map((asig) => (
@@ -194,6 +220,7 @@ export default function InformesPorDesbloquear() {
             {asig}
           </Tag>
         ))}
+
         {selectedAsignatura && (
           <Tag
             color="volcano"
@@ -206,6 +233,7 @@ export default function InformesPorDesbloquear() {
         )}
       </div>
 
+      {/* TABLA */}
       <Table
         dataSource={dataFiltrada}
         columns={columns}
@@ -214,6 +242,16 @@ export default function InformesPorDesbloquear() {
         className="table-small-font"
       />
 
+      {/* BOTÓN DESCARGA EXCEL */}
+      <Button
+        onClick={descargarExcel}
+        style={{ marginTop: 16, marginRight: 12 }}
+      >
+        Descargar Excel
+      </Button>
+
+
+      {/* BOTÓN GUARDAR CAMBIOS */}
       <Button
         type="primary"
         onClick={handleSave}
@@ -223,6 +261,7 @@ export default function InformesPorDesbloquear() {
         Guardar Cambios
       </Button>
 
+      {/* MODAL */}
       <Modal
         title="Confirmación"
         visible={isModalVisible}
