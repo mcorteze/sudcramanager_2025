@@ -15,7 +15,7 @@ const pool = new Pool({
   database: 'sudcra',
   // ******* bases de datos estáticas *******
   //host: 'localhost',
-  //database: 'sudcra_20250825_0001', // final primer semestre
+  //database: 'sudcra_20260825_0001', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -23,7 +23,7 @@ const pool = new Pool({
 });
 
 // Definir la variable anio_periodo
-const anio_periodo = '2025002';
+const anio_periodo = '2026002';
 
 // año - periodo
 app.get('/api/anioperiodo', async (req, res) => {

@@ -7,7 +7,7 @@ import { getPeriodoStr } from '../../utils/periodo'; // ajusta la ruta si es nec
 
 const { confirm } = Modal;
 
-const SHAREPOINT_BASE = 'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes';
+const SHAREPOINT_BASE = 'https://duoccl0-my.sharepoint.com/personal/mcorteze_duoc_cl/Documents/sudcra-repositorio/informes';
 
 // Reenviar informe (confirmación)
 const handleReenviarInforme = (id_matricula_eval, cod_asig, nombre_prueba) => {

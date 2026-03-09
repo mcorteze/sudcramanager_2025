@@ -93,7 +93,7 @@ const RutLecturas = ({ rut }) => {
       }
 
     
-        const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20251/Attachments/${idUpload}/${nombre_imagen}`;
+        const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20261/Attachments/${idUpload}/${nombre_imagen}`;
         const lecturaUrl = `/lectura/${record.id_archivoleido}/${record.linea_leida}`;
         const erroresUrl = `/errores/${record.id_archivoleido}/${record.linea_leida}`;
     

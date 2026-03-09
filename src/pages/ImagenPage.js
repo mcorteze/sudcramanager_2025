@@ -12,7 +12,7 @@ import './ImagenPage.css';
 // helper centralizado (ajusta la ruta si corresponde)
 import { getPeriodoStr } from '../utils/periodo';
 
-const SHAREPOINT_BASE = 'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes';
+const SHAREPOINT_BASE = 'https://duoccl0-my.sharepoint.com/personal/mcorteze_duoc_cl/Documents/sudcra-repositorio/informes';
 
 export default function ImagenPage() {
   const { id_lista } = useParams();

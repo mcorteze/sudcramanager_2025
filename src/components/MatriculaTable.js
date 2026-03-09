@@ -16,7 +16,7 @@ import { getPeriodoStr } from '../utils/periodo'; // ajusta la ruta si correspon
 const { Search } = Input;
 
 // Base común
-const SHAREPOINT_BASE = 'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes';
+const SHAREPOINT_BASE = 'https://duoccl0-my.sharepoint.com/personal/mcorteze_duoc_cl/Documents/sudcra-repositorio/informes';
 
 const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, nombreSede, numSeccion, jornada }) => {
   const [filterText, setFilterText] = useState('');
@@ -30,7 +30,7 @@ const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, no
   const [imagenesModalVisible, setImagenesModalVisible] = useState(false);
   const [seccionInfo, setSeccionInfo] = useState(null);
 
-  // periodo dinámico (año+periodo: ej. 2025001)
+  // periodo dinámico (año+periodo: ej. 2026001)
   const periodoSafe = getPeriodoStr() || '0000000';
 
   const copyToClipboard = () => {

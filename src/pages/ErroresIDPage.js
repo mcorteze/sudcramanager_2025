@@ -88,7 +88,7 @@ const ErroresIDPage = () => {
   // Función para copiar URL al portapapeles
   const copyToClipboard = (imagen) => {
     const imagenCode = getImagenCode(imagen);
-    const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20251/Attachments/${id_upload}/${imagenCode}`;
+    const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20261/Attachments/${id_upload}/${imagenCode}`;
     navigator.clipboard.writeText(url)
       .then(() => {
         message.success('URL copiada al portapapeles');
@@ -101,14 +101,14 @@ const ErroresIDPage = () => {
   // Función para descargar imagen
   const downloadImage = (imagen) => {
     const imagenCode = getImagenCode(imagen);
-    const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20251/Attachments/${id_upload}/${imagenCode}`;
+    const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20261/Attachments/${id_upload}/${imagenCode}`;
     window.open(url, '_blank');
   };
 
   // Abrir modal para ver imagen
   const openModal = (imagen) => {
     const imagenCode = getImagenCode(imagen);
-    const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20251/Attachments/${id_upload}/${imagenCode}`;
+    const url = `https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20261/Attachments/${id_upload}/${imagenCode}`;
     setCurrentImageUrl(url);
     setIsModalVisible(true);
   };

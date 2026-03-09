@@ -8,7 +8,7 @@ export default function CabezalSidebar () {
     <Link to="/monitoreo_inicio" className='cabezal-sidebar-link'>
       <div className='cabezal-sidebar cabezal-icon'>
         <MdOutlineSupportAgent />
-        <span>Sudcra Manager 2025</span>
+        <span>Sudcra Manager 2026</span>
         <span className='descripcion'>Asistente de monitoreo y apoyo operativo</span>
       </div>
     </Link>

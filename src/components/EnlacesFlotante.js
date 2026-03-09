@@ -27,13 +27,13 @@ export default function EnlacesFlotante() {
           <span>Monitor SUDCRA</span>
         </a>
         {/* List */}
-        <a href="https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20251/AllItems.aspx?sortField=ID&isAscending=false&viewid=62f72397-1211-4bc9-a7ca-7ecc0094a11e&env=WebViewList" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
+        <a href="https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/imgenes20261/AllItems.aspx?sortField=ID&isAscending=false&viewid=62f72397-1211-4bc9-a7ca-7ecc0094a11e&env=WebViewList" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
           <div className='sidebar-icon' style={{ backgroundImage: `url(${ListLogo})` }}></div>
-          <span>Imágenes 2025-1</span>
+          <span>Imágenes 2026-1</span>
         </a>
-        <a href="https://duoccl0.sharepoint.com/sites/SUDCRA1.5/Lists/planillas_recibidas_2025/AllItems.aspx?env=WebViewList" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
+        <a href="https://duoccl0.sharepoint.com/sites/SUDCRA1.5/Lists/planillas_recibidas_2026/AllItems.aspx?env=WebViewList" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
           <div className='sidebar-icon' style={{ backgroundImage: `url(${ListLogo})` }}></div>
-          <span>Planillas recibidas 2025</span>
+          <span>Planillas recibidas 2026</span>
         </a>
         <a href="https://duoccl0.sharepoint.com/sites/SUDCRA2/Lists/Solicitudes_sudcra/AllItems.aspx?env=WebViewList" target="_blank" rel="noopener noreferrer" className='sidebar-link'>
           <div className='sidebar-icon' style={{ backgroundImage: `url(${ListLogo})` }}></div>

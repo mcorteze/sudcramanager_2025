@@ -12,7 +12,7 @@ import { getPeriodoStr } from '../../utils/periodo';
 const { confirm } = Modal;
 
 const SHAREPOINT_BASE =
-  'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes';
+  'https://duoccl0-my.sharepoint.com/personal/mcorteze_duoc_cl/Documents/sudcra-repositorio/informes';
 
 export default function InformesPorDesbloquear() {
   const [seccionesPendientes, setSeccionesPendientes] = useState([]);

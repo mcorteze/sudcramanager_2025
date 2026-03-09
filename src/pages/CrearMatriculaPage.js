@@ -105,7 +105,7 @@ const CrearMatriculaPage = () => {
             name="ano"
             rules={[{ required: true, message: 'Ingrese el año' }]}
           >
-            <Input placeholder="Ej: 2025" />
+            <Input placeholder="Ej: 2026" />
           </Form.Item>
 
           <Form.Item
