@@ -23,7 +23,9 @@ const pool = new Pool({
 });
 
 // Definir la variable anio_periodo
-const anio_periodo = '2026002';
+const anio_periodo = '2026001';
+// URL base de sharepoint
+const base_url_sharepoint = 'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes';
 
 // año - periodo
 app.get('/api/anioperiodo', async (req, res) => {
@@ -193,7 +195,7 @@ app.get('/api/matriculas/:id_seccion/:cod_asig', async (req, res) => {
 
         // Construir el enlace basado en id_matricula_eval
         if (calificaciones && calificaciones.id_matricula_eval) {
-          matricula[`enlace_eval_${prueba.num_prueba}`] = `https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/${anio_periodo}/alumnos/${calificaciones.id_matricula_eval}.html`;
+          matricula[`enlace_eval_${prueba.num_prueba}`] = `${base_url_sharepoint}/${anio_periodo}/alumnos/${calificaciones.id_matricula_eval}.html`;
         } else {
           matricula[`enlace_eval_${prueba.num_prueba}`] = null;
         }
@@ -225,7 +227,7 @@ app.get('/informes-secciones/:asignatura/:num_evaluacion/:seccion', async (req, 
 
     // Construir el enlace basado en id_eval
     if (informe && informe.id_eval) {
-      informe.enlace_informe = `https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/${anio_periodo}/secciones/${informe.id_eval}.html`;
+      informe.enlace_informe = `${base_url_sharepoint}/${anio_periodo}/secciones/${informe.id_eval}.html`;
     } else {
       informe.enlace_informe = null;
     }
@@ -1852,7 +1854,7 @@ app.get('/api/seccion_informes', async (req, res) => {
           e.nombre_prueba,
           ise.mail_enviado,
           ise.marca_temp_mail,
-          'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes/${anio_periodo}/secciones/' || ise.id_eval || '_' || ise.id_seccion || '.html' AS link_informe
+          '${base_url_sharepoint}/${anio_periodo}/secciones/' || ise.id_eval || '_' || ise.id_seccion || '.html' AS link_informe
       FROM informes_secciones as ise
       JOIN eval as e on e.id_eval = ise.id_eval
       WHERE ise.id_seccion = $1

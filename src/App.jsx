@@ -8,7 +8,7 @@ import { HiMiniViewfinderCircle } from "react-icons/hi2";
 import { RiRadarLine } from "react-icons/ri";
 import { Layout, Menu, theme } from 'antd';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import CabezalSidebar from './components/CabezalSidebar.js';
+import CabezalSidebar from './components/CabezalSidebar.jsx';
 import Informe from './pages/Informe';
 import RutAlumno from './pages/RutAlumno';
 import BuscarAlumno from './pages/BuscarAlumno';
@@ -24,51 +24,51 @@ import SapDocente from './components/megamenu/sap/SapDocente';
 import SapIndice from './components/megamenu/sap/SapInscripcion';
 import SapInscripcion from './components/megamenu/sap/SapIndice';
 import SapSabana from './components/megamenu/sap/SapSabana';
-import ExtraerNotasPage from './pages/ExtraerNotasPage.js';
-import Pruebas from './pages/Pruebas.js';
-import SeccionesPendientesPage from './pages/SeccionesPendientesPage.js'
-import ImagenPage from './pages/ImagenPage.js';
-import BuscarSeccion from './pages/BuscarSeccion.js';
-import BuscarEval from './pages/BuscarEval.js';
-import EstadisticasPage from './pages/EstadisticasPage.js';
-import TareasPage from './pages/TareasPage.js';
-// import DashboardPage from './pages/DashboardPage.js'; ← eliminado
-import AccesosPage from './pages/AccesosPage.js';
-import ArchivoLeidoPage from './pages/ArchivoLeidoPage.js';
-import SharepointPage from './pages/SharepointPage.js';
-import LecturasPage from './pages/LecturasPage.js';
-import LecturasMasivoPage from './pages/LecturasMasivoPage.js';
-import ErroresPage from './pages/ErroresPage.js';
-import UploadListaPage from './pages/UploadListaPage.js';
-import UploadIdPage from './pages/UploadIdPage.js';
-import LecturaPage from './pages/LecturaPage.js';
-import ErroresIDPage from './pages/ErroresIDPage.js';
-import RutLecturas from './components/RutAlumno/RutLecturas.js';
-import MonitorPage from './pages/MonitorPage.js';
-import ResumenProcesosPage from './pages/ResumenProcesosPage.js';
-import CrearAlumnoPage from './pages/CrearAlumnoPage.js';
-import CrearDocentePage from './pages/CrearDocentePage.js';
-import CrearMatriculaPage from './pages/CrearMatriculaPage.js';
-import MonitoreoInicioPage from './pages/MonitoreoInicioPage.js'
-import SubirDocenteSeccionMasivo from './pages/SubirDocenteSeccionMasivo.js'
-import EquiposEstado from './components/Monitoreo/EquiposEstado.js'
-import FidelizadorPage from './pages/FidelizadorPage.js'
-import RescatarLecturaPage from './pages/RescatarLecturaPage.js'
-import Forms100Page from './pages/Forms100Page.js'
-import TicketsPage from './pages/TicketsPage.js'
-import AlumnosPage from './pages/AlumnosPage.js'
-import CargaTabla from './pages/CargaTabla.js'
-import ListadoCantNotasPage from './pages/ListadoCantNotasPage.js'
-import TopBar from './components/TopBar.js'
-import CargarTablaPage from './pages/CargarTablaPage.js'
-import CreaEstructuraCarpetaPage from './pages/CreaEstructuraCarpetaPage.js'
-import BuscarResultadosPage from './pages/BuscarResultadosPage.js'
-import ReprocesarSiglaPage from './pages/ReprocesarSiglaPage.js'
-import LogActualizacionPage from './pages/LogActualizacionPage.js'
-import AlumnosAsigPage from './pages/AlumnosAsigPage.js'
-import BuscarArchivoLeidoPage from './pages/BuscarArchivoLeidoPage.js'
-import PlanillasAnalizaPage from './pages/PlanillasAnalizaPage.js'
-import JsonTablaPage from './pages/JsonTablaPage.js'
+import ExtraerNotasPage from './pages/ExtraerNotasPage.jsx';
+import Pruebas from './pages/Pruebas.jsx';
+import SeccionesPendientesPage from './pages/SeccionesPendientesPage.jsx'
+import ImagenPage from './pages/ImagenPage.jsx';
+import BuscarSeccion from './pages/BuscarSeccion.jsx';
+import BuscarEval from './pages/BuscarEval.jsx';
+import EstadisticasPage from './pages/EstadisticasPage.jsx';
+import TareasPage from './pages/TareasPage.jsx';
+// import DashboardPage from './pages/DashboardPage.jsx'; ← eliminado
+import AccesosPage from './pages/AccesosPage.jsx';
+import ArchivoLeidoPage from './pages/ArchivoLeidoPage.jsx';
+import SharepointPage from './pages/SharepointPage.jsx';
+import LecturasPage from './pages/LecturasPage.jsx';
+import LecturasMasivoPage from './pages/LecturasMasivoPage.jsx';
+import ErroresPage from './pages/ErroresPage.jsx';
+import UploadListaPage from './pages/UploadListaPage.jsx';
+import UploadIdPage from './pages/UploadIdPage.jsx';
+import LecturaPage from './pages/LecturaPage.jsx';
+import ErroresIDPage from './pages/ErroresIDPage.jsx';
+import RutLecturas from './components/RutAlumno/RutLecturas.jsx';
+import MonitorPage from './pages/MonitorPage.jsx';
+import ResumenProcesosPage from './pages/ResumenProcesosPage.jsx';
+import CrearAlumnoPage from './pages/CrearAlumnoPage.jsx';
+import CrearDocentePage from './pages/CrearDocentePage.jsx';
+import CrearMatriculaPage from './pages/CrearMatriculaPage.jsx';
+import MonitoreoInicioPage from './pages/MonitoreoInicioPage.jsx'
+import SubirDocenteSeccionMasivo from './pages/SubirDocenteSeccionMasivo.jsx'
+import EquiposEstado from './components/Monitoreo/EquiposEstado.jsx'
+import FidelizadorPage from './pages/FidelizadorPage.jsx'
+import RescatarLecturaPage from './pages/RescatarLecturaPage.jsx'
+import Forms100Page from './pages/Forms100Page.jsx'
+import TicketsPage from './pages/TicketsPage.jsx'
+import AlumnosPage from './pages/AlumnosPage.jsx'
+import CargaTabla from './pages/CargaTabla.jsx'
+import ListadoCantNotasPage from './pages/ListadoCantNotasPage.jsx'
+import TopBar from './components/TopBar.jsx'
+import CargarTablaPage from './pages/CargarTablaPage.jsx'
+import CreaEstructuraCarpetaPage from './pages/CreaEstructuraCarpetaPage.jsx'
+import BuscarResultadosPage from './pages/BuscarResultadosPage.jsx'
+import ReprocesarSiglaPage from './pages/ReprocesarSiglaPage.jsx'
+import LogActualizacionPage from './pages/LogActualizacionPage.jsx'
+import AlumnosAsigPage from './pages/AlumnosAsigPage.jsx'
+import BuscarArchivoLeidoPage from './pages/BuscarArchivoLeidoPage.jsx'
+import PlanillasAnalizaPage from './pages/PlanillasAnalizaPage.jsx'
+import JsonTablaPage from './pages/JsonTablaPage.jsx'
 
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined, HistoryOutlined } from '@ant-design/icons';

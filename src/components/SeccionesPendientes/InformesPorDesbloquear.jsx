@@ -1,7 +1,7 @@
 // InformesPorDesbloquear.js
 import React, { useState, useEffect } from 'react';
 import { Table, Spin, Alert, Button, message, Modal, Input, Tag } from 'antd';
-import { getColumns } from './InformePorDesbloquear_columns.js';
+import { getColumns } from './InformePorDesbloquear_columns.jsx';
 import * as XLSX from 'xlsx';
 import 'antd/dist/reset.css';
 import './formato_tabla.css';

@@ -1,6 +1,6 @@
 import React from 'react';
-import Monitoreo from './Monitoreo.js'
-import MonitoreoImagenes from './MonitoreoImagenes.js'
+import Monitoreo from './Monitoreo.jsx'
+import MonitoreoImagenes from './MonitoreoImagenes.jsx'
 
 const MonitoreoInicioPage = () => {
   return (
