@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.js
 
@@ -13,15 +13,26 @@
 
 # misc
 .DS_Store
+Thumbs.db
+
+# env vars
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
+# logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+*.log
 
-
+# app data
 Sharepoint.accdb
 Sharepoint.laccdb
+
+# editor folders
+.vscode/
+.idea/

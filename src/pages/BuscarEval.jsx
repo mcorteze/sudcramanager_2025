@@ -5,7 +5,7 @@ import moment from 'moment';
 import * as XLSX from 'xlsx';
 
 const { Option } = Select;
-const PASSWORD_REQUERIDA = 'arcdus20262';
+const PASSWORD_REQUERIDA = 'arcdus';
 
 export default function EvaluacionesFiltradas() {
   const [evaluaciones, setEvaluaciones] = useState([]);
