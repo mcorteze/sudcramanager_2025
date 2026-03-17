@@ -2,11 +2,11 @@
 :root {
     --color-bg: rgb(245, 245, 245);
     --color-ventana: #fff;
-    --color-mensaje-bg: rgb(229, 246, 253); 
+    --color-mensaje-bg: rgb(229, 246, 253);
     --color-mensaje-text: rgb(107, 151, 170);
     --color-primario: #0f1939;
     --color-secundario: rgb(15, 123, 231);
-    --color-suave:  rgb(177, 214, 252);
+    --color-suave: rgb(177, 214, 252);
     --color-warning: #ffb800;
     --color-warning-debil: rgba(255, 184, 0, 0.2);
     --color-hover: #fd2282;
@@ -17,13 +17,14 @@
     --gris-titulo: #030136;
     --gris-iconography: #64748B;
     --gris-bodytext: #595960;
-    --gris-curatorsection: #8D95A2; /* seccion destacada */
+    --gris-curatorsection: #8D95A2;
+    /* seccion destacada */
 }
 
 .page-full {
     height: 100vh;
     height: fit-content;
-    
+
 }
 
 .page-full h1 {
@@ -51,11 +52,12 @@
 .ant-form-item-required {
     color: hsl(215, 15%, 92%) !important;
 }
+
 .ant-layout {
     height: 100vh;
     background: var(--color-bg);
     height: 100%;
-    max-width: 1500px;
+    max-width: 1600px;
 }
 
 /* Color para los componentes tipo titulo y otros de Ant Design */
@@ -74,12 +76,14 @@
     margin-inline: 10px !important;
     width: auto;
 }
-.ant-menu-title-content{
+
+.ant-menu-title-content {
     color: rgb(161, 197, 211);
     transition: width 0.3s cubic-bezier(0.2, 0, 0, 1) 0s !important;
 }
+
 .ant-menu-title-content:hover,
-.ant-menu-item-selected .ant-menu-title-content{
+.ant-menu-item-selected .ant-menu-title-content {
     color: var(--color-ventana) !important;
 }
 
@@ -109,7 +113,7 @@
 .ant-layout-content {
     background: var(--color-ventana) !important;
     color: var(--color-primario);
-    border: 1px solid (--texto-gris-fuerte);
+    border: 1px solid var(--texto-gris-fuerte);
 }
 
 /* Tabla */
@@ -120,22 +124,18 @@
 .ant-table-thead,
 .ant-table-thead tr th,
 .ant-table-tbody,
-.ant-table-tbody tr{
+.ant-table-tbody tr {
     background: transparent !important;
 }
 
 /* Border inferior de los campos*/
-.ant-table-thead th{
-    border-bottom: 1px solid (--texto-gris-fuerte) !important;
-}
-
-.ant-table-cell{
-    border-bottom: 1px solid transparent !important;
+.ant-table-cell {
+    border-bottom: 1px solid #ddd !important;
 }
 
 /* Color de letra de las celdas*/
 .ant-table-cell {
-    color: var(--color-primario) !important;
+    color: var(--color-primario);
 }
 
 /* Color bg hover de las celdas*/
@@ -145,7 +145,7 @@
 }
 
 /* Color bg hover de las filas */
-.ant-table-row:hover td{
+.ant-table-row:hover td {
     background: var(--color-warning-debil) !important;
     color: var(--color-primario) !important;
 }
@@ -160,52 +160,65 @@
 }
 
 /* Borde de tablas */
-.custom-table td, .custom-table th {
+.custom-table td,
+.custom-table th {
     font-size: 13px;
     padding: 6px 12px !important;
-    border: 1px solid #ddd !important; /* Añadiendo borde consistente con la segunda clase de AntDesign */
+    border: 1px solid #ddd !important;
+    /* Añadiendo borde consistente con la segunda clase de AntDesign */
 }
 
 /* Primera clase que define estilos de tabla de AntDesign */
 .ant-descriptions-view table tbody tr th,
 .ant-descriptions-view table tbody tr td {
-  padding: 6px !important;
-  border: 1px solid gray !important;
+    padding: 6px !important;
+    border: 1px solid gray !important;
 }
 
-/* Segunda clase que define estilos de tabla de AntDesign */
+/* Estilos de bordes para tablas de AntDesign */
 .ant-table-content table thead tr th,
-.ant-table-content table tbody tr th,
 .ant-table-content table tbody tr td {
-  padding: 6px !important;
-  border: 1px solid #ddd !important;
+    padding: 6px !important;
+    border: 1px solid #ddd !important;
+}
+
+/* OCULTAR COMPLETAMENTE LA FILA DE MEDICIÓN (Fila Fantasma) */
+.ant-table-tbody tr.ant-table-measure-row td {
+    padding: 0 !important;
+    border: none !important;
+    height: 0 !important;
+    line-height: 0 !important;
+    visibility: hidden !important;
 }
 
 /* Estilo para asegurar consistencia en los bordes de todas las tablas */
 .custom-table,
 .ant-descriptions-view table,
 .ant-table-content table {
-  border-collapse: collapse; /* Asegura que los bordes no se dupliquen */
+    border-collapse: collapse;
+    /* Asegura que los bordes no se dupliquen */
 }
 
 .table_formato1 {
-margin: 15px 0 30px 0;
-width: fit-content;
+    margin: 15px 0 30px 0;
+    width: fit-content;
 }
 
 .table_formato1 .summary-row {
-border-bottom: 1px solid var(--texto-gris-debil2) !important; /* Borde completo */
-border-top: 2px solid #1890ff; /* Resaltar el borde superior */
+    border-bottom: 1px solid var(--texto-gris-debil2) !important;
+    /* Borde completo */
+    border-top: 2px solid #1890ff;
+    /* Resaltar el borde superior */
 }
 
 .formato-table1 {
-margin: 0 20px 24px 0px;
-max-width: fit-content;
+    margin: 0 20px 24px 0px;
+    max-width: fit-content;
 }
 
 .formato-table1 th,
-.formato-table1 tr{
-font-size: 12px !important;
+.formato-table1 tr {
+    font-size: 12px !important;
 }
 
 .marco-grid {
@@ -217,25 +230,26 @@ font-size: 12px !important;
 }
 
 .marco-grid p {
-  font-size: 12px;
+    font-size: 12px;
 }
 
 .marco-grid .titulo {
-  font-weight: bold; /* O cualquier otro estilo que prefieras */
-  font-size: 12px;
-  color: #4d4d4d;
-  margin: 0 !important;
+    font-weight: bold;
+    /* O cualquier otro estilo que prefieras */
+    font-size: 12px;
+    color: #4d4d4d;
+    margin: 0 !important;
 }
 
 .buscar-seccion-table1 {
-  margin: 0 20px 24px 0px;
-  width: fit-content;
-  max-width: 1200px;
+    margin: 0 20px 24px 0px;
+    width: fit-content;
+    max-width: 1200px;
 }
 
 .buscar-seccion-table1 th,
-.buscar-seccion-table1 td{
-  font-size: 12px;
+.buscar-seccion-table1 td {
+    font-size: 12px;
 }
 
 .buscar-seccion-table1 button {
@@ -249,7 +263,9 @@ font-size: 12px !important;
 
 
 /* ------------------ */
-.ant-form-item-required {margin-right: 100px;}
+.ant-form-item-required {
+    margin-right: 100px;
+}
 
 
 
@@ -269,21 +285,21 @@ font-size: 12px !important;
 }
 
 .menu-general-contenedor {
-  height: 450px;              
-  overflow-y: auto;           
-  scrollbar-width: none;      
-  -ms-overflow-style: none;   
+    height: 450px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .menu-general-contenedor::-webkit-scrollbar {
-  display: none;              
+    display: none;
 }
 
 /* Para pantallas grandes */
 @media (min-width: 1440px) {
-  .menu-general-contenedor {
-    height: 750px;            
-  }
+    .menu-general-contenedor {
+        height: 750px;
+    }
 }
 
 .ant-menu-item.ant-menu-item-selected,

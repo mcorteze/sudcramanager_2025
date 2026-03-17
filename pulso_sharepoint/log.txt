@@ -1,0 +1,3 @@
+﻿2026-03-16 10:35:10 | ERROR | No se encuentra el archivo: C:\Users\evaluacionestransver\OneDrive - Fundacion Instituto Profesional Duoc UC\sudcra-repositorio\idlista_imagenes\idlista.txt
+2026-03-16 10:36:28 | CRITICAL | El término 'C:\Program Files\PostgreSQL\17\bin\psql.exe' no se reconoce como nombre de un cmdlet, función, archivo de script o programa ejecutable. Compruebe si escribió correctamente el nombre o, si incluyó una ruta de acceso, compruebe que dicha ruta es correcta e inténtelo de nuevo.
+2026-03-16 10:37:22 | OK | ID Sharepoint: 372 registrado correctamente.

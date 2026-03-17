@@ -144,14 +144,12 @@ const TopBar = () => {
     <Header
       style={{
         background: '#fff',
-        padding: '0 16px',
+        padding: '0 24px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         boxShadow: '0 2px 8px #f0f1f2',
         margin: '24px 16px 10px 210px',
-        marginLeft: '210px',
-        padding: '24px',
         minHeight: '60px',
         borderRadius: '8px',
       }}

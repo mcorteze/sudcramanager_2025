@@ -22,6 +22,7 @@ export default function InformesPorDesbloquear() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [selectedAsignatura, setSelectedAsignatura] = useState(null);
+  const [selectedEvaluacion, setSelectedEvaluacion] = useState(null);
 
   const periodoSafe = getPeriodoStr() || '0000000';
   const baseUrl = `${SHAREPOINT_BASE}/${periodoSafe}/secciones/`;
@@ -149,13 +150,29 @@ export default function InformesPorDesbloquear() {
     new Set(seccionesPendientes.map(item => item.cod_asig))
   ).filter(item => item !== null && item !== undefined);
 
-  const dataFiltrada = selectedAsignatura
-    ? seccionesPendientes.filter(item => item.cod_asig === selectedAsignatura)
-    : seccionesPendientes;
-
   const handleTagClick = (asig) => {
-    setSelectedAsignatura(prev => (prev === asig ? null : asig));
+    setSelectedAsignatura(prev => {
+      const next = prev === asig ? null : asig;
+      setSelectedEvaluacion(null); // Reset evaluación al cambiar asignatura
+      return next;
+    });
   };
+
+  const evaluacionesUnicas = selectedAsignatura
+    ? Array.from(new Set(seccionesPendientes
+      .filter(item => item.cod_asig === selectedAsignatura)
+      .map(item => item.nombre_prueba)))
+    : [];
+
+  const handleEvalClick = (evaluacion) => {
+    setSelectedEvaluacion(prev => (prev === evaluacion ? null : evaluacion));
+  };
+
+  const dataFiltrada = seccionesPendientes.filter(item => {
+    const matchAsig = !selectedAsignatura || item.cod_asig === selectedAsignatura;
+    const matchEval = !selectedEvaluacion || item.nombre_prueba === selectedEvaluacion;
+    return matchAsig && matchEval;
+  });
 
   // ==========================================
   //   🟦 FUNCIÓN PARA DESCARGAR EXCEL
@@ -206,7 +223,7 @@ export default function InformesPorDesbloquear() {
 
   return (
     <div>
-      
+
       {/* FILTRO */}
       <div style={{ marginBottom: 16 }}>
         <strong>Filtrar por Asignatura:</strong>{' '}
@@ -225,13 +242,43 @@ export default function InformesPorDesbloquear() {
           <Tag
             color="volcano"
             closable
-            onClose={() => setSelectedAsignatura(null)}
+            onClose={() => {
+              setSelectedAsignatura(null);
+              setSelectedEvaluacion(null);
+            }}
             style={{ marginLeft: 8 }}
           >
-            Quitar filtro
+            Quitar filtro Asignatura
           </Tag>
         )}
       </div>
+
+      {/* FILTRO EVALUACIÓN (Sólo si hay asignatura seleccionada) */}
+      {selectedAsignatura && evaluacionesUnicas.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <strong>Filtrar por Evaluación:</strong>{' '}
+          {evaluacionesUnicas.map((evaluacion) => (
+            <Tag
+              key={evaluacion}
+              color={selectedEvaluacion === evaluacion ? 'blue' : 'default'}
+              style={{ cursor: 'pointer', marginBottom: 4 }}
+              onClick={() => handleEvalClick(evaluacion)}
+            >
+              {evaluacion}
+            </Tag>
+          ))}
+          {selectedEvaluacion && (
+            <Tag
+              color="volcano"
+              closable
+              onClose={() => setSelectedEvaluacion(null)}
+              style={{ marginLeft: 8 }}
+            >
+              Quitar filtro Evaluación
+            </Tag>
+          )}
+        </div>
+      )}
 
       {/* TABLA */}
       <Table

@@ -69,6 +69,7 @@ import AlumnosAsigPage from './pages/AlumnosAsigPage.jsx'
 import BuscarArchivoLeidoPage from './pages/BuscarArchivoLeidoPage.jsx'
 import PlanillasAnalizaPage from './pages/PlanillasAnalizaPage.jsx'
 import JsonTablaPage from './pages/JsonTablaPage.jsx'
+import LogsPage from './pages/LogsPage.jsx'
 
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined, HistoryOutlined } from '@ant-design/icons';
@@ -194,6 +195,9 @@ const AppContent = () => {
           <Menu.Item key="20" icon={<HistoryOutlined />}>
             <Link to="/log_actualizacion">Log actualización</Link>
           </Menu.Item>
+          <Menu.Item key="21" icon={<HistoryOutlined />}>
+            <Link to="/logs">Logs Pulsos</Link>
+          </Menu.Item>
         </Menu>
       </Sider>
 
@@ -279,10 +283,11 @@ const AppContent = () => {
             <Route path="/buscar_resultados" element={<BuscarResultadosPage />} />
             <Route path="/reprocesar_sigla" element={<ReprocesarSiglaPage />} />
             <Route path="/log_actualizacion" element={<LogActualizacionPage />} />
+            <Route path="/logs" element={<LogsPage />} />
             <Route path="/alumnosporasig" element={<AlumnosAsigPage />} />
             <Route path="/planillasanaliza" element={<PlanillasAnalizaPage />} />
             <Route path="/jsontable" element={<JsonTablaPage />} />
-            
+
             {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />
             <Route path="/carga_tablas_especificaciones" element={<CargaTabla />} />

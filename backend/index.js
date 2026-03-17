@@ -25,7 +25,7 @@ const pool = new Pool({
 // Definir la variable anio_periodo
 const anio_periodo = '2026001';
 // URL base de sharepoint
-const base_url_sharepoint = 'https://duoccl0-my.sharepoint.com/personal/lgutierrez_duoc_cl/Documents/SUDCRA/informes';
+const base_url_sharepoint = 'https://duoccl0-my.sharepoint.com/personal/mcorteze_duoc_cl/Documents/sudcra-repositorio/informes';
 
 // año - periodo
 app.get('/api/anioperiodo', async (req, res) => {
@@ -533,6 +533,23 @@ app.get('/api/seccion_docente/:rut_docente', async (req, res) => {
   }
 });
 
+app.get('/api/calificaciones_por_eval/:id_eval', async (req, res) => {
+  const { id_eval } = req.params;
+  try {
+    const query = `
+      SELECT id_calificacion, puntaje_inf, puntaje_sup, condicion, condicion_desc, mensaje, id_eval, nota 
+      FROM calificaciones 
+      WHERE id_eval = $1 
+      ORDER BY id_calificacion ASC
+    `;
+    const result = await pool.query(query, [id_eval]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
 // Endpoint de listado de ultimo proceso, por programa, para Home
 app.get('/api/ultimas-calificaciones', async (req, res) => {
   try {
@@ -773,6 +790,99 @@ app.get('/api/seccion/:id_seccion', async (req, res) => {
   } catch (err) {
     console.error('Error en la consulta SQL:', err);
     res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+
+// Endpoint para obtener los logs de pulsos
+app.get('/api/logs', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM pulsos_log ORDER BY id DESC');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL de logs:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL de logs' });
+  }
+});
+
+// Endpoint para obtener información de tickets desde pulsos_log
+app.get('/api/tickets-pendientes', async (req, res) => {
+  try {
+    // Buscamos el último registro que REALMENTE tenga información de tickets
+    const query = 'SELECT tickets_pendientes, tickets_hora FROM pulsos_log WHERE tickets_hora IS NOT NULL ORDER BY id DESC LIMIT 1';
+    const result = await pool.query(query);
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]);
+    } else {
+      res.json({ tickets_pendientes: 0, tickets_hora: null });
+    }
+  } catch (err) {
+    console.error('Error en la consulta SQL de tickets:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL de tickets' });
+  }
+});
+
+// Endpoint para obtener estadísticas de calificaciones cada 10 minutos (hoy)
+app.get('/api/stats/calificaciones', async (req, res) => {
+  try {
+    const query = `
+      WITH slots AS (
+        SELECT generate_series(
+          date_trunc('day', NOW()),
+          date_trunc('hour', NOW()) + INTERVAL '10 min' * FLOOR(EXTRACT(MINUTE FROM NOW()) / 10),
+          INTERVAL '10 min'
+        ) AS slot
+      ),
+      counts AS (
+        SELECT
+          date_trunc('hour', lectura_fecha) + INTERVAL '10 min' * FLOOR(EXTRACT(MINUTE FROM lectura_fecha) / 10) AS slot,
+          COUNT(*) as total
+        FROM calificaciones_obtenidas
+        WHERE lectura_fecha >= CURRENT_DATE
+        GROUP BY 1
+      )
+      SELECT to_char(s.slot, 'HH24:MI') as hora, COALESCE(c.total, 0) as total
+      FROM slots s
+      LEFT JOIN counts c ON s.slot = c.slot
+      ORDER BY s.slot;
+    `;
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error stats calificaciones:', err);
+    res.status(500).json({ error: 'Error stats calificaciones' });
+  }
+});
+
+// Endpoint para obtener estadísticas de informes emitidos cada 10 minutos (hoy)
+app.get('/api/stats/informes', async (req, res) => {
+  try {
+    const query = `
+      WITH slots AS (
+        SELECT generate_series(
+          date_trunc('day', NOW()),
+          date_trunc('hour', NOW()) + INTERVAL '10 min' * FLOOR(EXTRACT(MINUTE FROM NOW()) / 10),
+          INTERVAL '10 min'
+        ) AS slot
+      ),
+      counts AS (
+        SELECT
+          date_trunc('hour', marca_temp_mail) + INTERVAL '10 min' * FLOOR(EXTRACT(MINUTE FROM marca_temp_mail) / 10) AS slot,
+          COUNT(*) as total
+        FROM informes_secciones
+        WHERE marca_temp_mail >= CURRENT_DATE
+        GROUP BY 1
+      )
+      SELECT to_char(s.slot, 'HH24:MI') as hora, COALESCE(c.total, 0) as total
+      FROM slots s
+      LEFT JOIN counts c ON s.slot = c.slot
+      ORDER BY s.slot;
+    `;
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error stats informes:', err);
+    res.status(500).json({ error: 'Error stats informes' });
   }
 });
 
@@ -3847,7 +3957,24 @@ app.get('/api/tablas_cargadas', async (req, res) => {
         e.cod_asig,
         e.num_prueba,
         e.nombre_prueba,
-        e.cargado_fecha
+        e.cargado_fecha,
+        e.exigencia,
+        (
+          SELECT MIN(puntaje_inf) 
+          FROM calificaciones 
+          WHERE id_eval = e.id_eval 
+            AND nota >= 4 
+            AND nota NOT IN (10, 11)
+        ) as puntaje_aprobacion,
+        (SELECT ROUND(MAX(puntaje_sup)::numeric, 1) FROM calificaciones WHERE id_eval = e.id_eval) as puntaje_total,
+        (
+          SELECT CASE 
+            WHEN COUNT(DISTINCT nota) FILTER (WHERE nota IN (0, 1, 10, 11)) = 4 THEN 'UC'
+            ELSE 'Logro General'
+          END
+          FROM calificaciones 
+          WHERE id_eval = e.id_eval
+        ) as esquema
       from eval e
       join asignaturas asig on asig.cod_asig = e.cod_asig
       ORDER BY asig.programa ASC, e.cod_asig ASC, e.num_prueba ASC
