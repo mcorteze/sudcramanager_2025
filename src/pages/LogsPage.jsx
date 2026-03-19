@@ -112,7 +112,7 @@ const SudcraCard = ({ log }) => {
         <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 6, padding: '10px 14px', minWidth: 200 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <Text strong style={{ fontSize: 13, color: '#34495e' }}>sudcra</Text>
-                <StatusBadge marcaTemporal={log.marca_temporal} />
+                <StatusBadge marcaTemporal={log.marca_temporal || log.tickets_hora || log.id_lista_sharepoint_hora} />
             </div>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <span style={{ fontSize: 10, color: '#888' }}>
@@ -135,21 +135,37 @@ const SudcraCard = ({ log }) => {
 // --- Card de Pendientes ---
 const PendientesCard = ({ data }) => {
     const items = [
-        { label: 'Secc. Pend. Aprob.', count: data.pendAprob, color: '#a93226' }, // Rojo oscuro
-        { label: 'Mail Secc. Pend.', count: data.pendMailSecc, color: '#ba4a00' }, // Naranja madera
-        { label: 'Mail Alum. Pend.', count: data.pendMailAlum, color: '#af601a' }, // Ocre
-        { label: 'Secc. s/Inscritos', count: data.sinInscritos, color: '#117864' }, // Verde azulado oscuro
+        { label: 'Secciones pendientes de aprobación', count: data.pendAprob, color: '#a93226' }, 
+        { label: 'Mail de sección pendientes', count: data.pendMailSecc, color: '#ba4a00' }, 
+        { label: 'Mail de alumnos pendientes', count: data.pendMailAlum, color: '#af601a' }, 
+        { label: 'Secciones sin inscritos', count: data.sinInscritos, color: '#117864' }, 
     ];
 
     return (
-        <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 6, padding: '10px 14px', minWidth: 260 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
-                {items.map(item => (
-                    <div key={item.label} style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: 10, color: '#888' }}>{item.label}</span>
-                        <b style={{ fontSize: 16, color: item.count > 0 ? item.color : '#1e8449' }}>
-                            {item.count ?? 0}
-                        </b>
+        <div style={{ 
+            background: '#fff', 
+            border: '1px solid #e0e0e0', 
+            borderRadius: 6, 
+            padding: '8px 16px', 
+            display: 'inline-block' // El card solo ocupa el ancho necesario
+        }}>
+            <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'nowrap' }}>
+                {items.map((item, idx) => (
+                    <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                            <span style={{ fontSize: 11, color: '#5d6d7e', whiteSpace: 'nowrap' }}>{item.label}</span>
+                            <b style={{ 
+                                fontSize: 15, 
+                                color: item.count > 0 ? item.color : '#239b56',
+                                minWidth: '15px',
+                                textAlign: 'right'
+                            }}>
+                                {item.count ?? 0}
+                            </b>
+                        </div>
+                        {idx < items.length - 1 && (
+                            <div style={{ width: 1, height: 16, background: '#e0e0e0' }} />
+                        )}
                     </div>
                 ))}
             </div>
