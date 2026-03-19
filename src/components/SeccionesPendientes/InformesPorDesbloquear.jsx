@@ -23,6 +23,8 @@ export default function InformesPorDesbloquear() {
   const [keyword, setKeyword] = useState('');
   const [selectedAsignatura, setSelectedAsignatura] = useState(null);
   const [selectedEvaluacion, setSelectedEvaluacion] = useState(null);
+  const [isAlertModalVisible, setIsAlertModalVisible] = useState(false);
+  const [evaluacionesConAlerta, setEvaluacionesConAlerta] = useState([]);
 
   const periodoSafe = getPeriodoStr() || '0000000';
   const baseUrl = `${SHAREPOINT_BASE}/${periodoSafe}/secciones/`;
@@ -72,7 +74,38 @@ export default function InformesPorDesbloquear() {
   };
 
   const handleSave = () => {
+    const alertas = [];
+    const idsRevisados = new Set();
+    
+    updatedSwitches.forEach(id_eval => {
+      if (idsRevisados.has(id_eval)) return;
+      idsRevisados.add(id_eval);
+      
+      const record = seccionesPendientes.find(item => item.id_eval === id_eval);
+      if (record && record.esquema === 'Logro General') {
+        const calculado = Math.round(Number(record.exigencia) * Number(record.puntaje_total) * 10) / 10;
+        const esCorrecto = Math.abs(Number(record.puntaje_aprobacion) - calculado) < 0.05;
+        if (!esCorrecto) {
+          alertas.push(record);
+        }
+      }
+    });
+
+    if (alertas.length > 0) {
+      setEvaluacionesConAlerta(alertas);
+      setIsAlertModalVisible(true);
+    } else {
+      setIsModalVisible(true);
+    }
+  };
+
+  const handleAlertModalOk = () => {
+    setIsAlertModalVisible(false);
     setIsModalVisible(true);
+  };
+
+  const handleAlertModalCancel = () => {
+    setIsAlertModalVisible(false);
   };
 
   const handleModalOk = () => {
@@ -324,6 +357,35 @@ export default function InformesPorDesbloquear() {
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="Ingrese la palabra clave"
         />
+      </Modal>
+
+      {/* MODAL DE ALERTA DE PUNTAJE */}
+      <Modal
+        title="⚠️ Advertencia: Evaluaciones con Anomalías"
+        visible={isAlertModalVisible}
+        onOk={handleAlertModalOk}
+        onCancel={handleAlertModalCancel}
+        okText="Entendido, continuar"
+        cancelText="Cancelar"
+        width={600}
+      >
+        <p>
+          Las siguientes evaluaciones tienen un <b>puntaje de aprobación inusual o mal calculado</b>.
+          ¿Está absolutamente seguro de que desea aprobarlas manualmente?
+        </p>
+        <ul style={{ maxHeight: '200px', overflowY: 'auto' }}>
+          {evaluacionesConAlerta.map(ev => {
+            const calculado = Math.round(Number(ev.exigencia) * Number(ev.puntaje_total) * 10) / 10;
+            return (
+              <li key={ev.id_eval} style={{ marginBottom: 8 }}>
+                <strong>{ev.id_eval}</strong> — {ev.nombre_prueba}<br/>
+                <span style={{ color: 'red' }}>
+                  Puntaje actual: {ev.puntaje_aprobacion} (Debería ser ~{calculado} según {Math.round(ev.exigencia * 100)}% de exigencia)
+                </span>
+              </li>
+            );
+          })}
+        </ul>
       </Modal>
     </div>
   );

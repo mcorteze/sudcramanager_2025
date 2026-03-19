@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Typography } from 'antd';
+import { Typography, Badge } from 'antd';
 
 const { Text } = Typography;
 
@@ -11,6 +11,47 @@ const fmt = (isoStr) => {
     return d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 };
 
+const StatusBadge = ({ marcaTemporal }) => {
+    const isLive = marcaTemporal ? (new Date() - new Date(marcaTemporal)) / 60000 < 6 : false;
+    // Colores más vibrantes pero profesionales
+    const color = isLive ? '#28a745' : '#dc3545'; 
+    const glowColor = isLive ? 'rgba(40, 167, 69, 0.8)' : 'rgba(220, 53, 69, 0.8)';
+
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            {/* LUZ LED (Ampolleta) */}
+            <div style={{ 
+                width: 7, 
+                height: 7, 
+                borderRadius: '50%', 
+                backgroundColor: color, 
+                boxShadow: `0 0 8px ${glowColor}`,
+                animation: isLive ? 'pulse 2s infinite' : 'none' 
+            }} />
+            
+            {/* TEXTO CON RESPLANDOR */}
+            <span style={{ 
+                fontSize: 11, 
+                fontWeight: 300, 
+                color: color,
+                textShadow: `0 0 4px ${glowColor}`,
+                letterSpacing: '0.5px'
+            }}>
+                {isLive ? 'Live' : 'Off'}
+            </span>
+
+            {/* Inyectamos una pequeña animación de pulso si está Live */}
+            <style>{`
+                @keyframes pulse {
+                    0% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.2); opacity: 0.7; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+            `}</style>
+        </div>
+    );
+};
+
 // --- Card de Forms (Len_parciales / Mat_parciales) ---
 const FormsCard = ({ title, log, idLocal, lecturaForm }) => {
     if (!log) return null;
@@ -19,25 +60,29 @@ const FormsCard = ({ title, log, idLocal, lecturaForm }) => {
     const idCalificado = lecturaForm?.imagen_calificada ?? '-';
     const marcaCalif = lecturaForm?.marca_temporal_calificacion;
 
+    // Colores más serios: #2e86c1 (azul), #239b56 (verde), #b7950b (pardo/oro)
     return (
         <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 6, padding: '10px 14px', minWidth: 280 }}>
-            <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>{title}</Text>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Text strong style={{ fontSize: 13, color: '#34495e' }}>{title}</Text>
+                <StatusBadge marcaTemporal={log.marca_temporal} />
+            </div>
 
             {/* Flujo: últ id registrado → últ id local → últ id calificado */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 10, color: '#888' }}>últ id registrado</div>
-                    <div style={{ fontSize: 18, fontWeight: 'bold', color: '#1677ff' }}>{idRegistrado}</div>
+                    <div style={{ fontSize: 18, fontWeight: 'bold', color: '#2e86c1' }}>{idRegistrado}</div>
                 </div>
                 <div style={{ fontSize: 16, color: '#aaa' }}>→</div>
                 <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 10, color: '#888' }}>últ id local</div>
-                    <div style={{ fontSize: 18, fontWeight: 'bold', color: '#52c41a' }}>{idLocal ?? '-'}</div>
+                    <div style={{ fontSize: 18, fontWeight: 'bold', color: '#239b56' }}>{idLocal ?? '-'}</div>
                 </div>
                 <div style={{ fontSize: 16, color: '#aaa' }}>→</div>
                 <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 10, color: '#888' }}>últ id calificado</div>
-                    <div style={{ fontSize: 18, fontWeight: 'bold', color: '#fa8c16' }}>
+                    <div style={{ fontSize: 18, fontWeight: 'bold', color: '#b7950b' }}>
                         {idCalificado}
                         {marcaCalif && <span style={{ fontSize: 10, fontWeight: 'normal', color: '#888', marginLeft: 4 }}>({fmt(marcaCalif)})</span>}
                     </div>
@@ -65,10 +110,13 @@ const SudcraCard = ({ log }) => {
     if (!log) return null;
     return (
         <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 6, padding: '10px 14px', minWidth: 200 }}>
-            <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>sudcra</Text>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Text strong style={{ fontSize: 13, color: '#34495e' }}>sudcra</Text>
+                <StatusBadge marcaTemporal={log.marca_temporal} />
+            </div>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <span style={{ fontSize: 10, color: '#888' }}>
-                    Tickets pendientes: <b style={{ fontSize: 15, color: log.tickets_pendientes > 0 ? '#f5222d' : '#52c41a' }}>{log.tickets_pendientes ?? '-'}</b>
+                    Tickets pendientes: <b style={{ fontSize: 15, color: log.tickets_pendientes > 0 ? '#922b21' : '#239b56' }}>{log.tickets_pendientes ?? '-'}</b>
                 </span>
                 {log.tickets_hora && (
                     <span style={{ fontSize: 10, color: '#888' }}>({fmt(log.tickets_hora)})</span>
@@ -80,6 +128,31 @@ const SudcraCard = ({ log }) => {
                     {log.id_lista_sharepoint_hora && <span style={{ marginLeft: 4 }}>({fmt(log.id_lista_sharepoint_hora)})</span>}
                 </div>
             )}
+        </div>
+    );
+};
+
+// --- Card de Pendientes ---
+const PendientesCard = ({ data }) => {
+    const items = [
+        { label: 'Secc. Pend. Aprob.', count: data.pendAprob, color: '#a93226' }, // Rojo oscuro
+        { label: 'Mail Secc. Pend.', count: data.pendMailSecc, color: '#ba4a00' }, // Naranja madera
+        { label: 'Mail Alum. Pend.', count: data.pendMailAlum, color: '#af601a' }, // Ocre
+        { label: 'Secc. s/Inscritos', count: data.sinInscritos, color: '#117864' }, // Verde azulado oscuro
+    ];
+
+    return (
+        <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 6, padding: '10px 14px', minWidth: 260 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
+                {items.map(item => (
+                    <div key={item.label} style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: 10, color: '#888' }}>{item.label}</span>
+                        <b style={{ fontSize: 16, color: item.count > 0 ? item.color : '#1e8449' }}>
+                            {item.count ?? 0}
+                        </b>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };
@@ -143,21 +216,46 @@ const LogsPage = () => {
     const [lecturasForm, setLecturasForm] = useState([]);
     const [statsCalificaciones, setStatsCalificaciones] = useState([]);
     const [statsInformes, setStatsInformes] = useState([]);
+    const [pendientes, setPendientes] = useState({
+        pendAprob: 0,
+        pendMailSecc: 0,
+        pendMailAlum: 0,
+        sinInscritos: 0
+    });
 
     const fetchAllData = async () => {
         try {
-            const [logsRes, idListaRes, lecturasRes, statsCalifRes, statsInfRes] = await Promise.all([
+            const [logsRes, idListaRes, lecturasRes, statsCalifRes, statsInfRes, pendAprobRes, pendMailSeccRes, pendMailAlumRes, sinInscritosRes] = await Promise.all([
                 fetch(`${API}/api/logs`),
                 fetch(`${API}/api/ultimo_idlista`),
                 fetch(`${API}/api/ultimas-lecturas-form-2`),
                 fetch(`${API}/api/stats/calificaciones`),
                 fetch(`${API}/api/stats/informes`),
+                fetch(`${API}/api/informes/pendientes`),
+                fetch(`${API}/api/informes/pendientes-mail`),
+                fetch(`${API}/api/informes/pendientes-mail-alumnos`),
+                fetch(`${API}/api/secciones_sin_inscritos`),
             ]);
             setLogs(await logsRes.json());
             setIdListaData(await idListaRes.json());
             setLecturasForm(await lecturasRes.json());
             setStatsCalificaciones(await statsCalifRes.json());
             setStatsInformes(await statsInfRes.json());
+
+            // Procesar pendientes (pueden ser 404 si no hay datos)
+            const getCount = async (res) => {
+                if (!res.ok) return 0;
+                const data = await res.json();
+                return Array.isArray(data) ? data.length : (data.count || 0);
+            };
+
+            setPendientes({
+                pendAprob: await getCount(pendAprobRes),
+                pendMailSecc: await getCount(pendMailSeccRes),
+                pendMailAlum: await getCount(pendMailAlumRes),
+                sinInscritos: await getCount(sinInscritosRes)
+            });
+
         } catch (err) {
             console.error('Error fetching data:', err);
         }
@@ -188,10 +286,16 @@ const LogsPage = () => {
     };
 
     return (
-        <div style={{ padding: '16px 16px 16px 210px', minHeight: '60vh' }}>
-            <Text strong style={{ fontSize: 15, display: 'block', marginBottom: 12 }}>Monitor de Procesos</Text>
+        <div style={{ padding: '16px 16px 16px 10px', minHeight: '60vh', background: '#f4f6f7' }}>
+            
+            {/* 1. Informes Pendientes (Ahora al inicio) */}
+            <Text strong style={{ fontSize: 15, display: 'block', marginBottom: 12, color: '#2c3e50' }}>Informes pendientes</Text>
+            <div style={{ marginBottom: 24 }}>
+                <PendientesCard data={pendientes} />
+            </div>
 
-            {/* Cards de equipos */}
+            {/* 2. Monitor de Procesos */}
+            <Text strong style={{ fontSize: 15, display: 'block', marginBottom: 12, color: '#2c3e50' }}>Monitor de Procesos</Text>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
                 <FormsCard
                     title="forms_ingles (Len_parciales)"
@@ -208,18 +312,18 @@ const LogsPage = () => {
                 <SudcraCard log={latestByEquipo['sudcra']} />
             </div>
 
-            {/* Tablas de actividad del día */}
-            <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>Actividad del Día</Text>
+            {/* 3. Actividad del Día */}
+            <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8, color: '#2c3e50' }}>Actividad del Día</Text>
             <div style={{ display: 'flex', gap: 16 }}>
                 <ActivityTable
                     title="Calificaciones de evaluaciones (Hoy)"
                     data={statsCalificaciones}
-                    color="#1677ff"
+                    color="#2e86c1"
                 />
                 <ActivityTable
                     title="Informes emitidos (Hoy)"
                     data={statsInformes}
-                    color="#52c41a"
+                    color="#239b56"
                 />
             </div>
         </div>

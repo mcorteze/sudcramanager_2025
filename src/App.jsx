@@ -6,7 +6,7 @@ import {
 } from '@ant-design/icons';
 import { HiMiniViewfinderCircle } from "react-icons/hi2";
 import { RiRadarLine } from "react-icons/ri";
-import { Layout, Menu, theme } from 'antd';
+import { Layout, Menu, theme, App as AntdApp } from 'antd';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import CabezalSidebar from './components/CabezalSidebar.jsx';
 import Informe from './pages/Informe';
@@ -91,7 +91,8 @@ const AppContent = () => {
   } = theme.useToken();
 
   return (
-    <Layout>
+    <AntdApp>
+      <Layout>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <CabezalSidebar />
         <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']} className='menu-general-contenedor'>
@@ -297,6 +298,7 @@ const AppContent = () => {
         </Content>
       </Layout>
     </Layout>
+  </AntdApp>
   );
 };
 

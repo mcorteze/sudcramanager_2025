@@ -18,13 +18,13 @@ const CrearDocentePage = () => {
       form.resetFields();
     } catch (error) {
       console.error('Error al crear docente:', error);
-      if (error.response) {
-        console.error('Respuesta del servidor:', error.response.data);
+      if (error.response?.status === 409) {
+        message.warning(error.response.data.error || 'El docente ya existe en el sistema.');
+      } else {
+        const errorMsg = error.response?.data?.error || 'Error al crear el docente';
+        const detalle = error.response?.data?.detalle ? `: ${error.response.data.detalle}` : '';
+        message.error(`${errorMsg}${detalle}`);
       }
-      message.error(
-        error.response?.data?.error +
-        (error.response?.data?.detalle ? `: ${error.response.data.detalle}` : '')
-      );
     } finally {
       setLoading(false);
     }

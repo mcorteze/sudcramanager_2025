@@ -1493,7 +1493,24 @@ app.get('/api/informes/pendientes', async (req, res) => {
       secciones.id_seccion,
       asignaturas.programa,
       sd.nombre_sede,
-      informes_secciones.marca_temporal
+      informes_secciones.marca_temporal,
+      eval.exigencia,
+      (
+        SELECT MIN(puntaje_inf) 
+        FROM calificaciones 
+        WHERE id_eval = eval.id_eval 
+          AND nota >= 4 
+          AND nota NOT IN (10, 11)
+      ) as puntaje_aprobacion,
+      (SELECT ROUND(MAX(puntaje_sup)::numeric, 1) FROM calificaciones WHERE id_eval = eval.id_eval) as puntaje_total,
+      (
+        SELECT CASE 
+          WHEN COUNT(DISTINCT nota) FILTER (WHERE nota IN (0, 1, 10, 11)) = 4 THEN 'UC'
+          ELSE 'Logro General'
+        END
+        FROM calificaciones 
+        WHERE id_eval = eval.id_eval
+      ) as esquema
     FROM 
       informes_secciones
     JOIN 
@@ -3739,10 +3756,10 @@ app.put('/api/rehacerinforme_id_informeseccion', async (req, res) => {
       SET informe_listo = false
       WHERE id_matricula_eval IN (
           SELECT 
-              i.id_matricula || '.' || ise.id_eval
+              me.id_matricula_eval
           FROM informes_secciones ise
-          JOIN inscripcion i 
-              ON i.id_seccion = ise.id_seccion
+          JOIN inscripcion i ON i.id_seccion = ise.id_seccion
+          JOIN matricula_eval me ON me.id_matricula = i.id_matricula AND me.id_eval = ise.id_eval
           WHERE ise.id_informeseccion = $1
       )
       RETURNING *;
@@ -4259,6 +4276,18 @@ app.post('/crear_docente', async (req, res) => {
   }
 
   try {
+    // 1. Verificar si ya existe por RUT
+    const rutCheck = await pool.query('SELECT 1 FROM docentes WHERE rut_docente = $1', [rut_docente]);
+    if (rutCheck.rowCount > 0) {
+      return res.status(409).json({ error: `El RUT ${rut_docente} ya está registrado en el sistema.` });
+    }
+
+    // 2. Verificar si ya existe por nombre de usuario
+    const userCheck = await pool.query('SELECT 1 FROM docentes WHERE username_doc = $1', [username_doc]);
+    if (userCheck.rowCount > 0) {
+      return res.status(409).json({ error: `El nombre de usuario "${username_doc}" ya está en uso.` });
+    }
+
     const query = `
       INSERT INTO docentes (rut_docente, nombre_doc, apellidos_doc, username_doc, mail_doc)
       VALUES ($1, $2, $3, $4, $5)
