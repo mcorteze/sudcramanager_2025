@@ -19,6 +19,7 @@ export default function ReprocesarSiglaPage() {
   const [resultadosAlumnos, setResultadosAlumnos] = useState([]);
   const [columnasEvaluacion, setColumnasEvaluacion] = useState([]);
   const [loadingResultados, setLoadingResultados] = useState(false);
+  const [resumenDetallado, setResumenDetallado] = useState(null);
 
   useEffect(() => {
     fetchEvaluaciones();
@@ -99,8 +100,10 @@ const buscarResultados = async () => {
     setLoadingResultados(true);
 
     let allResults = [];
+    let summaries = [];
 
     for (const id_eval of id_eval_list) {
+      // Obtener registros para la primera columna
       const response = await axios.get('http://localhost:3001/api/obtener_id_matricula_eval_por_eval', {
         params: { id_eval }
       });
@@ -114,11 +117,16 @@ const buscarResultados = async () => {
           informe_listo: row.informe_listo
         });
       });
+
+      // Obtener resumen detallado (columnas 2 y 3)
+      const resSum = await axios.get(`http://localhost:3001/api/informes-resumen/${id_eval}`);
+      summaries.push({ id_eval, ...resSum.data });
     }
 
     console.log('Datos finales para el hijo:', allResults);
 
     setResultadosAlumnos(allResults);
+    setResumenDetallado(summaries);
     setColumnasEvaluacion([
       { title: 'ID Evaluación', dataIndex: 'id_eval', key: 'id_eval' },
       { title: 'ID Matricula Eval', dataIndex: 'id_matricula_eval', key: 'id_matricula_eval' },
@@ -133,8 +141,8 @@ const buscarResultados = async () => {
     message.success(`Se encontraron ${allResults.length} registros.`);
 
   } catch (error) {
-    console.error('Error al obtener id_matricula_eval:', error);
-    message.error('Error al obtener id_matricula_eval');
+    console.error('Error al obtener resultados:', error);
+    message.error('Error al obtener datos del servidor');
   } finally {
     setLoadingResultados(false);
   }
@@ -223,7 +231,8 @@ const buscarResultados = async () => {
       ) : (
         <ResultadosEvaluacionTable
           data={resultadosAlumnos}
-          columnasDinamicas={columnasEvaluacion}
+          resumenDetallado={resumenDetallado}
+          refetch={buscarResultados}
         />
       )}
     </div>

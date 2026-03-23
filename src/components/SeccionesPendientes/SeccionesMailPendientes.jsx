@@ -128,7 +128,7 @@ export default function SeccionesMailPendientes() {
         dataSource={seccionesMailPendientes}
         columns={columns}
         rowKey="id_informeseccion"
-        pagination={false}
+        pagination={{ pageSize: 10 }}
         className="table-small-font"
       />
       <div style={{ marginTop: '20px', textAlign: 'right' }}>

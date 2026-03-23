@@ -33,6 +33,30 @@ export default function EvaluacionesFiltradas() {
     fetchEvaluaciones();
   }, []);
 
+  const handleMailDisponibleChange = (id_eval, newVal) => {
+    Modal.confirm({
+      title: 'Confirmar cambio de Mail Disponible',
+      content: newVal 
+        ? 'Si activa esta opción, se enviarán correos automáticos al procesar tanto para docentes como para alumnos. ¿Desea continuar?' 
+        : 'Si desactiva esta opción, NO se enviarán correos automáticos, solo se procesarán. ¿Desea continuar?',
+      okText: 'Confirmar',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        try {
+          await axios.put('http://localhost:3001/api/eval/maildisponible', {
+            id_eval: id_eval,
+            maildisponible: newVal
+          });
+          message.success('Configuración de correo actualizada');
+          fetchEvaluaciones();
+        } catch (err) {
+          console.error('Error al actualizar maildisponible:', err);
+          message.error('Error al actualizar la configuración de correo');
+        }
+      }
+    });
+  };
+
   const fetchEvaluaciones = async () => {
     setLoading(true);
     try {
@@ -281,6 +305,24 @@ export default function EvaluacionesFiltradas() {
 
     { title: 'Puntos Tot.', dataIndex: 'puntaje_total', key: 'puntaje_total', width: 60, render: (val) => val != null ? Number(val) : '-' },
     {
+      title: 'Mail Disp.',
+      dataIndex: 'maildisponible',
+      key: 'maildisponible',
+      width: 100,
+      render: (val, record) => (
+        <Select
+          value={val === true}
+          size="small"
+          style={{ width: 70 }}
+          onChange={(newVal) => handleMailDisponibleChange(record.id_eval, newVal)}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Option value={true}>SI</Option>
+          <Option value={false}>NO</Option>
+        </Select>
+      )
+    },
+    {
       title: 'Fecha',
       dataIndex: 'cargado_fecha',
       key: 'cargado_fecha',
@@ -340,6 +382,7 @@ export default function EvaluacionesFiltradas() {
       'Puntaje Aprobación': e.esquema === 'UC' ? '-' : e.puntaje_aprobacion,
 
       'Puntaje Total': e.puntaje_total != null ? Number(e.puntaje_total) : '-',
+      'Mail Disponible': e.maildisponible ? 'SI' : 'NO',
       'Fecha Cargado': moment(e.cargado_fecha).format('HH:mm:ss - DD/MM/YYYY'),
 
 

@@ -22,6 +22,7 @@ export default function InformesPorDesbloquear() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [selectedAsignatura, setSelectedAsignatura] = useState(null);
+  const [selectedNumPrueba, setSelectedNumPrueba] = useState(null);
   const [selectedEvaluacion, setSelectedEvaluacion] = useState(null);
   const [isAlertModalVisible, setIsAlertModalVisible] = useState(false);
   const [evaluacionesConAlerta, setEvaluacionesConAlerta] = useState([]);
@@ -177,23 +178,33 @@ export default function InformesPorDesbloquear() {
   };
 
   // ==============================
-  // Filtrado por Asignatura
+  // Filtrado por Asignatura y Num Prueba
   // ==============================
   const asignaturasUnicas = Array.from(
     new Set(seccionesPendientes.map(item => item.cod_asig))
   ).filter(item => item !== null && item !== undefined);
 
-  const handleTagClick = (asig) => {
-    setSelectedAsignatura(prev => {
-      const next = prev === asig ? null : asig;
-      setSelectedEvaluacion(null); // Reset evaluación al cambiar asignatura
-      return next;
-    });
+  const numPruebasUnicas = Array.from(
+    new Set(seccionesPendientes.map(item => item.num_prueba))
+  ).filter(item => item !== null && item !== undefined).sort((a, b) => a - b);
+
+  const handleAsigClick = (asig) => {
+    setSelectedAsignatura(prev => (prev === asig ? null : asig));
+    setSelectedEvaluacion(null);
   };
 
-  const evaluacionesUnicas = selectedAsignatura
+  const handleNumPruebaClick = (num) => {
+    setSelectedNumPrueba(prev => (prev === num ? null : num));
+    setSelectedEvaluacion(null);
+  };
+
+  const evaluacionesUnicas = (selectedAsignatura || selectedNumPrueba)
     ? Array.from(new Set(seccionesPendientes
-      .filter(item => item.cod_asig === selectedAsignatura)
+      .filter(item => {
+        const matchAsig = !selectedAsignatura || item.cod_asig === selectedAsignatura;
+        const matchNum = !selectedNumPrueba || item.num_prueba === selectedNumPrueba;
+        return matchAsig && matchNum;
+      })
       .map(item => item.nombre_prueba)))
     : [];
 
@@ -203,8 +214,9 @@ export default function InformesPorDesbloquear() {
 
   const dataFiltrada = seccionesPendientes.filter(item => {
     const matchAsig = !selectedAsignatura || item.cod_asig === selectedAsignatura;
+    const matchNum = !selectedNumPrueba || item.num_prueba === selectedNumPrueba;
     const matchEval = !selectedEvaluacion || item.nombre_prueba === selectedEvaluacion;
-    return matchAsig && matchEval;
+    return matchAsig && matchNum;
   });
 
   // ==========================================
@@ -257,15 +269,15 @@ export default function InformesPorDesbloquear() {
   return (
     <div>
 
-      {/* FILTRO */}
-      <div style={{ marginBottom: 16 }}>
+      {/* FILTRO ASIGNATURA */}
+      <div style={{ marginBottom: 8 }}>
         <strong>Filtrar por Asignatura:</strong>{' '}
         {asignaturasUnicas.map((asig) => (
           <Tag
             key={asig}
             color={selectedAsignatura === asig ? 'geekblue' : 'default'}
             style={{ cursor: 'pointer', marginBottom: 4 }}
-            onClick={() => handleTagClick(asig)}
+            onClick={() => handleAsigClick(asig)}
           >
             {asig}
           </Tag>
@@ -277,7 +289,6 @@ export default function InformesPorDesbloquear() {
             closable
             onClose={() => {
               setSelectedAsignatura(null);
-              setSelectedEvaluacion(null);
             }}
             style={{ marginLeft: 8 }}
           >
@@ -286,10 +297,38 @@ export default function InformesPorDesbloquear() {
         )}
       </div>
 
-      {/* FILTRO EVALUACIÓN (Sólo si hay asignatura seleccionada) */}
-      {selectedAsignatura && evaluacionesUnicas.length > 0 && (
+      {/* FILTRO NUM PRUEBA */}
+      <div style={{ marginBottom: 16 }}>
+        <strong>Filtrar por N° Evaluación:</strong>{' '}
+        {numPruebasUnicas.map((num) => (
+          <Tag
+            key={num}
+            color={selectedNumPrueba === num ? 'purple' : 'default'}
+            style={{ cursor: 'pointer', marginBottom: 4 }}
+            onClick={() => handleNumPruebaClick(num)}
+          >
+            {num}
+          </Tag>
+        ))}
+
+        {selectedNumPrueba && (
+          <Tag
+            color="volcano"
+            closable
+            onClose={() => {
+              setSelectedNumPrueba(null);
+            }}
+            style={{ marginLeft: 8 }}
+          >
+            Quitar filtro N° Evaluación
+          </Tag>
+        )}
+      </div>
+
+      {/* FILTRO EVALUACIÓN (Sólo si hay asignatura o num_prueba seleccionado) */}
+      {(selectedAsignatura || selectedNumPrueba) && evaluacionesUnicas.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <strong>Filtrar por Evaluación:</strong>{' '}
+          <strong>Filtrar por Nombre Evaluación:</strong>{' '}
           {evaluacionesUnicas.map((evaluacion) => (
             <Tag
               key={evaluacion}
@@ -307,7 +346,7 @@ export default function InformesPorDesbloquear() {
               onClose={() => setSelectedEvaluacion(null)}
               style={{ marginLeft: 8 }}
             >
-              Quitar filtro Evaluación
+              Quitar filtro Nombre Evaluación
             </Tag>
           )}
         </div>
@@ -318,7 +357,7 @@ export default function InformesPorDesbloquear() {
         dataSource={dataFiltrada}
         columns={columns}
         rowKey="id_informeseccion"
-        pagination={false}
+        pagination={{ pageSize: 10 }}
         className="table-small-font"
       />
 

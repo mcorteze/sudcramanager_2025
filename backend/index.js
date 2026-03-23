@@ -11,11 +11,11 @@ app.use(express.json({ limit: '10mb' })); // Middleware para permitir que Expres
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  host: '10.211.128.151',
-  database: 'sudcra',
+  //host: '10.211.128.151',
+  //database: 'sudcra',
   // ******* bases de datos estáticas *******
-  //host: 'localhost',
-  //database: 'sudcra_20260825_0001', // final primer semestre
+  host: 'localhost',
+  database: 'sudcra_20250808_0001', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -1487,6 +1487,7 @@ app.get('/api/informes/pendientes', async (req, res) => {
       docentes.mail_doc,
       docentes.rut_docente,
       eval.nombre_prueba,
+      eval.num_prueba,
       CONCAT(informes_secciones.id_eval, '_', informes_secciones.id_seccion, '.html') AS informe,
       secciones.seccion,
       secciones.cod_asig,
@@ -1609,6 +1610,71 @@ app.get('/api/informes/pendientes-mail-alumnos', async (req, res) => {
 
     // Enviamos los resultados como un JSON
     res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+
+// Endpoint para obtener registros de la tabla `eval` con campos específicos
+app.get('/api/eval-config', async (req, res) => {
+  try {
+    const query = `
+      SELECT cod_asig, num_prueba, nombre_prueba
+      FROM eval
+      ORDER BY cod_asig ASC, num_prueba ASC;
+    `;
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL de eval-config:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+// Endpoint para obtener resumen de informes de alumnos y secciones por id_eval
+app.get('/api/informes-resumen/:id_eval', async (req, res) => {
+  const { id_eval } = req.params;
+  try {
+    // 1. Resumen de calificaciones (informe_listo)
+    const resCal = await pool.query(`
+      SELECT 
+        COUNT(*) FILTER (WHERE co.informe_listo = TRUE) as listos,
+        COUNT(*) FILTER (WHERE co.informe_listo = FALSE OR co.informe_listo IS NULL) as no_listos,
+        COUNT(*) as total
+      FROM matricula_eval me
+      JOIN calificaciones_obtenidas co ON me.id_matricula_eval = co.id_matricula_eval
+      WHERE me.id_eval = $1
+    `, [id_eval]);
+
+    // 2. Resumen de informes alumnos (usando mail_enviado como proxy de disponible/no disponible si aplica)
+    // El usuario menciona 'mail_disponible', usaremos mail_enviado o registros totales
+    const resAlum = await pool.query(`
+      SELECT 
+        COUNT(*) FILTER (WHERE ia.mail_enviado = TRUE) as disponible, -- El usuario pidió mail_disponible
+        COUNT(*) FILTER (WHERE ia.mail_enviado = FALSE) as no_disponible,
+        COUNT(*) as total
+      FROM matricula_eval me
+      JOIN informe_alumnos ia ON me.id_matricula_eval = ia.id_matricula_eval
+      WHERE me.id_eval = $1
+    `, [id_eval]);
+
+    // 3. Resumen de informes secciones
+    const resSec = await pool.query(`
+      SELECT 
+        COUNT(*) FILTER (WHERE mail_enviado = TRUE) as disponible, -- El usuario pidió maildisponible
+        COUNT(*) FILTER (WHERE mail_enviado = FALSE) as no_disponible,
+        COUNT(*) as total
+      FROM informes_secciones
+      WHERE id_eval = $1
+    `, [id_eval]);
+
+    res.json({
+      calificaciones: resCal.rows[0],
+      alumnos: resAlum.rows[0],
+      secciones: resSec.rows[0]
+    });
   } catch (err) {
     console.error('Error en la consulta SQL:', err);
     res.status(500).json({ error: 'Error en la consulta SQL' });
@@ -3172,6 +3238,18 @@ app.delete('/api/eval', async (req, res) => {
   }
 });
 
+app.put('/api/eval/maildisponible', async (req, res) => {
+  const { id_eval, maildisponible } = req.body;
+  try {
+    const query = 'UPDATE eval SET maildisponible = $1 WHERE id_eval = $2';
+    await pool.query(query, [maildisponible, id_eval]);
+    res.json({ message: 'maildisponible actualizado correctamente' });
+  } catch (err) {
+    console.error('Error al actualizar maildisponible:', err);
+    res.status(500).json({ error: 'Error al actualizar maildisponible' });
+  }
+});
+
 // Endpoint para obtener la estructura de carpetas
 app.get('/api/datos_estructura_carpeta', async (req, res) => {
   try {
@@ -3320,6 +3398,56 @@ app.put('/api/marcar-informe-no-listo', async (req, res) => {
     res.status(500).json({ message: 'Error al actualizar registros.' });
   }
 });
+
+// Endpoint para actualizar mail_enviado en informe_alumnos por id_eval
+app.put('/api/actualizar-mail-disponible-alumnos', async (req, res) => {
+  const { id_eval, disponible } = req.body;
+
+  if (!id_eval) {
+    return res.status(400).json({ message: 'El id_eval es requerido.' });
+  }
+
+  try {
+    const query = `
+      UPDATE informe_alumnos
+      SET mail_enviado = $1
+      WHERE id_matricula_eval IN (
+        SELECT id_matricula_eval 
+        FROM matricula_eval 
+        WHERE id_eval = $2
+      )
+    `;
+    await pool.query(query, [disponible, id_eval]);
+    res.json({ message: 'Registros actualizados correctamente.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al actualizar registros.' });
+  }
+});
+
+// Endpoint para actualizar mail_enviado en informes_secciones por id_eval (coincidencia parcial para cubrir secciones)
+app.put('/api/actualizar-mail-disponible-secciones', async (req, res) => {
+  const { id_eval, disponible } = req.body;
+
+  if (!id_eval) {
+    return res.status(400).json({ message: 'El id_eval es requerido.' });
+  }
+
+  try {
+    const query = `
+      UPDATE informes_secciones
+      SET mail_enviado = $1
+      WHERE id_eval = $2 OR id_eval LIKE $2 || '\_%' ESCAPE '\'
+    `;
+    await pool.query(query, [disponible, id_eval]);
+    res.json({ message: 'Registros actualizados correctamente.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error al actualizar registros.' });
+  }
+});
+
+
 
 // Alumnos por asignatura
 // Ejemplo: GET /api/alumnosporasig?cod_asig=MAT2121
@@ -3976,6 +4104,7 @@ app.get('/api/tablas_cargadas', async (req, res) => {
         e.nombre_prueba,
         e.cargado_fecha,
         e.exigencia,
+        e.maildisponible,
         (
           SELECT MIN(puntaje_inf) 
           FROM calificaciones 

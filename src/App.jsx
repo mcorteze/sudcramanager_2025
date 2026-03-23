@@ -70,6 +70,7 @@ import BuscarArchivoLeidoPage from './pages/BuscarArchivoLeidoPage.jsx'
 import PlanillasAnalizaPage from './pages/PlanillasAnalizaPage.jsx'
 import JsonTablaPage from './pages/JsonTablaPage.jsx'
 import LogsPage from './pages/LogsPage.jsx'
+import ConfiguraPlanilla from './pages/ConfiguraPlanilla.jsx'
 
 import { IoIosSearch } from "react-icons/io";
 import { PlusOutlined, HistoryOutlined } from '@ant-design/icons';
@@ -140,7 +141,7 @@ const AppContent = () => {
             <Menu.Item key="monitor-1">
               <Link to="/buscar_archivo_leido">Archivo leído</Link>
             </Menu.Item>
-            <Menu.Item key="monitor-1">
+            <Menu.Item key="monitor-1-1">
               <Link to="/imagenes">Hoja por ID</Link>
             </Menu.Item>
             <Menu.Item key="monitor-1-2">
@@ -192,6 +193,9 @@ const AppContent = () => {
           </Menu.Item>
           <Menu.Item key="18" icon={<TableOutlined />}>
             <Link to="/accesos">Otros recursos</Link>
+          </Menu.Item>
+          <Menu.Item key="19" icon={<TableOutlined />}>
+            <Link to="/configura_planilla">Configura Planilla</Link>
           </Menu.Item>
           <Menu.Item key="20" icon={<HistoryOutlined />}>
             <Link to="/log_actualizacion">Log actualización</Link>
@@ -288,6 +292,7 @@ const AppContent = () => {
             <Route path="/alumnosporasig" element={<AlumnosAsigPage />} />
             <Route path="/planillasanaliza" element={<PlanillasAnalizaPage />} />
             <Route path="/jsontable" element={<JsonTablaPage />} />
+            <Route path="/configura_planilla" element={<ConfiguraPlanilla />} />
 
             {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />

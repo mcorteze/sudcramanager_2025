@@ -113,7 +113,7 @@ const MailPendientesAlumnos = () => {
         columns={columns}
         dataSource={data}
         rowKey="id_informealum"
-        pagination={false}
+        pagination={{ pageSize: 10 }}
         className="table-small-font"
       />
     </div>

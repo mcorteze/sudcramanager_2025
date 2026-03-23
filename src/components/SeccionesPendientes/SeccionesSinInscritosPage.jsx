@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Table, Pagination, Card, Spin, Alert, Button, Modal } from "antd";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export default function SeccionesSinInscritosPage() {
   const [data, setData] = useState([]);

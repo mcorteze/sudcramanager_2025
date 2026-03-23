@@ -26,7 +26,7 @@ $pathIdLista = $config["PATH_ID_LISTA"]
 $pathProceso = $config["PATH_PROCESO"]
 $pathTransfer = $config["PATH_TRANSFER"]
 $nombreEquipo = $config["NOMBRE_EQUIPO"]
-$pathPsql     = $config["PATH_PSQL"]
+$pathPsql = $config["PATH_PSQL"]
 
 # Configuración de Base de Datos
 $dbHost = $config["DB_HOST"]
@@ -60,20 +60,24 @@ try {
             Write-SimpleLog "ERROR" "ID no valido en $pathIdLista"
             exit
         }
-    } else {
+    }
+    else {
         Write-SimpleLog "ERROR" "No existe $pathIdLista"
         exit
     }
 
-    # 2. Contar archivos en carpetas
+    # 2. Contar archivos SOLO en la carpeta principal
     $cantidadImagenes = 0
     if (Test-Path $pathProceso) {
-        $cantidadImagenes = (Get-ChildItem -Path $pathProceso -Include *.jpg, *.jpeg -File -Recurse).Count
+        $cantidadImagenes = (
+            Get-ChildItem -Path $pathProceso -File |
+            Where-Object { $_.Extension -match '^\.(jpg|jpeg)$' }
+        ).Count
     }
 
     $cantidadTransfer = 0
     if (Test-Path $pathTransfer) {
-        $cantidadTransfer = (Get-ChildItem -Path $pathTransfer -File -Recurse).Count
+        $cantidadTransfer = (Get-ChildItem -Path $pathTransfer -File).Count
     }
 
     # 3. Enviar a Base de Datos
@@ -84,12 +88,15 @@ try {
     
     if ($LASTEXITCODE -eq 0) {
         Write-SimpleLog "OK" "ID:$idLista | ImgPrep:$cantidadImagenes | Transf:$cantidadTransfer | Host:$nombreEquipo"
-    } else {
+    }
+    else {
         Write-SimpleLog "ERROR" "psql falló: $($psqlOutput -join ' ')"
     }
 
-} catch {
+}
+catch {
     Write-SimpleLog "CRITICAL" $($_.Exception.Message)
-} finally {
+}
+finally {
     $env:PGPASSWORD = $null
 }
