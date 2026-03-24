@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Combobox from './Combobox';
 import MatriculaTable from './MatriculaTable';
-import { Button } from 'antd'; // Importa el botón de Ant Design
-import { InfoOutlined, ClearOutlined } from '@ant-design/icons'; // Importa los íconos necesarios
+import { Button, App } from 'antd';
+import { InfoOutlined, ClearOutlined, ReloadOutlined } from '@ant-design/icons';
 import './Formulario.css';
 
 export default function Formulario() {
   const navigate = useNavigate();
+  const { modal } = App.useApp();
+
   const [programas, setProgramas] = useState([]);
   const [programaSeleccionada, setProgramaSeleccionada] = useState('');
   const [sedes, setSedes] = useState([]);
@@ -23,6 +25,7 @@ export default function Formulario() {
   const [idSeccion, setIdSeccion] = useState('');
   const [numeroSeccion, setNumeroSeccion] = useState('');
   const [jornada, setJornada] = useState('');
+  const [loadingRefresh, setLoadingRefresh] = useState(false);
 
   useEffect(() => {
     const fetchProgramas = async () => {
@@ -96,28 +99,40 @@ export default function Formulario() {
     }
   };
 
+  // Función centralizada para cargar matrículas
+  const fetchMatriculas = async (idSec, asig) => {
+    try {
+      const response = await axios.get(`http://localhost:3001/api/matriculas/${idSec}/${asig}`);
+      setMatriculas(response.data);
+    } catch (error) {
+      console.error('Error al obtener las matrículas:', error);
+    }
+  };
+
   const handleSeccionChange = async (event) => {
-    const idSeccion = event.target.value;
-    const seccionSeleccionada = event.target.options[event.target.selectedIndex].text;
-    setSeccionSeleccionada(idSeccion);
-    setIdSeccion(idSeccion);
+    const idSec = event.target.value;
+    const seccionTexto = event.target.options[event.target.selectedIndex].text;
+    setSeccionSeleccionada(idSec);
+    setIdSeccion(idSec);
 
-    if (idSeccion && asignaturaSeleccionada) {
-      try {
-        const response = await axios.get(`http://localhost:3001/api/matriculas/${idSeccion}/${asignaturaSeleccionada}`);
-        setMatriculas(response.data);
+    if (idSec && asignaturaSeleccionada) {
+      await fetchMatriculas(idSec, asignaturaSeleccionada);
 
-        const numeroSeccion = seccionSeleccionada.slice(-4, -1);
-        const jornada = seccionSeleccionada.slice(-1);
-
-        setNumeroSeccion(numeroSeccion);
-        setJornada(jornada);
-      } catch (error) {
-        console.error('Error al obtener las matrículas:', error);
-      }
+      const numSec = seccionTexto.slice(-4, -1);
+      const jor = seccionTexto.slice(-1);
+      setNumeroSeccion(numSec);
+      setJornada(jor);
     } else {
       setMatriculas([]);
     }
+  };
+
+  // Actualiza los registros sin cambiar la sección seleccionada
+  const handleRefresh = async () => {
+    if (!idSeccion || !asignaturaSeleccionada) return;
+    setLoadingRefresh(true);
+    await fetchMatriculas(idSeccion, asignaturaSeleccionada);
+    setLoadingRefresh(false);
   };
 
   const handleInfoClick = () => {
@@ -128,16 +143,28 @@ export default function Formulario() {
     }
   };
 
-  // Nueva función para limpiar los combobox
+  // Limpiar con confirmación modal
   const handleClearComboboxes = () => {
-    setProgramaSeleccionada('');
-    setSeccionSeleccionada('');
-    setAsignaturaSeleccionada('');
-    setIdSedeSeleccionada('');
-    setMatriculas([]);
-    setPruebas([]);
-    setSecciones([]);
-    setAsignaturas([]);
+    modal.confirm({
+      title: '¿Limpiar selección?',
+      content: 'Se borrarán todos los filtros seleccionados y los registros de la tabla.',
+      okText: 'Sí, limpiar',
+      cancelText: 'Cancelar',
+      okButtonProps: { danger: true },
+      onOk: () => {
+        setProgramaSeleccionada('');
+        setSeccionSeleccionada('');
+        setAsignaturaSeleccionada('');
+        setIdSedeSeleccionada('');
+        setMatriculas([]);
+        setPruebas([]);
+        setSecciones([]);
+        setAsignaturas([]);
+        setIdSeccion('');
+        setNumeroSeccion('');
+        setJornada('');
+      },
+    });
   };
 
   return (
@@ -177,16 +204,27 @@ export default function Formulario() {
           onClick={handleInfoClick}
           disabled={!idSeccion}
           className="info-button"
-        >
-        </Button>
-        {/* Botón para limpiar */}
+          title="Ver detalle de sección"
+        />
+        {/* Botón para actualizar registros de la tabla */}
+        <Button
+          type="default"
+          icon={<ReloadOutlined />}
+          onClick={handleRefresh}
+          disabled={!idSeccion}
+          loading={loadingRefresh}
+          className="info-button"
+          title="Actualizar registros"
+        />
+        {/* Botón para limpiar (con confirmación) */}
         <Button
           type="primary"
+          danger
           icon={<ClearOutlined />}
           onClick={handleClearComboboxes}
           className="info-button"
-        >
-        </Button>
+          title="Limpiar selección"
+        />
       </div>
       <div className="table-container">
         <MatriculaTable
