@@ -9,13 +9,21 @@ const LecturaTable = ({ lecturaData, loading }) => {
   const [rutStatusData, setRutStatusData] = useState([]);
   const [loadingDrawer, setLoadingDrawer] = useState(false);
   const [selectedAsig, setSelectedAsig] = useState(null);
+  const [selectedSeccion, setSelectedSeccion] = useState(null);
 
-  // Generar siglas únicas para los botones de segmentación (tags)
+  // Generar siglas únicas para las asignaturas
   const uniqueCodAsig = [...new Set(rutStatusData.map(item => item.cod_asig))].filter(Boolean).sort();
 
-  const filteredRutStatusData = selectedAsig 
-    ? rutStatusData.filter(item => item.cod_asig === selectedAsig)
-    : rutStatusData;
+  // Generar secciones únicas basadas en la asignatura seleccionada
+  const uniqueSecciones = selectedAsig
+    ? [...new Set(rutStatusData.filter(item => item.cod_asig === selectedAsig).map(item => item.seccion))].filter(Boolean).sort()
+    : [];
+
+  const filteredRutStatusData = rutStatusData.filter(item => {
+    const matchAsig = selectedAsig ? item.cod_asig === selectedAsig : true;
+    const matchSeccion = selectedSeccion ? item.seccion === selectedSeccion : true;
+    return matchAsig && matchSeccion;
+  });
 
   const lecturaColumns = [
     { title: 'Imagen', dataIndex: 'imagen', key: 'imagen' },
@@ -48,7 +56,8 @@ const LecturaTable = ({ lecturaData, loading }) => {
 
     setDrawerVisible(true);
     setLoadingDrawer(true);
-    setSelectedAsig(null); // Reset filter when opening
+    setSelectedAsig(null);
+    setSelectedSeccion(null);
     try {
       const response = await axios.post('http://localhost:3001/api/estado_ruts', { ruts: uniqueRuts });
       setRutStatusData(response.data);
@@ -106,34 +115,72 @@ const LecturaTable = ({ lecturaData, loading }) => {
       <Drawer
         title="Estado de RUTs (Consulta Alumnos/Secciones)"
         placement="right"
-        width={900}
+        width={1000}
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
       >
         {/* Botones de segmentación tipo Excel */}
-        <div style={{ marginBottom: 20, padding: '10px', background: '#f5f5f5', borderRadius: '8px' }}>
-          <div style={{ fontWeight: 'bold', marginBottom: 8, fontSize: '12px', color: '#666' }}>
-            SEGMENTACIÓN POR ASIGNATURA:
-          </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <Tag.CheckableTag
-              checked={!selectedAsig}
-              onChange={() => setSelectedAsig(null)}
-              style={{ border: '1px solid #d9d9d9' }}
-            >
-              MOSTRAR TODAS
-            </Tag.CheckableTag>
-            {uniqueCodAsig.map(asig => (
+        <div style={{ marginBottom: 20, padding: '12px', background: '#f0f2f5', borderRadius: '8px', border: '1px solid #d9d9d9' }}>
+          
+          {/* Nivel 1: Asignatura */}
+          <div style={{ marginBottom: uniqueCodAsig.length > 0 ? 16 : 0 }}>
+            <div style={{ fontWeight: 'bold', marginBottom: 8, fontSize: '11px', color: '#1890ff', textTransform: 'uppercase' }}>
+              1. Filtrar por Asignatura:
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <Tag.CheckableTag
-                key={asig}
-                checked={selectedAsig === asig}
-                onChange={(checked) => setSelectedAsig(checked ? asig : null)}
-                style={{ border: '1px solid #d9d9d9' }}
+                checked={!selectedAsig}
+                onChange={() => {
+                  setSelectedAsig(null);
+                  setSelectedSeccion(null);
+                }}
+                style={{ border: '1px solid #d9d9d9', borderRadius: '4px' }}
               >
-                {asig}
+                TODAS LAS ASIGNATURAS
               </Tag.CheckableTag>
-            ))}
+              {uniqueCodAsig.map(asig => (
+                <Tag.CheckableTag
+                  key={asig}
+                  checked={selectedAsig === asig}
+                  onChange={(checked) => {
+                    setSelectedAsig(checked ? asig : null);
+                    setSelectedSeccion(null);
+                  }}
+                  style={{ border: '1px solid #d9d9d9', borderRadius: '4px' }}
+                >
+                  {asig}
+                </Tag.CheckableTag>
+              ))}
+            </div>
           </div>
+
+          {/* Nivel 2: Sección (Aparece solo si hay asignatura seleccionada) */}
+          {selectedAsig && uniqueSecciones.length > 0 && (
+            <div style={{ paddingTop: 12, borderTop: '1px dashed #d9d9d9' }}>
+              <div style={{ fontWeight: 'bold', marginBottom: 8, fontSize: '11px', color: '#52c41a', textTransform: 'uppercase' }}>
+                2. Filtrar por Sección en {selectedAsig}:
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <Tag.CheckableTag
+                  checked={!selectedSeccion}
+                  onChange={() => setSelectedSeccion(null)}
+                  style={{ border: '1px solid #d9d9d9', borderRadius: '4px' }}
+                >
+                  TODAS LAS SECCIONES
+                </Tag.CheckableTag>
+                {uniqueSecciones.map(seccion => (
+                  <Tag.CheckableTag
+                    key={seccion}
+                    checked={selectedSeccion === seccion}
+                    onChange={(checked) => setSelectedSeccion(checked ? seccion : null)}
+                    style={{ border: '1px solid #d9d9d9', borderRadius: '4px' }}
+                  >
+                    {seccion}
+                  </Tag.CheckableTag>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <Table
@@ -143,6 +190,7 @@ const LecturaTable = ({ lecturaData, loading }) => {
           rowKey={(record, index) => `${record.rut}-${record.id_seccion}-${index}`}
           pagination={{ pageSize: 20 }}
           size="small"
+          bordered
         />
       </Drawer>
     </div>
