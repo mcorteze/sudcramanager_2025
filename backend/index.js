@@ -317,6 +317,40 @@ app.get('/api/calificaciones/:id_matricula_eval', async (req, res) => {
   }
 });
 
+// Endpoint para estado de ruts (consulta cruzada de alumnos, matricula, inscripcion, secciones y sedes)
+app.post('/api/estado_ruts', async (req, res) => {
+  const { ruts } = req.body;
+  if (!ruts || !Array.isArray(ruts) || ruts.length === 0) {
+    return res.status(400).json({ error: 'Se requiere un array de RUTs' });
+  }
+
+  try {
+    const query = `
+      SELECT
+        al.rut,
+        al.apellidos,
+        al.nombres,
+        sd.nombre_sede,
+        s.id_seccion,
+        s.seccion,
+        s.cod_asig
+      FROM alumnos al
+      JOIN matricula m on m.rut = al.rut
+      JOIN inscripcion i on i.id_matricula = m.id_matricula
+      JOIN secciones s on s.id_seccion = i.id_seccion
+      JOIN sedes sd on sd.id_sede=s.id_sede
+      WHERE al.rut = ANY($1)
+      ORDER BY al.apellidos, al.nombres, s.seccion ASC
+    `;
+    const result = await pool.query(query, [ruts]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en la consulta SQL:', err);
+    res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+
 // Endpoint para obtener el detalle de respuesta por item de la calificación por id_matricula_eval (segundo dawner de busqueda por rut)
 app.get('/api/calificacion_item/:id_matricula_eval', async (req, res) => {
   const { id_matricula_eval } = req.params;
