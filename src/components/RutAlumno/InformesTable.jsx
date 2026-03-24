@@ -1,56 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Typography, message, Tooltip, Modal } from 'antd';
+import { Table, Typography, Tooltip, App } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
 import { LinkOutlined, SyncOutlined, SendOutlined } from '@ant-design/icons';
-import { getPeriodoStr } from '../../utils/periodo'; // ajusta la ruta si es necesario
-
-const { confirm } = Modal;
+import { getPeriodoStr } from '../../utils/periodo';
 
 const SHAREPOINT_BASE = 'https://duoccl0-my.sharepoint.com/personal/mcorteze_duoc_cl/Documents/sudcra-repositorio/informes';
 
-// Reenviar informe (confirmación)
-const handleReenviarInforme = (id_matricula_eval, cod_asig, nombre_prueba) => {
-  confirm({
-    title: '¿Estás seguro de reenviar el informe?',
-    content: `Esta acción reenviará al alumno el informe ya creado.\n\n${cod_asig}\n- ${nombre_prueba}`,
-    okText: 'Sí, reenviar',
-    cancelText: 'Cancelar',
-    onOk: async () => {
-      try {
-        await axios.put('http://localhost:3001/api/reenviarinformealumno', { idMatriculaEval: id_matricula_eval });
-        message.success('Informe reenviado con éxito');
-      } catch (error) {
-        console.error('Error al reenviar el informe:', error);
-        message.error('Error al reenviar el informe');
-      }
-    },
-    onCancel: () => message.info('Operación cancelada'),
-  });
-};
-
-// Rehacer informe (confirmación)
-const handleRehacerInforme = (id_matricula_eval, cod_asig, nombre_prueba) => {
-  confirm({
-    title: '¿Estás seguro de reelaborar el informe?',
-    content: `Esta acción volverá a crear y enviar el informe, para alumno y docente.\n\n ${cod_asig}\n- ${nombre_prueba}`,
-    okText: 'Sí, confirmar',
-    cancelText: 'Cancelar',
-    onOk: async () => {
-      try {
-        await axios.put('http://localhost:3001/api/rehacerinformealumno', { idMatriculaEval: id_matricula_eval });
-        message.success('Informe marcado para reelaboración');
-      } catch (error) {
-        console.error('Error al reelaborar el informe:', error);
-        message.error('Error al reelaborar el informe');
-      }
-    },
-    onCancel: () => message.info('Operación cancelada'),
-  });
-};
-
-// Columns: recibe periodoSafe para construir URLs
-const columns = (handleRehacerInforme, handleReenviarInforme, periodoSafe) => [
+// Columns: recibe los handlers y periodoSafe
+const getColumns = (onRehacer, onReenviar, periodoSafe) => [
   { title: 'id_matricula_eval', dataIndex: 'id_matricula_eval', key: 'id_matricula_eval' },
   { title: 'Código Asignatura', dataIndex: 'cod_asig', key: 'cod_asig' },
   { title: 'Nombre Prueba', dataIndex: 'nombre_prueba', key: 'nombre_prueba' },
@@ -89,13 +47,13 @@ const columns = (handleRehacerInforme, handleReenviarInforme, periodoSafe) => [
           <Tooltip title="Reenviar Informe">
             <SendOutlined
               style={{ fontSize: 18, color: '#52c41a', cursor: 'pointer' }}
-              onClick={() => handleReenviarInforme(id_matricula_eval, record.cod_asig, record.nombre_prueba)}
+              onClick={() => onReenviar(id_matricula_eval, record.cod_asig, record.nombre_prueba)}
             />
           </Tooltip>
           <Tooltip title="Rehacer Informe">
             <SyncOutlined
               style={{ fontSize: 18, color: '#faad14', cursor: 'pointer' }}
-              onClick={() => handleRehacerInforme(id_matricula_eval, record.cod_asig, record.nombre_prueba)}
+              onClick={() => onRehacer(id_matricula_eval, record.cod_asig, record.nombre_prueba)}
             />
           </Tooltip>
         </div>
@@ -109,8 +67,50 @@ const InformesTable = ({ idMatricula }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // leer periodo en tiempo de render (ya inicializado por appConfig.load())
+  // Hook de Ant Design v5 para obtener modal y message con contexto
+  const { modal, message } = App.useApp();
+
   const periodoSafe = getPeriodoStr() || '0000000';
+
+  // Reenviar informe (confirmación)
+  const handleReenviarInforme = (id_matricula_eval, cod_asig, nombre_prueba) => {
+    modal.confirm({
+      title: '¿Estás seguro de reenviar el informe?',
+      content: `Esta acción reenviará al alumno el informe ya creado.\n\n${cod_asig}\n- ${nombre_prueba}`,
+      okText: 'Sí, reenviar',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        try {
+          await axios.put('http://localhost:3001/api/reenviarinformealumno', { idMatriculaEval: id_matricula_eval });
+          message.success('Informe reenviado con éxito');
+        } catch (err) {
+          console.error('Error al reenviar el informe:', err);
+          message.error('Error al reenviar el informe');
+        }
+      },
+      onCancel: () => message.info('Operación cancelada'),
+    });
+  };
+
+  // Rehacer informe (confirmación)
+  const handleRehacerInforme = (id_matricula_eval, cod_asig, nombre_prueba) => {
+    modal.confirm({
+      title: '¿Estás seguro de reelaborar el informe?',
+      content: `Esta acción volverá a crear y enviar el informe, para alumno y docente.\n\n ${cod_asig}\n- ${nombre_prueba}`,
+      okText: 'Sí, confirmar',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        try {
+          await axios.put('http://localhost:3001/api/rehacerinformealumno', { idMatriculaEval: id_matricula_eval });
+          message.success('Informe marcado para reelaboración');
+        } catch (err) {
+          console.error('Error al reelaborar el informe:', err);
+          message.error('Error al reelaborar el informe');
+        }
+      },
+      onCancel: () => message.info('Operación cancelada'),
+    });
+  };
 
   useEffect(() => {
     const fetchInformes = async () => {
@@ -141,7 +141,7 @@ const InformesTable = ({ idMatricula }) => {
 
       <Table
         className="formato-table1"
-        columns={columns(handleRehacerInforme, handleReenviarInforme, periodoSafe)}
+        columns={getColumns(handleRehacerInforme, handleReenviarInforme, periodoSafe)}
         dataSource={informes}
         rowKey="id_informealum"
         loading={loading}
