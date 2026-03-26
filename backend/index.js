@@ -11,11 +11,11 @@ app.use(express.json({ limit: '10mb' })); // Middleware para permitir que Expres
 const pool = new Pool({
   user: 'postgres',
   // ******* base de datos real *******
-  //host: '10.211.128.151',
-  //database: 'sudcra',
+  host: '10.211.128.151',
+  database: 'sudcra',
   // ******* bases de datos estáticas *******
-  host: 'localhost',
-  database: 'sudcra_20250808_0001', // final primer semestre
+  //host: 'localhost',
+  //database: 'sudcra_20250808_0001', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -1236,6 +1236,25 @@ app.get('/api/buscar-imagenes-lectura', async (req, res) => {
   }
 });
 
+// Verificar cuáles imágenes existen en la tabla lectura
+app.post('/api/verificar-imagenes-lectura', async (req, res) => {
+  const { imagenes } = req.body;
+  if (!Array.isArray(imagenes) || imagenes.length === 0) {
+    return res.status(400).json({ error: 'Se requiere un arreglo de imagenes.' });
+  }
+  try {
+    const result = await pool.query(
+      'SELECT DISTINCT imagen FROM lectura WHERE imagen = ANY($1)',
+      [imagenes]
+    );
+    const encontradas = new Set(result.rows.map(r => r.imagen));
+    res.json({ encontradas: [...encontradas] });
+  } catch (err) {
+    console.error('Error al verificar imágenes:', err);
+    res.status(500).json({ error: 'Error al verificar imágenes.' });
+  }
+});
+
 app.post('/lectura-temp-masivo', async (req, res) => {
   const { imagenes } = req.body;
 
@@ -1251,8 +1270,21 @@ app.post('/lectura-temp-masivo', async (req, res) => {
   `;
 
   try {
-    await pool.query(query, [imagenes]);
-    res.json({ success: true });
+    const result = await pool.query(query, [imagenes]);
+    const insertadas = result.rowCount || 0;
+    console.log(`[lectura-temp-masivo] imagenes recibidas: ${imagenes.length}, filas insertadas: ${insertadas}`);
+    console.log('[lectura-temp-masivo] primeras imagenes recibidas:', imagenes.slice(0, 5));
+    // Diagnóstico: buscar la primera imagen del Excel exacta y también con ILIKE
+    const primerImg = imagenes[0];
+    const exacta = await pool.query('SELECT imagen FROM lectura WHERE imagen = $1 LIMIT 1', [primerImg]);
+    const parcial = await pool.query('SELECT imagen FROM lectura WHERE imagen ILIKE $1 LIMIT 3', [`%${primerImg}%`]);
+    const sinExt = primerImg ? primerImg.replace(/\.[^.]+$/, '') : '';
+    const sinExtQ = await pool.query('SELECT imagen FROM lectura WHERE imagen ILIKE $1 LIMIT 3', [`%${sinExt}%`]);
+    console.log(`[lectura-temp-masivo] busqueda exacta "${primerImg}":`, exacta.rows);
+    console.log(`[lectura-temp-masivo] busqueda ILIKE parcial:`, parcial.rows);
+    console.log(`[lectura-temp-masivo] busqueda sin extension "${sinExt}":`, sinExtQ.rows);
+    console.log(`[lectura-temp-masivo] longitud y chars de primera imagen:`, primerImg?.length, JSON.stringify(primerImg));
+    res.json({ success: true, insertadas, enviadas: imagenes.length });
   } catch (err) {
     console.error('Error al mover los datos:', err);
     res.status(500).json({ success: false, message: 'Error al mover los datos' });
@@ -4379,6 +4411,24 @@ app.put('/api/actualizar-alumno', async (req, res) => {
   }
 });
 
+// Verificar si un RUT de alumno ya existe
+app.get('/api/verificar-rut-alumno/:rut', async (req, res) => {
+  const { rut } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT rut, nombres, apellidos FROM alumnos WHERE rut = $1',
+      [rut]
+    );
+    if (result.rowCount > 0) {
+      res.json({ existe: true, alumno: result.rows[0] });
+    } else {
+      res.json({ existe: false });
+    }
+  } catch (err) {
+    res.status(500).json({ existe: false });
+  }
+});
+
 // Endpoint para crear alumno
 app.post('/crear_alumno', async (req, res) => {
   const { rut, nombres, apellidos, user_alum, sexo } = req.body;
@@ -4424,6 +4474,24 @@ app.post('/crear_alumno', async (req, res) => {
       error: 'Error interno del servidor al crear el alumno.',
       detalle: error.message
     });
+  }
+});
+
+// Verificar si un RUT de docente ya existe
+app.get('/api/verificar-rut-docente/:rut', async (req, res) => {
+  const { rut } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT rut_docente, nombre_doc, apellidos_doc FROM docentes WHERE rut_docente = $1',
+      [rut]
+    );
+    if (result.rowCount > 0) {
+      res.json({ existe: true, docente: result.rows[0] });
+    } else {
+      res.json({ existe: false });
+    }
+  } catch (err) {
+    res.status(500).json({ existe: false });
   }
 });
 

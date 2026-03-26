@@ -7,11 +7,15 @@ import {
   Space,
   message,
   Statistic,
-  Card
+  Card,
+  Tag,
 } from 'antd';
 import {
   DownloadOutlined,
   UploadOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
@@ -21,9 +25,11 @@ const { Title } = Typography;
 
 
 const LecturasMasivoPage = () => {
+  const [messageApi, contextHolder] = message.useMessage();
   const [data, setData] = useState([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filtrosSeleccionados, setFiltrosSeleccionados] = useState(null);
+  const [verificando, setVerificando] = useState(false);
 
   const { Link } = Typography;
 
@@ -50,7 +56,7 @@ const LecturasMasivoPage = () => {
         jsonData.length < 2 ||
         jsonData[0][0] !== 'ID_Imagen'
       ) {
-        message.error(
+        messageApi.error(
           'Formato inválido. Asegúrate de que la celda A1 diga "ID_Imagen".'
         );
         return;
@@ -68,25 +74,50 @@ const LecturasMasivoPage = () => {
   };
 
   const handleEnviar = async () => {
+    const imagenes = data.map((record) => record.id_imagen).filter(Boolean);
+    if (imagenes.length === 0) {
+      messageApi.warning('No hay imágenes para enviar.');
+      return;
+    }
     try {
-      const imagenes = data
-        .map((record) => record.id_imagen)
-        .filter(Boolean);
       const response = await axios.post(
         'http://localhost:3001/lectura-temp-masivo',
         { imagenes }
       );
-
-      if (response.data.success) {
-        message.success('Datos enviados correctamente');
+      const { insertadas, enviadas } = response.data;
+      console.log('Respuesta backend:', response.data);
+      if (insertadas === 0) {
+        messageApi.warning(`Se enviaron ${enviadas} IDs pero ninguno coincidió con registros en la tabla lectura. Verifique los IDs del archivo.`);
       } else {
-        message.error(
-          response.data.message || 'Error al enviar los datos'
-        );
+        messageApi.success(`Se insertaron ${insertadas} de ${enviadas} registros en lectura_temp correctamente.`);
       }
     } catch (err) {
-      console.error(err);
-      message.error('Error de red o servidor');
+      console.error('Error al enviar:', err);
+      const msg = err.response?.data?.message || 'Error de red o servidor';
+      messageApi.error(msg);
+    }
+  };
+
+  const handleVerificar = async () => {
+    const imagenes = data.map((r) => r.id_imagen).filter(Boolean);
+    if (imagenes.length === 0) return;
+    setVerificando(true);
+    try {
+      const res = await axios.post('http://localhost:3001/api/verificar-imagenes-lectura', { imagenes });
+      const encontradas = new Set(res.data.encontradas);
+      if (encontradas.size === 0) {
+        messageApi.warning('Ninguna imagen del listado está en la tabla lectura.');
+      } else {
+        messageApi.success(`${encontradas.size} de ${imagenes.length} imágenes encontradas en lectura.`);
+      }
+      setData(prev => prev.map(r => ({
+        ...r,
+        en_lectura: encontradas.has(r.id_imagen),
+      })));
+    } catch (err) {
+      messageApi.error('Error al verificar imágenes.');
+    } finally {
+      setVerificando(false);
     }
   };
 
@@ -102,10 +133,22 @@ const LecturasMasivoPage = () => {
       dataIndex: 'id_imagen',
       key: 'id_imagen',
     },
+    {
+      title: 'En tabla lectura',
+      dataIndex: 'en_lectura',
+      key: 'en_lectura',
+      render: (val) => {
+        if (val === undefined) return null;
+        return val
+          ? <Tag icon={<CheckCircleOutlined />} color="success">Encontrada</Tag>
+          : <Tag icon={<CloseCircleOutlined />} color="error">No encontrada</Tag>;
+      },
+    },
   ];
 
   return (
     <div className='page-full'>
+      {contextHolder}
       <h1>Buscar listado de imágenes a reprocesar</h1>
 
       <div style = {{ display: 'flex', flexDirection: 'column'}} >
@@ -173,14 +216,22 @@ const LecturasMasivoPage = () => {
             />
           </Card>
 
-          <Button
-            type="primary"
-            onClick={handleEnviar}
-            disabled={data.length === 0}
-            style={{ marginBottom: 16 }}
-          >
-            Enviar a lectura_temp
-          </Button>
+          <Space style={{ marginBottom: 16 }}>
+            <Button
+              icon={<SearchOutlined />}
+              onClick={handleVerificar}
+              loading={verificando}
+            >
+              Verificar en lectura
+            </Button>
+            <Button
+              type="primary"
+              onClick={handleEnviar}
+              disabled={data.length === 0}
+            >
+              Enviar a lectura_temp
+            </Button>
+          </Space>
 
           <Table
             columns={columns}
