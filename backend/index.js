@@ -584,6 +584,26 @@ app.get('/api/calificaciones_por_eval/:id_eval', async (req, res) => {
   }
 });
 
+// Mapa académico de una evaluación (tabla medidas)
+app.get('/api/mapa_academico/:id_eval', async (req, res) => {
+  const { id_eval } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT tipo_medida_cod, orden, desc_corta, dependencia, id_medida
+       FROM medidas
+       WHERE id_eval = $1
+       ORDER BY
+         CASE tipo_medida_cod WHEN 'UC' THEN 1 WHEN 'AE' THEN 2 WHEN 'IL' THEN 3 ELSE 4 END,
+         orden ASC`,
+      [id_eval]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en mapa_academico:', err);
+    res.status(500).json({ error: 'Error al obtener mapa académico.' });
+  }
+});
+
 // Endpoint de listado de ultimo proceso, por programa, para Home
 app.get('/api/ultimas-calificaciones', async (req, res) => {
   try {
@@ -1655,6 +1675,7 @@ app.get('/api/informes/pendientes-mail-alumnos', async (req, res) => {
     const result = await pool.query(
       `SELECT
         e.cod_asig,
+        e.num_prueba,
         e.nombre_prueba,
         a.rut,
         a.user_alum,

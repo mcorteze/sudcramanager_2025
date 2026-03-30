@@ -157,6 +157,8 @@ export default function ResultadosEvaluacionTable({ data, resumenDetallado, refe
             style={{ height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid #ff4d4f' }}
           >
             <div style={{ flexGrow: 1 }}>
+              <Text style={{ fontSize: '10px' }}>Si se rehacen informes aparecerán nuevas lineas en False, ya que los registros no se reemplazan</Text>
+              <br />
               <Text strong>Total en informe_alumnos: </Text>
               <Text>{stats?.alumnos?.total || 0}</Text>
               <br />
@@ -174,7 +176,7 @@ export default function ResultadosEvaluacionTable({ data, resumenDetallado, refe
                 block
                 onClick={() => openConfirmation('alumnos_true')}
               >
-                Habilitar Todos
+                Marcar como enviados
               </Button>
               <Button 
                 type="primary"
@@ -183,7 +185,7 @@ export default function ResultadosEvaluacionTable({ data, resumenDetallado, refe
                 block
                 onClick={() => openConfirmation('alumnos_false')}
               >
-                Deshabilitar Todos
+                Marcar como NO enviados
               </Button>
             </div>
           </Card>
@@ -199,6 +201,8 @@ export default function ResultadosEvaluacionTable({ data, resumenDetallado, refe
             style={{ height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid #ff4d4f' }}
           >
             <div style={{ flexGrow: 1 }}>
+              <Text style={{ fontSize: '10px' }}>Si se rehacen informes aparecerán nuevas lineas en False, ya que los registros no se reemplazan</Text>
+              <br />
               <Text strong>Total en informes_secciones: </Text>
               <Text>{stats?.secciones?.total || 0}</Text>
               <br />
@@ -216,7 +220,7 @@ export default function ResultadosEvaluacionTable({ data, resumenDetallado, refe
                 block
                 onClick={() => openConfirmation('secciones_true')}
               >
-                Habilitar Todos
+                Marcar como enviados
               </Button>
               <Button 
                 type="primary"
@@ -225,7 +229,7 @@ export default function ResultadosEvaluacionTable({ data, resumenDetallado, refe
                 block
                 onClick={() => openConfirmation('secciones_false')}
               >
-                Deshabilitar Todos
+                Marcar como NO enviados
               </Button>
             </div>
           </Card>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Spin, Alert, Button, message } from 'antd';
+import { Table, Spin, Alert, Button, message, Tag } from 'antd';
 import { CopyOutlined, DownloadOutlined } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import 'antd/dist/reset.css';
@@ -10,6 +10,24 @@ export default function SeccionesMailPendientes() {
   const [seccionesMailPendientes, setSeccionesMailPendientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filtroPrograma, setFiltroPrograma] = useState(null);
+  const [filtroAsig, setFiltroAsig] = useState(null);
+  const [filtroEval, setFiltroEval] = useState(null);
+
+  const handleProgramaClick = (p) => {
+    setFiltroPrograma(prev => prev === p ? null : p);
+    setFiltroAsig(null);
+    setFiltroEval(null);
+  };
+
+  const handleAsigClick = (asig) => {
+    setFiltroAsig(prev => prev === asig ? null : asig);
+    setFiltroEval(null);
+  };
+
+  const handleEvalClick = (eval_) => {
+    setFiltroEval(prev => prev === eval_ ? null : eval_);
+  };
 
   useEffect(() => {
     fetchSeccionesMailPendientes();
@@ -119,13 +137,99 @@ export default function SeccionesMailPendientes() {
   if (seccionesMailPendientes.length === 0)
     return <Alert message="No hay secciones pendientes" description="No hay más secciones pendientes de envío de mail." type="info" />;
 
+  const programasUnicos = [...new Set(seccionesMailPendientes.map(r => r.programa))].sort();
+
+  // Asignaturas dependen del programa seleccionado
+  const asignaturasUnicas = [...new Set(
+    seccionesMailPendientes
+      .filter(r => !filtroPrograma || r.programa === filtroPrograma)
+      .map(r => r.cod_asig)
+  )].sort();
+
+  // Evaluaciones dependen del programa y asignatura seleccionados
+  const evaluacionesUnicas = [...new Set(
+    seccionesMailPendientes
+      .filter(r =>
+        (!filtroPrograma || r.programa === filtroPrograma) &&
+        (!filtroAsig || r.cod_asig === filtroAsig)
+      )
+      .map(r => r.id_eval)
+  )].sort();
+
+  const datosFiltrados = seccionesMailPendientes.filter(r =>
+    (!filtroPrograma || r.programa === filtroPrograma) &&
+    (!filtroAsig || r.cod_asig === filtroAsig) &&
+    (!filtroEval || r.id_eval === filtroEval)
+  );
+
   return (
     <div>
       <div style={{ marginTop: '20px' }}></div>
       <h1>Secciones pendientes de envío de mail</h1>
       <h3>Secciones con informe de docente pendiente por algún motivo.</h3>
+
+      {/* FILTRO PROGRAMA */}
+      <div style={{ marginBottom: 8 }}>
+        <strong>Filtrar por Programa:</strong>{' '}
+        {programasUnicos.map(p => (
+          <Tag
+            key={p}
+            color={filtroPrograma === p ? 'geekblue' : 'default'}
+            style={{ cursor: 'pointer', marginBottom: 4 }}
+            onClick={() => handleProgramaClick(p)}
+          >
+            {p}
+          </Tag>
+        ))}
+        {filtroPrograma && (
+          <Tag color="volcano" closable onClose={() => { setFiltroPrograma(null); setFiltroAsig(null); }} style={{ marginLeft: 8 }}>
+            Quitar filtro Programa
+          </Tag>
+        )}
+      </div>
+
+      {/* FILTRO ASIGNATURA — depende del programa */}
+      <div style={{ marginBottom: 8 }}>
+        <strong>Filtrar por Asignatura:</strong>{' '}
+        {asignaturasUnicas.map(asig => (
+          <Tag
+            key={asig}
+            color={filtroAsig === asig ? 'geekblue' : 'default'}
+            style={{ cursor: 'pointer', marginBottom: 4 }}
+            onClick={() => handleAsigClick(asig)}
+          >
+            {asig}
+          </Tag>
+        ))}
+        {filtroAsig && (
+          <Tag color="volcano" closable onClose={() => setFiltroAsig(null)} style={{ marginLeft: 8 }}>
+            Quitar filtro Asignatura
+          </Tag>
+        )}
+      </div>
+
+      {/* FILTRO N° EVALUACIÓN */}
+      <div style={{ marginBottom: 16 }}>
+        <strong>Filtrar por N° Evaluación:</strong>{' '}
+        {evaluacionesUnicas.map(eval_ => (
+          <Tag
+            key={eval_}
+            color={filtroEval === eval_ ? 'purple' : 'default'}
+            style={{ cursor: 'pointer', marginBottom: 4 }}
+            onClick={() => handleEvalClick(eval_)}
+          >
+            {eval_}
+          </Tag>
+        ))}
+        {filtroEval && (
+          <Tag color="volcano" closable onClose={() => setFiltroEval(null)} style={{ marginLeft: 8 }}>
+            Quitar filtro N° Evaluación
+          </Tag>
+        )}
+      </div>
+
       <Table
-        dataSource={seccionesMailPendientes}
+        dataSource={datosFiltrados}
         columns={columns}
         rowKey="id_informeseccion"
         pagination={{ pageSize: 10 }}

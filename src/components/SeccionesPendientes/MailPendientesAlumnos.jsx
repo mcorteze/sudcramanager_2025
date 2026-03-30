@@ -1,13 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Spin, Alert } from 'antd';
+import { Table, Spin, Alert, Tag } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
 import './formato_tabla.css';
 
 const MailPendientesAlumnos = () => {
-  const [data, setData] = useState([]); // Datos de la tabla
-  const [loading, setLoading] = useState(true); // Para mostrar el estado de carga
-  const [error, setError] = useState(null); // Para manejar errores
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filtroAsig, setFiltroAsig] = useState(null);
+  const [filtroNombrePrueba, setFiltroNombrePrueba] = useState(null);
+  const [filtroEval, setFiltroEval] = useState(null);
+
+  const handleAsigClick = (asig) => {
+    setFiltroAsig(prev => prev === asig ? null : asig);
+    setFiltroNombrePrueba(null);
+  };
+
+  const handleNombrePruebaClick = (nombre) => {
+    setFiltroNombrePrueba(prev => prev === nombre ? null : nombre);
+  };
+
+  const handleEvalClick = (eval_) => {
+    setFiltroEval(prev => prev === eval_ ? null : eval_);
+  };
 
   // Definir las columnas de la tabla
   const columns = [
@@ -106,12 +122,89 @@ const MailPendientesAlumnos = () => {
     return <Alert message={error} type="error" showIcon />;
   }
 
+  const asignaturasUnicas = [...new Set(data.map(r => r.cod_asig))].sort();
+
+  const nombresPruebaUnicos = [...new Set(
+    data
+      .filter(r => !filtroAsig || r.cod_asig === filtroAsig)
+      .map(r => r.nombre_prueba)
+  )].sort();
+
+  const evaluacionesUnicas = [...new Set(data.map(r => r.num_prueba))].sort((a, b) => a - b);
+
+  const datosFiltrados = data.filter(r =>
+    (!filtroAsig || r.cod_asig === filtroAsig) &&
+    (!filtroNombrePrueba || r.nombre_prueba === filtroNombrePrueba) &&
+    (!filtroEval || r.num_prueba === filtroEval)
+  );
+
   return (
     <div>
       <h1>Informes Pendientes de Envío (con filtro de duplicados por rut)</h1>
+
+      {/* FILTRO CÓDIGO ASIGNATURA */}
+      <div style={{ marginBottom: 8 }}>
+        <strong>Código Asignatura:</strong>{' '}
+        {asignaturasUnicas.map(asig => (
+          <Tag
+            key={asig}
+            color={filtroAsig === asig ? 'geekblue' : 'default'}
+            style={{ cursor: 'pointer', marginBottom: 4 }}
+            onClick={() => handleAsigClick(asig)}
+          >
+            {asig}
+          </Tag>
+        ))}
+        {filtroAsig && (
+          <Tag color="volcano" closable onClose={() => { setFiltroAsig(null); setFiltroNombrePrueba(null); }} style={{ marginLeft: 8 }}>
+            Quitar filtro Asignatura
+          </Tag>
+        )}
+      </div>
+
+      {/* FILTRO NOMBRE PRUEBA — depende de asignatura */}
+      <div style={{ marginBottom: 8 }}>
+        <strong>Nombre Prueba:</strong>{' '}
+        {nombresPruebaUnicos.map(nombre => (
+          <Tag
+            key={nombre}
+            color={filtroNombrePrueba === nombre ? 'geekblue' : 'default'}
+            style={{ cursor: 'pointer', marginBottom: 4 }}
+            onClick={() => handleNombrePruebaClick(nombre)}
+          >
+            {nombre}
+          </Tag>
+        ))}
+        {filtroNombrePrueba && (
+          <Tag color="volcano" closable onClose={() => setFiltroNombrePrueba(null)} style={{ marginLeft: 8 }}>
+            Quitar filtro Nombre Prueba
+          </Tag>
+        )}
+      </div>
+
+      {/* FILTRO N° EVALUACIÓN */}
+      <div style={{ marginBottom: 16 }}>
+        <strong>N° Evaluación:</strong>{' '}
+        {evaluacionesUnicas.map(eval_ => (
+          <Tag
+            key={eval_}
+            color={filtroEval === eval_ ? 'purple' : 'default'}
+            style={{ cursor: 'pointer', marginBottom: 4 }}
+            onClick={() => handleEvalClick(eval_)}
+          >
+            N° {eval_}
+          </Tag>
+        ))}
+        {filtroEval && (
+          <Tag color="volcano" closable onClose={() => setFiltroEval(null)} style={{ marginLeft: 8 }}>
+            Quitar filtro N° Evaluación
+          </Tag>
+        )}
+      </div>
+
       <Table
         columns={columns}
-        dataSource={data}
+        dataSource={datosFiltrados}
         rowKey="id_informealum"
         pagination={{ pageSize: 10 }}
         className="table-small-font"
