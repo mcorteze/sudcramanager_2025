@@ -2447,7 +2447,7 @@ app.get('/api/lectura/:id_archivoleido/:linea_leida', async (req, res) => {
 
     // Realizar la consulta
     const query = `
-      SELECT
+      SELECT DISTINCT
           l.id_lectura,
           l.rut,
           l.id_itemresp,
