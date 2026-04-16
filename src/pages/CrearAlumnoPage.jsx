@@ -1,10 +1,11 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Form, Input, Button, Select, message } from 'antd';
+import { Form, Input, Button, Select, App } from 'antd';
 import axios from 'axios';
 
 const { Option } = Select;
 
 const CrearAlumnoPage = () => {
+  const { message } = App.useApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [rutExiste, setRutExiste] = useState(false);

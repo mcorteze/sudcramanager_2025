@@ -43,7 +43,7 @@ export default function GraficoDiario({ data, loading }) {
 
       const fechaStr = fechaObj.toISOString().split("T")[0]; // YYYY-MM-DD
 
-      if (item.num_prueba >= 0 && item.num_prueba <= 14) {
+      if (item.num_prueba != null && item.num_prueba >= 0) {
         const evalKey = `E${item.num_prueba}`;
         evalKeysSet.add(evalKey);
         registros.push({ fecha: fechaStr, evalKey });
@@ -81,7 +81,7 @@ export default function GraficoDiario({ data, loading }) {
   return (
     <div style={{ width: "100%", height: 500 }}>
       <h3 style={{ marginBottom: 20 }}>Frecuencia diaria de envíos por evaluación</h3>
-      <ResponsiveContainer>
+      <ResponsiveContainer width="100%" height={450}>
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
             <XAxis

@@ -37,7 +37,7 @@ export default function GraficoAcumulado({ data, loading }) {
       if (isNaN(fechaObj.getTime())) return;
       const fechaStr = fechaObj.toISOString().split("T")[0];
 
-      if (item.num_prueba >= 0 && item.num_prueba <= 14) {
+      if (item.num_prueba != null && item.num_prueba >= 0) {
         const evalKey = `E${item.num_prueba}`;
         evalKeysSet.add(evalKey);
         registros.push({ fecha: fechaStr, evalKey });
@@ -111,7 +111,7 @@ export default function GraficoAcumulado({ data, loading }) {
       <h3 style={{ marginBottom: 20 }}>
         Evolución acumulada de envíos por evaluación
       </h3>
-      <ResponsiveContainer>
+      <ResponsiveContainer width="100%" height={450}>
         <AreaChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
           <XAxis

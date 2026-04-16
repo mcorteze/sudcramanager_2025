@@ -21,14 +21,10 @@ function useTransformSecciones(data) {
           seccion: item.seccion,
           totalEvaluaciones: 0,
           enviadas: 0,
-          ...Array.from({ length: 15 }, (_, i) => ({ [`E${i}`]: null })).reduce(
-            (acc, curr) => ({ ...acc, ...curr }),
-            {}
-          ),
         };
       }
 
-      if (item.num_prueba >= 0 && item.num_prueba <= 14) {
+      if (item.num_prueba != null && item.num_prueba >= 0) {
         const evalKey = `E${item.num_prueba}`;
         seccionesMap[item.id_seccion][evalKey] = item.nombre_prueba;
         seccionesMap[item.id_seccion][`${evalKey}_id_eval`] = item.id_seccion_eval;

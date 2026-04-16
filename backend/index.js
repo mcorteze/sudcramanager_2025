@@ -15,7 +15,7 @@ const pool = new Pool({
   database: 'sudcra',
   // ******* bases de datos estáticas *******
   //host: 'localhost',
-  //database: 'sudcra_20250808_0001', // final primer semestre
+  //database: 'sudcra_20260331_0001', // final primer semestre
   // ****************************************
   //database: 'sudcra_250107_S2', // final segundo semestre
   password: 'fec4a5n5',
@@ -160,7 +160,7 @@ app.get('/api/matriculas/:id_seccion/:cod_asig', async (req, res) => {
   const { id_seccion, cod_asig } = req.params;
   try {
     const result = await pool.query(
-      `SELECT i.id_matricula, a.rut, a.apellidos, a.nombres, a.user_alum, a.sexo
+      `SELECT i.id_matricula, i.vigente, a.rut, a.apellidos, a.nombres, a.user_alum, a.sexo
        FROM public.inscripcion AS i
        JOIN public.matricula AS m ON i.id_matricula = m.id_matricula
        JOIN public.alumnos AS a ON a.rut = m.rut
@@ -2120,6 +2120,18 @@ GROUP BY
   } catch (err) {
     console.error('Error en la consulta SQL:', err);
     res.status(500).json({ error: 'Error en la consulta SQL' });
+  }
+});
+
+app.delete('/api/secciones/:id_seccion', async (req, res) => {
+  const { id_seccion } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM secciones WHERE id_seccion = $1', [id_seccion]);
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Sección no encontrada' });
+    res.json({ message: 'Sección eliminada correctamente' });
+  } catch (err) {
+    console.error('Error al eliminar sección:', err);
+    res.status(500).json({ error: 'Error al eliminar la sección' });
   }
 });
 
@@ -4450,6 +4462,19 @@ app.get('/api/verificar-rut-alumno/:rut', async (req, res) => {
   }
 });
 
+app.get('/api/verificar-id-matricula/:id_matricula', async (req, res) => {
+  const { id_matricula } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT id_matricula FROM matricula WHERE id_matricula = $1',
+      [id_matricula]
+    );
+    res.json({ existe: result.rowCount > 0 });
+  } catch (err) {
+    res.status(500).json({ existe: false });
+  }
+});
+
 // Endpoint para crear alumno
 app.post('/crear_alumno', async (req, res) => {
   const { rut, nombres, apellidos, user_alum, sexo } = req.body;
@@ -5029,11 +5054,330 @@ app.post('/api/itemrespuesta', async (req, res) => {
 
 // -----------------------------------------------------
 
+// =====================================================
+// ENDPOINTS PLANILLAS_CREADAS
+// =====================================================
+
+// Buscar registros de la tabla eval con filtros opcionales
+app.get('/api/planillas/eval', async (req, res) => {
+  const { id_eval, cod_asig, num_prueba, ano, periodo } = req.query;
+  try {
+    let conditions = [];
+    let params = [];
+    if (id_eval) { params.push(`%${id_eval}%`); conditions.push(`id_eval ILIKE $${params.length}`); }
+    if (cod_asig) { params.push(`%${cod_asig}%`); conditions.push(`cod_asig ILIKE $${params.length}`); }
+    if (num_prueba) { params.push(num_prueba); conditions.push(`num_prueba = $${params.length}`); }
+    if (ano) { params.push(ano); conditions.push(`ano = $${params.length}`); }
+    if (periodo) { params.push(periodo); conditions.push(`periodo = $${params.length}`); }
+
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const result = await pool.query(
+      `SELECT id_eval, cod_asig, ano, periodo, num_prueba, nombre_prueba, tipo
+       FROM eval
+       ${where}
+       ORDER BY cod_asig ASC, num_prueba ASC
+       LIMIT 200`,
+      params
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en /api/planillas/eval:', err);
+    res.status(500).json({ error: 'Error al buscar evaluaciones' });
+  }
+});
+
+// Obtener planillas_creadas por id_eval
+app.get('/api/planillas_creadas/:id_eval', async (req, res) => {
+  const { id_eval } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT id_eval, ano, periodo, sufijo, num_prueba
+       FROM planillas_creadas
+       WHERE id_eval = $1
+       ORDER BY num_prueba ASC, sufijo ASC`,
+      [id_eval]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en GET /api/planillas_creadas:', err);
+    res.status(500).json({ error: 'Error al obtener planillas creadas' });
+  }
+});
+
+// Insertar un registro en planillas_creadas
+app.post('/api/planillas_creadas', async (req, res) => {
+  const { id_eval, ano, periodo, sufijo, num_prueba } = req.body;
+  if (!id_eval || !ano || !periodo || !num_prueba) {
+    return res.status(400).json({ error: 'Faltan campos requeridos: id_eval, ano, periodo, num_prueba' });
+  }
+  try {
+    const result = await pool.query(
+      `INSERT INTO planillas_creadas (id_eval, ano, periodo, sufijo, num_prueba)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [id_eval, ano, periodo, sufijo || null, num_prueba]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error en POST /api/planillas_creadas:', err);
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Ya existe un registro con esos datos.' });
+    }
+    res.status(500).json({ error: 'Error al insertar planilla creada' });
+  }
+});
+
+// Actualizar un registro en planillas_creadas
+app.put('/api/planillas_creadas', async (req, res) => {
+  const { id_eval, ano, periodo, sufijo, num_prueba, original_id_eval, original_num_prueba, original_sufijo } = req.body;
+  if (!id_eval || !ano || !periodo || !num_prueba) {
+    return res.status(400).json({ error: 'Faltan campos requeridos' });
+  }
+  try {
+    let whereClause = 'id_eval = $1 AND num_prueba = $2';
+    let params = [id_eval, num_prueba, ano, periodo, sufijo || null];
+    // Si viene clave original diferente la usamos para el WHERE
+    const keyIdEval = original_id_eval || id_eval;
+    const keyNumPrueba = original_num_prueba !== undefined ? original_num_prueba : num_prueba;
+    whereClause = 'id_eval = $6 AND num_prueba = $7';
+    params.push(keyIdEval, keyNumPrueba);
+
+    const result = await pool.query(
+      `UPDATE planillas_creadas
+       SET id_eval = $1, num_prueba = $2, ano = $3, periodo = $4, sufijo = $5
+       WHERE ${whereClause}
+       RETURNING *`,
+      params
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Registro no encontrado' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error en PUT /api/planillas_creadas:', err);
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Ya existe un registro con esos datos.' });
+    }
+    res.status(500).json({ error: 'Error al actualizar planilla creada' });
+  }
+});
+
+// Eliminar un registro de planillas_creadas
+app.delete('/api/planillas_creadas', async (req, res) => {
+  const { id_eval, num_prueba, sufijo } = req.body;
+  if (!id_eval || num_prueba === undefined) {
+    return res.status(400).json({ error: 'Faltan campos requeridos: id_eval, num_prueba' });
+  }
+  try {
+    let query, params;
+    if (sufijo !== null && sufijo !== undefined && sufijo !== '') {
+      query = 'DELETE FROM planillas_creadas WHERE id_eval = $1 AND num_prueba = $2 AND sufijo = $3 RETURNING *';
+      params = [id_eval, num_prueba, sufijo];
+    } else {
+      query = 'DELETE FROM planillas_creadas WHERE id_eval = $1 AND num_prueba = $2 AND sufijo IS NULL RETURNING *';
+      params = [id_eval, num_prueba];
+    }
+    const result = await pool.query(query, params);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Registro no encontrado' });
+    }
+    res.json({ message: 'Registro eliminado', deleted: result.rows[0] });
+  } catch (err) {
+    console.error('Error en DELETE /api/planillas_creadas:', err);
+    res.status(500).json({ error: 'Error al eliminar planilla creada' });
+  }
+});
+
+// =====================================================
+// ENDPOINTS PLANILLAS_SOLICITUD
+// =====================================================
+
+// Obtener planillas_solicitudes por id_eval
+app.get('/api/planillas_solicitudes/:id_eval', async (req, res) => {
+  const { id_eval } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT id_eval, id_seccion
+       FROM planillas_solicitudes
+       WHERE id_eval = $1
+       ORDER BY id_seccion ASC`,
+      [id_eval]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error en GET /api/planillas_solicitudes:', err);
+    res.status(500).json({ error: 'Error al obtener solicitudes' });
+  }
+});
+
+// Insertar solicitud
+app.post('/api/planillas_solicitudes', async (req, res) => {
+  const { id_eval, id_seccion } = req.body;
+  if (!id_eval || !id_seccion) {
+    return res.status(400).json({ error: 'Faltan campos requeridos: id_eval, id_seccion' });
+  }
+  try {
+    const result = await pool.query(
+      `INSERT INTO planillas_solicitudes (id_eval, id_seccion) VALUES ($1, $2) RETURNING *`,
+      [id_eval, id_seccion]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error en POST /api/planillas_solicitudes:', err);
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Ya existe ese registro.' });
+    }
+    res.status(500).json({ error: 'Error al insertar solicitud' });
+  }
+});
+
+// Actualizar solicitud
+app.put('/api/planillas_solicitudes', async (req, res) => {
+  const { id_eval, id_seccion, original_id_eval, original_id_seccion } = req.body;
+  if (!id_eval || !id_seccion || !original_id_eval || !original_id_seccion) {
+    return res.status(400).json({ error: 'Faltan campos requeridos' });
+  }
+  try {
+    const result = await pool.query(
+      `UPDATE planillas_solicitudes
+       SET id_eval = $1, id_seccion = $2
+       WHERE id_eval = $3 AND id_seccion = $4
+       RETURNING *`,
+      [id_eval, id_seccion, original_id_eval, original_id_seccion]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Registro no encontrado' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error en PUT /api/planillas_solicitudes:', err);
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Ya existe ese registro.' });
+    }
+    res.status(500).json({ error: 'Error al actualizar solicitud' });
+  }
+});
+
+// Eliminar solicitud
+app.delete('/api/planillas_solicitudes', async (req, res) => {
+  const { id_eval, id_seccion } = req.body;
+  if (!id_eval || !id_seccion) {
+    return res.status(400).json({ error: 'Faltan campos requeridos: id_eval, id_seccion' });
+  }
+  try {
+    const result = await pool.query(
+      `DELETE FROM planillas_solicitudes WHERE id_eval = $1 AND id_seccion = $2 RETURNING *`,
+      [id_eval, id_seccion]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Registro no encontrado' });
+    }
+    res.json({ message: 'Registro eliminado', deleted: result.rows[0] });
+  } catch (err) {
+    console.error('Error en DELETE /api/planillas_solicitudes:', err);
+    res.status(500).json({ error: 'Error al eliminar solicitud' });
+  }
+});
+
+// =====================================================
+// MOVER LECTURA_TEMP → LECTURA
+// =====================================================
+
+// Previsualizar registros de lectura antes de moverlos a lectura_temp
+app.get('/api/mover-lectura-temp/preview', async (req, res) => {
+  const { num_prueba, cod_interno } = req.query;
+  if (!num_prueba || !cod_interno) {
+    return res.status(400).json({ error: 'Faltan campos requeridos: num_prueba, cod_interno' });
+  }
+  try {
+    const result = await pool.query(
+      `SELECT DISTINCT ON (l.rut, l.linea_leida, l.id_archivoleido)
+              l.id_lectura, l.rut, l.id_archivoleido, l.linea_leida, l.imagen, l.instante_forms, l.forma, l.grupo,
+              EXISTS (
+                SELECT 1 FROM lectura_temp lt
+                WHERE lt.rut = l.rut
+                  AND lt.linea_leida = l.linea_leida
+                  AND lt.id_archivoleido = l.id_archivoleido
+              ) AS ya_existe
+       FROM lectura l
+       WHERE l.num_prueba = $1 AND l.cod_interno = $2
+       ORDER BY l.rut, l.linea_leida, l.id_archivoleido, l.id_lectura`,
+      [num_prueba, cod_interno]
+    );
+    const duplicados = result.rows.filter(r => r.ya_existe).length;
+    res.json({ total: result.rowCount, duplicados, registros: result.rows });
+  } catch (err) {
+    console.error('Error en preview /api/mover-lectura-temp:', err);
+    res.status(500).json({ error: 'Error al consultar registros' });
+  }
+});
+
+app.post('/api/mover-lectura-temp', async (req, res) => {
+  const { num_prueba, cod_interno } = req.body;
+  if (!num_prueba || !cod_interno) {
+    return res.status(400).json({ error: 'Faltan campos requeridos: num_prueba, cod_interno' });
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const insert = await client.query(
+      `INSERT INTO lectura_temp (rut, id_itemresp, id_archivoleido, linea_leida, reproceso, imagen, instante_forms, num_prueba, forma, grupo, cod_interno, registro_leido)
+       SELECT DISTINCT ON (l.rut, l.linea_leida, l.id_archivoleido)
+              l.rut, l.id_itemresp, l.id_archivoleido, l.linea_leida, l.reproceso, l.imagen, l.instante_forms, l.num_prueba, l.forma, l.grupo, l.cod_interno, l.registro_leido
+       FROM lectura l
+       WHERE l.num_prueba = $1 AND l.cod_interno = $2
+         AND NOT EXISTS (
+           SELECT 1 FROM lectura_temp lt
+           WHERE lt.rut = l.rut
+             AND lt.linea_leida = l.linea_leida
+             AND lt.id_archivoleido = l.id_archivoleido
+         )
+       ORDER BY l.rut, l.linea_leida, l.id_archivoleido, l.id_lectura`,
+      [num_prueba, cod_interno]
+    );
+
+    const del = await client.query(
+      `DELETE FROM lectura WHERE num_prueba = $1 AND cod_interno = $2`,
+      [num_prueba, cod_interno]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      message: 'Registros movidos correctamente',
+      insertados: insert.rowCount,
+      eliminados: del.rowCount,
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error en /api/mover-lectura-temp:', err);
+    res.status(500).json({ error: 'Error al mover registros', detalle: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// =====================================================
+
 
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Algo salió mal!');
+});
+
+app.post('/api/sql/ejecutar', async (req, res) => {
+  const { query } = req.body;
+  if (!query || !query.trim()) return res.status(400).json({ error: 'Query vacía' });
+  const lower = query.trim().toLowerCase();
+  if (!lower.startsWith('select')) return res.status(403).json({ error: 'Solo se permiten consultas SELECT' });
+  try {
+    const result = await pool.query(query);
+    res.json({ rows: result.rows, rowCount: result.rowCount, fields: result.fields.map(f => f.name) });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 app.listen(port, () => {

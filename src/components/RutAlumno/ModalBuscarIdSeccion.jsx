@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Select, notification, Typography, Button } from 'antd';
+import { Drawer, Select, notification, Typography, Button, App } from 'antd';
 import axios from 'axios';
 
 const { Option } = Select;
 
 const ModalBuscarIdSeccion = ({ visible, onClose, onSeccionSelect, idMatricula }) => {
+  const { notification: notif } = App.useApp();
   const [programas, setProgramas] = useState([]);
   const [sedes, setSedes] = useState([]);
   const [asignaturas, setAsignaturas] = useState([]);
@@ -23,7 +24,7 @@ const ModalBuscarIdSeccion = ({ visible, onClose, onSeccionSelect, idMatricula }
         setProgramas(response.data);
       } catch (error) {
         console.error("Error al cargar programas:", error);
-        notification.error({ message: 'Error al cargar programas' });
+        notif.error({ message: 'Error al cargar programas' });
       }
     };
     fetchProgramas();
@@ -35,7 +36,7 @@ const ModalBuscarIdSeccion = ({ visible, onClose, onSeccionSelect, idMatricula }
       const response = await axios.get('http://localhost:3001/api/sedes');
       setSedes(response.data);
     } catch (error) {
-      notification.error({ message: 'Error al cargar sedes' });
+      notif.error({ message: 'Error al cargar sedes' });
     }
   };
 
@@ -45,7 +46,7 @@ const ModalBuscarIdSeccion = ({ visible, onClose, onSeccionSelect, idMatricula }
       const response = await axios.get(`http://localhost:3001/api/asignaturas/${selectedPrograma}`);
       setAsignaturas(response.data);
     } catch (error) {
-      notification.error({ message: 'Error al cargar asignaturas' });
+      notif.error({ message: 'Error al cargar asignaturas' });
     }
   };
 
@@ -55,7 +56,7 @@ const ModalBuscarIdSeccion = ({ visible, onClose, onSeccionSelect, idMatricula }
       const response = await axios.get(`http://localhost:3001/api/secciones/${value}/${selectedSede}`);
       setSecciones(response.data);
     } catch (error) {
-      notification.error({ message: 'Error al cargar secciones' });
+      notif.error({ message: 'Error al cargar secciones' });
     }
   };
 
@@ -67,7 +68,7 @@ const ModalBuscarIdSeccion = ({ visible, onClose, onSeccionSelect, idMatricula }
 
   const handleInscripcion = async () => {
     if (!idMatricula || !selectedSeccion) {
-      notification.error({ message: 'Por favor, seleccione todos los campos necesarios.' });
+      notif.error({ message: 'Por favor, seleccione todos los campos necesarios.' });
       return;
     }
 
@@ -80,10 +81,10 @@ const ModalBuscarIdSeccion = ({ visible, onClose, onSeccionSelect, idMatricula }
         id_seccion: selectedSeccion.id_seccion,
       });
 
-      notification.success({ message: response.data.message });
+      notif.success({ message: response.data.message });
     } catch (error) {
       console.error('Error al realizar la inscripción:', error);
-      notification.error({ message: 'Error al realizar la inscripción. Intente nuevamente.' });
+      notif.error({ message: 'Error al realizar la inscripción. Intente nuevamente.' });
     }
   };
 

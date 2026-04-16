@@ -29,7 +29,7 @@ export default function GraficoSede({ data, loading }) {
         docentesPorSede[sede][docente] = { total: 0, enviados: 0 };
       }
 
-      if (item.num_prueba < 0 || item.num_prueba > 14) return;
+      if (item.num_prueba == null || item.num_prueba < 0) return;
       const evalKey = `E${item.num_prueba}`;
       evalKeysSet.add(evalKey);
 
@@ -106,7 +106,7 @@ export default function GraficoSede({ data, loading }) {
           {/* Gráfico principal de la sede */}
           <div style={{ flex: 2, height: 400 }}>
             <h3 style={{ marginBottom: 8 }}>{sede}</h3>
-            <ResponsiveContainer>
+            <ResponsiveContainer width="100%" height={350}>
               <BarChart
                 data={chartsData[sede]}
                 margin={{ top: 20, right: 30, left: 30, bottom: 20 }}

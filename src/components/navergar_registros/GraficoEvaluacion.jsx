@@ -20,7 +20,7 @@ export default function GraficoEvaluacion({ data, loading }) {
       const sede = item.nombre_sede || "Sin sede";
       if (!sedeStats[sede]) sedeStats[sede] = {};
 
-      if (item.num_prueba < 0 || item.num_prueba > 14) return;
+      if (item.num_prueba == null || item.num_prueba < 0) return;
 
       const evalKey = `E${item.num_prueba}`;
       evalKeysSet.add(evalKey);
@@ -73,7 +73,7 @@ export default function GraficoEvaluacion({ data, loading }) {
       {evalKeys.map((evalKey, index) => (
         <div key={evalKey} style={{ width: "100%", height: 400 }}>
           <h3 style={{ marginBottom: 8 }}>{evalKey}</h3>
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={350}>
             <BarChart
               data={chartsData[evalKey]}
               layout="vertical"

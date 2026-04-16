@@ -36,11 +36,18 @@ const HistorialProcesamiento = ({ rawData, loading }) => {
 
   useEffect(() => {
     if (rawData?.length > 0) {
+      console.log('[HistorialProcesamiento] rawData[0]:', rawData[0]);
+      console.log('[HistorialProcesamiento] lectura_fecha ejemplo:', rawData[0]?.lectura_fecha);
       processData(rawData);
     } else {
+      console.log('[HistorialProcesamiento] rawData vacío o undefined');
       setData([]);
     }
   }, [rawData]);
+
+  useEffect(() => {
+    console.log('[HistorialProcesamiento] data procesada:', data);
+  }, [data]);
 
   const renderLabel = (props) => {
     const { x, y, width, value } = props;

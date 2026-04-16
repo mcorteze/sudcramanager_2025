@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Table, Button, Input, Space, Tooltip, message } from 'antd';
+import { Table, Button, Input, Space, Tooltip, message, Tag } from 'antd';
 import { FileTextOutlined, SearchOutlined, CopyOutlined } from '@ant-design/icons';
 import { LuUser, LuMailCheck, LuMailX } from 'react-icons/lu';
 import { IoExpand } from 'react-icons/io5';
@@ -58,6 +58,7 @@ const MatriculaTable = ({ matriculas, pruebas, asignatura, idSeccion, sedeId, no
     { title: 'Apellidos', dataIndex: 'apellidos', key: 'apellidos' },
     { title: 'Nombres', dataIndex: 'nombres', key: 'nombres' },
     { title: 'Usuario Alumno', dataIndex: 'user_alum', key: 'user_alum' },
+    { title: 'Vigente', dataIndex: 'vigente', key: 'vigente', render: (val) => val ? <Tag color="green">true</Tag> : <Tag color="red">false</Tag> },
     {
       title: 'Acciones',
       key: 'acciones',

@@ -20,7 +20,7 @@ export default function SeccionesSedeGrafico({ data, loading }) {
 
     data.forEach((item) => {
       if (!item.enviado || item.enviado === "-1") return;
-      if (item.num_prueba < 0 || item.num_prueba > 14) return;
+      if (item.num_prueba == null || item.num_prueba < 0) return;
 
       const evalKey = `E${item.num_prueba}`;
       const sede = item.nombre_sede || "Sin sede";

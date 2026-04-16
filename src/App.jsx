@@ -30,6 +30,7 @@ import SeccionesPendientesPage from './pages/SeccionesPendientesPage.jsx'
 import ImagenPage from './pages/ImagenPage.jsx';
 import BuscarSeccion from './pages/BuscarSeccion.jsx';
 import BuscarEval from './pages/BuscarEval.jsx';
+import SqlEditorPage from './pages/SqlEditorPage.jsx';
 import EstadisticasPage from './pages/EstadisticasPage.jsx';
 import TareasPage from './pages/TareasPage.jsx';
 // import DashboardPage from './pages/DashboardPage.jsx'; ← eliminado
@@ -71,9 +72,12 @@ import PlanillasAnalizaPage from './pages/PlanillasAnalizaPage.jsx'
 import JsonTablaPage from './pages/JsonTablaPage.jsx'
 import LogsPage from './pages/LogsPage.jsx'
 import ConfiguraPlanilla from './pages/ConfiguraPlanilla.jsx'
+import PlanillasPage from './pages/PlanillasPage.jsx'
+import PlanillasSolicitudPage from './pages/PlanillasSolicitudPage.jsx'
+import MoverLecturaTempPage from './pages/MoverLecturaTempPage.jsx'
 
 import { IoIosSearch } from "react-icons/io";
-import { PlusOutlined, HistoryOutlined } from '@ant-design/icons';
+import { PlusOutlined, HistoryOutlined, CodeOutlined } from '@ant-design/icons';
 
 import './App.css';
 import './pages/DashboardPage.css';
@@ -197,11 +201,20 @@ const AppContent = () => {
           <Menu.Item key="19" icon={<TableOutlined />}>
             <Link to="/configura_planilla">Configura Planilla</Link>
           </Menu.Item>
+          <Menu.Item key="22" icon={<TableOutlined />}>
+            <Link to="/planillas_creadas">Planillas Creadas</Link>
+          </Menu.Item>
+          <Menu.Item key="23" icon={<TableOutlined />}>
+            <Link to="/mover-lectura-temp">Mover lectura → temp</Link>
+          </Menu.Item>
           <Menu.Item key="20" icon={<HistoryOutlined />}>
             <Link to="/log_actualizacion">Log actualización</Link>
           </Menu.Item>
           <Menu.Item key="21" icon={<HistoryOutlined />}>
             <Link to="/logs">Logs Pulsos</Link>
+          </Menu.Item>
+          <Menu.Item key="sql-editor" icon={<CodeOutlined />}>
+            <Link to="/sql-editor">SQL Editor</Link>
           </Menu.Item>
         </Menu>
       </Sider>
@@ -253,6 +266,7 @@ const AppContent = () => {
             <Route path="/secciones/:id_seccion" element={<BuscarSeccion />} />
             <Route path="/pruebas" element={<Pruebas />} />
             <Route path="/tablas_cargadas" element={<BuscarEval />} />
+            <Route path="/sql-editor" element={<SqlEditorPage />} />
             <Route path="/estadisticas" element={<EstadisticasPage />} />
             <Route path="/tareas" element={<TareasPage />} />
             {/* <Route path="/dashboard" element={<DashboardPage />} /> */} {/* Eliminada */}
@@ -293,6 +307,10 @@ const AppContent = () => {
             <Route path="/planillasanaliza" element={<PlanillasAnalizaPage />} />
             <Route path="/jsontable" element={<JsonTablaPage />} />
             <Route path="/configura_planilla" element={<ConfiguraPlanilla />} />
+            <Route path="/planillas_creadas" element={<PlanillasPage />} />
+            <Route path="/planillas_creadas/:id_eval" element={<PlanillasPage />} />
+            <Route path="/planillas_solicitud/:id_eval" element={<PlanillasSolicitudPage />} />
+            <Route path="/mover-lectura-temp" element={<MoverLecturaTempPage />} />
 
             {/* rutas con python */}
             <Route path="/obtener_alumnos" element={<AlumnosPage />} />

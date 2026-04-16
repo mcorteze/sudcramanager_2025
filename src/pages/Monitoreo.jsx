@@ -44,13 +44,15 @@ const HistorialProcesamientoTable = () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-  
+
+    fetchHistorial();
+
     const updateCondition = () => {
       const esHoy = dayjs(selectedDate).isSame(dayjs(), 'day');
       const filtrosActivos = tipoArchivo !== null || Object.values(filters).some(val => val !== null);
       return esHoy && !filtrosActivos;
     };
-  
+
     if (updateCondition()) {
       intervalRef.current = setInterval(() => {
         if (updateCondition()) {
@@ -58,7 +60,7 @@ const HistorialProcesamientoTable = () => {
         }
       }, 20000);
     }
-  
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -72,6 +74,7 @@ const HistorialProcesamientoTable = () => {
     try {
       const response = await axios.get('http://localhost:3001/api/historial_procesamiento');
       const allData = response.data || [];
+      console.log('[Monitoreo] total registros recibidos:', allData.length, 'ejemplo:', allData[0]);
       setRawData(allData);
       filterAll(allData, selectedDate, tipoArchivo, filters);
       setLastUpdated(new Date());
@@ -102,13 +105,10 @@ const HistorialProcesamientoTable = () => {
   const filterAll = (data, date, tipo, filtros) => {
     if (!date) return;
 
-    const day = date.date();
-    const month = date.month();
-
     const filtered = data
       .filter((item) => {
-        const itemDate = new Date(item.lectura_fecha);
-        return itemDate.getDate() === day && itemDate.getMonth() === month;
+        const itemDate = dayjs(item.lectura_fecha);
+        return itemDate.isSame(date, 'day');
       })
       .filter((item) => (tipo ? item.tipoarchivo === tipo : true))
       .filter((item) =>
@@ -117,6 +117,7 @@ const HistorialProcesamientoTable = () => {
         )
       );
 
+    console.log('[Monitoreo] filteredData:', filtered.length, 'registros para fecha', date?.format?.('YYYY-MM-DD'));
     setFilteredData(filtered);
   };
 

@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Select, message, Space } from 'antd';
+import { Form, Input, Button, Select, Space, App } from 'antd';
 import axios from 'axios';
 
 const { Option } = Select;
 
 const CrearMatriculaPage = () => {
+  const { message } = App.useApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [idMatriculaExiste, setIdMatriculaExiste] = useState(false);
 
-  const generarIdMatricula = () => {
+  const generarIdMatricula = async () => {
     const codPlan = form.getFieldValue('cod_plan');
     const rut = form.getFieldValue('rut');
     const ano = form.getFieldValue('ano');
@@ -18,6 +20,19 @@ const CrearMatriculaPage = () => {
       const periodoFormateado = periodo === '1' ? '001' : periodo === '2' ? '002' : periodo.padStart(3, '0');
       const idMatricula = `${codPlan}${rut}${ano}${periodoFormateado}`;
       form.setFieldsValue({ id_matricula: idMatricula });
+
+      try {
+        const res = await axios.get(`http://localhost:3001/api/verificar-id-matricula/${idMatricula}`);
+        if (res.data?.existe) {
+          setIdMatriculaExiste(true);
+          message.warning({ content: `El ID ${idMatricula} ya está registrado en el sistema.`, duration: 8, key: 'id-matricula-duplicado' });
+        } else {
+          setIdMatriculaExiste(false);
+          message.destroy('id-matricula-duplicado');
+        }
+      } catch {
+        setIdMatriculaExiste(false);
+      }
     } else {
       message.warning('Debe completar Código Plan, RUT, Año y Periodo antes de generar el ID.');
     }
@@ -35,6 +50,7 @@ const CrearMatriculaPage = () => {
 
       message.success(response.data.message || 'Matrícula creada exitosamente');
       form.resetFields();
+      setIdMatriculaExiste(false);
     } catch (error) {
       console.error('Error al crear matrícula:', error);
       message.error(
@@ -61,6 +77,8 @@ const CrearMatriculaPage = () => {
           <Form.Item
             label="ID Matrícula"
             required
+            validateStatus={idMatriculaExiste ? 'error' : ''}
+            help={idMatriculaExiste ? 'Este ID ya está registrado en el sistema.' : ''}
           >
             <Space style={{ width: '100%' }}>
               <Form.Item
@@ -142,7 +160,7 @@ const CrearMatriculaPage = () => {
           </Form.Item>
 
           <Form.Item wrapperCol={{ span: 18, offset: 6 }}>
-            <Button type="primary" htmlType="submit" loading={loading}>
+            <Button type="primary" htmlType="submit" loading={loading} disabled={idMatriculaExiste}>
               Crear Matrícula
             </Button>
           </Form.Item>

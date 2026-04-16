@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom'; 
-import { message, Spin, Modal } from 'antd';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Spin, App, Button } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import SearchSection from '../components/BuscarSeccion/SearchSection';
 import SectionDetails from '../components/BuscarSeccion/SectionDetails';
 import DocenteTable from '../components/BuscarSeccion/DocenteTable';
 import InformeTable from '../components/BuscarSeccion/InformeTable';
-import ImagenesTable from '../components/BuscarSeccion/ImagenesTable';  // Importa el nuevo subcomponente
+import ImagenesTable from '../components/BuscarSeccion/ImagenesTable';
 import './BuscarSeccion.css';
 
 const BuscarSeccion = () => {
   const { id_seccion } = useParams();
+  const navigate = useNavigate();
+  const { modal, message } = App.useApp();
   const [data, setData] = useState([]);
   const [docenteData, setDocenteData] = useState([]);
   const [informesData, setInformesData] = useState([]);
@@ -67,7 +70,7 @@ const BuscarSeccion = () => {
   };
 
   const handleDeleteDocente = (id_seccion, rut_docente) => {
-    Modal.confirm({
+    modal.confirm({
       title: '¿Estás seguro de eliminar este docente?',
       onOk: async () => {
         setConfirmLoading(true);
@@ -79,6 +82,25 @@ const BuscarSeccion = () => {
           message.error('Error al eliminar el docente: ' + error.message);
         } finally {
           setConfirmLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleDeleteSeccion = () => {
+    modal.confirm({
+      title: `¿Eliminar sección ${idSeccion}?`,
+      content: 'Esta acción eliminará el registro de la tabla secciones y no se puede deshacer.',
+      okText: 'Eliminar',
+      okType: 'danger',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        try {
+          await axios.delete(`http://localhost:3001/api/secciones/${idSeccion}`);
+          message.success('Sección eliminada correctamente');
+          navigate(-1);
+        } catch (error) {
+          message.error('Error al eliminar la sección: ' + error.message);
         }
       },
     });
@@ -97,8 +119,20 @@ const BuscarSeccion = () => {
     <div className="page-full">
       <h1>Información de sección</h1>
       <SearchSection idSeccion={idSeccion} onSearch={handleSearch} onChange={(e) => setIdSeccion(e.target.value)} />
-      
+
       {loading ? <Spin tip="Cargando..." /> : <SectionDetails data={data} />}
+
+      {idSeccion && (
+        <Button
+          danger
+          type="primary"
+          icon={<DeleteOutlined />}
+          onClick={handleDeleteSeccion}
+          style={{ marginBottom: 16 }}
+        >
+          Eliminar sección {idSeccion}
+        </Button>
+      )}
       
       <h2>Docentes remitentes</h2>
       <DocenteTable data={docenteData} loading={loadingDocentes} onDelete={handleDeleteDocente} />

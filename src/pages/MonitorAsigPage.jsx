@@ -116,13 +116,12 @@ export default function MonitorPage() {
           rut_docente: item.rut_docente,
           nombre_sede: item.nombre_sede,
           seccion: item.seccion,
-          pruebasRegistradas: 0, // Ahora contará solo las evaluaciones tomadas
-          totalEvaluaciones: 0, // Contador de evaluaciones programadas
-          ...Array.from({ length: 15 }, (_, i) => ({ [`E${i}`]: null })).reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+          pruebasRegistradas: 0,
+          totalEvaluaciones: 0,
         };
       }
-    
-      if (item.num_prueba >= 0 && item.num_prueba <= 14) {
+
+      if (item.num_prueba != null && item.num_prueba >= 0) {
         // Guardamos el nombre de la evaluación
         seccionesMap[item.id_seccion][`E${item.num_prueba}`] = item.nombre_prueba;
         // Guardamos el ID de la evaluación (si existe)

@@ -15,70 +15,34 @@ import GraficoAcumulado from "./GraficoAcumulado";
 import GraficoEvaluacion from "./GraficoEvaluacion";
 import GraficoSede from "./GraficoSede";
 
-const { TabPane } = Tabs;
-
 export default function SeccionesPorSedeTabs({ data, loading }) {
-  return (
-    <Tabs defaultActiveKey="1" type="card">
-      {/* TAB 1: Tabla */}
-      <TabPane
-        tab={
-          <span>
-            <TableOutlined /> Tabla
-          </span>
-        }
-        key="1"
-      >
-        <Tabla data={data} loading={loading} />
-      </TabPane>
+  const items = [
+    {
+      key: "1",
+      label: <span><TableOutlined /> Tabla</span>,
+      children: <Tabla data={data} loading={loading} />,
+    },
+    {
+      key: "2",
+      label: <span><BarChartOutlined /> Gráfico diario</span>,
+      children: <GraficoDiario data={data} loading={loading} />,
+    },
+    {
+      key: "3",
+      label: <span><AreaChartOutlined /> Gráfico acumulado</span>,
+      children: <GraficoAcumulado data={data} loading={loading} />,
+    },
+    {
+      key: "4",
+      label: <span><ClusterOutlined /> Gráfico por Evaluación</span>,
+      children: <GraficoEvaluacion data={data} loading={loading} />,
+    },
+    {
+      key: "5",
+      label: <span><ApartmentOutlined /> Gráfico por Sede</span>,
+      children: <GraficoSede data={data} loading={loading} />,
+    },
+  ];
 
-      {/* TAB 2: Gráfico diario */}
-      <TabPane
-        tab={
-          <span>
-            <BarChartOutlined /> Gráfico diario
-          </span>
-        }
-        key="2"
-      >
-        <GraficoDiario data={data} loading={loading} />
-      </TabPane>
-
-      {/* TAB 3: Gráfico acumulado */}
-      <TabPane
-        tab={
-          <span>
-            <AreaChartOutlined /> Gráfico acumulado
-          </span>
-        }
-        key="3"
-      >
-        <GraficoAcumulado data={data} loading={loading} />
-      </TabPane>
-
-      {/* TAB 4: Gráfico por Evaluación */}
-      <TabPane
-        tab={
-          <span>
-            <ClusterOutlined /> Gráfico por Evaluación
-          </span>
-        }
-        key="4"
-      >
-        <GraficoEvaluacion data={data} loading={loading} />
-      </TabPane>
-
-      {/* ✅ TAB 5: Gráfico por Sede */}
-      <TabPane
-        tab={
-          <span>
-            <ApartmentOutlined /> Gráfico por Sede
-          </span>
-        }
-        key="5"
-      >
-        <GraficoSede data={data} loading={loading} />
-      </TabPane>
-    </Tabs>
-  );
+  return <Tabs defaultActiveKey="1" type="card" items={items} />;
 }

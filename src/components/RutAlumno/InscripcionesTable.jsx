@@ -1,9 +1,7 @@
 import React from 'react';
-import { Table, Typography, Button, notification, Modal } from 'antd';
+import { Table, Typography, Button, notification, Modal, App } from 'antd';
 import { CopyOutlined } from '@ant-design/icons'; // Importamos el ícono de copiar
 import axios from 'axios';
-
-const { confirm } = Modal;
 
 // Función para copiar al portapapeles
 const copyToClipboard = (text) => {
@@ -135,12 +133,14 @@ const columnsInscripciones = (showDeleteConfirm) => [
 ];
 
 const InscripcionesTable = ({ inscripciones, setInscripciones }) => {
+  const { modal, notification: notif } = App.useApp();
+
   const handleDelete = async (idInscripcion) => {
     try {
       const response = await axios.delete(`http://localhost:3001/api/eliminar_inscripcion/${idInscripcion}`);
 
       if (response.status === 200) {
-        notification.success({
+        notif.success({
           message: 'Eliminación Exitosa',
           description: 'La inscripción fue eliminada correctamente.',
         });
@@ -151,14 +151,14 @@ const InscripcionesTable = ({ inscripciones, setInscripciones }) => {
         );
         setInscripciones(nuevasInscripciones);
       } else {
-        notification.error({
+        notif.error({
           message: 'Error',
           description: 'No se pudo eliminar la inscripción.',
         });
       }
     } catch (error) {
       console.error('Error al eliminar la inscripción:', error);
-      notification.error({
+      notif.error({
         message: 'Error',
         description: 'Ocurrió un error al intentar eliminar la inscripción.',
       });
@@ -166,7 +166,7 @@ const InscripcionesTable = ({ inscripciones, setInscripciones }) => {
   };
 
   const showDeleteConfirm = (idInscripcion) => {
-    confirm({
+    modal.confirm({
       title: '¿Estás seguro de que deseas eliminar esta inscripción?',
       content: 'Una vez eliminada, no podrás recuperar esta inscripción.',
       okText: 'Sí, eliminar',

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Select, Table, message, Spin, Button, Modal, Input, Space } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Select, Table, Spin, Button, Input, Space, Typography, App } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
@@ -16,7 +17,11 @@ import CalificacionesModal from '../components/CalificacionesModal';
 const { Option } = Select;
 const PASSWORD_REQUERIDA = 'arcdus';
 
+const { Link } = Typography;
+
 export default function EvaluacionesFiltradas() {
+  const { modal, message } = App.useApp();
+  const navigate = useNavigate();
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [programas, setProgramas] = useState([]);
   const [asignaturas, setAsignaturas] = useState([]);
@@ -27,6 +32,7 @@ export default function EvaluacionesFiltradas() {
   const [numPruebas, setNumPruebas] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [currentIdEval, setCurrentIdEval] = useState(null);
+  const inputPasswordRef = useRef('');
 
 
   useEffect(() => {
@@ -34,7 +40,7 @@ export default function EvaluacionesFiltradas() {
   }, []);
 
   const handleMailDisponibleChange = (id_eval, newVal) => {
-    Modal.confirm({
+    modal.confirm({
       title: 'Confirmar cambio de Mail Disponible',
       content: newVal 
         ? 'Si activa esta opción, se enviarán correos automáticos al procesar tanto para docentes como para alumnos. ¿Desea continuar?' 
@@ -117,7 +123,7 @@ export default function EvaluacionesFiltradas() {
   });
 
   const confirmarEliminacionMasiva = (accion) => {
-    let inputValue = '';
+    inputPasswordRef.current = '';
     const id_eval_list = evaluacionesFiltradas.map(e => e.id_eval);
 
     if (id_eval_list.length === 0) {
@@ -125,7 +131,7 @@ export default function EvaluacionesFiltradas() {
       return;
     }
 
-    Modal.confirm({
+    modal.confirm({
       title: `¿Desea eliminar según la acción seleccionada?`,
       width: 600,
       content: (
@@ -148,7 +154,7 @@ export default function EvaluacionesFiltradas() {
           <p>Ingrese la contraseña para continuar:</p>
           <Input.Password
             placeholder="Contraseña"
-            onChange={(e) => { inputValue = e.target.value }}
+            onChange={(e) => { inputPasswordRef.current = e.target.value }}
           />
         </div>
       ),
@@ -156,7 +162,7 @@ export default function EvaluacionesFiltradas() {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          if (inputValue !== PASSWORD_REQUERIDA) {
+          if (inputPasswordRef.current !== PASSWORD_REQUERIDA) {
             message.error('Contraseña incorrecta');
             throw new Error('Contraseña inválida');
           }
@@ -194,10 +200,10 @@ export default function EvaluacionesFiltradas() {
   };
 
   const mostrarConfirmacion = (accion, registro) => {
-    let inputValue = '';
+    inputPasswordRef.current = '';
     const id_eval_list = [registro.id_eval];
 
-    Modal.confirm({
+    modal.confirm({
       title: `¿Está seguro que desea eliminar este registro?`,
       content: (
         <div>
@@ -214,7 +220,7 @@ export default function EvaluacionesFiltradas() {
           <p>Ingrese la contraseña para continuar:</p>
           <Input.Password
             placeholder="Contraseña"
-            onChange={(e) => { inputValue = e.target.value }}
+            onChange={(e) => { inputPasswordRef.current = e.target.value }}
           />
         </div>
       ),
@@ -222,7 +228,7 @@ export default function EvaluacionesFiltradas() {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          if (inputValue !== PASSWORD_REQUERIDA) {
+          if (inputPasswordRef.current !== PASSWORD_REQUERIDA) {
             message.error('Contraseña incorrecta');
             throw new Error('Contraseña inválida');
           }
@@ -260,7 +266,16 @@ export default function EvaluacionesFiltradas() {
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id_eval', key: 'id_eval', width: 100 },
+    {
+      title: 'ID', dataIndex: 'id_eval', key: 'id_eval', width: 100,
+      render: (val) => (
+        <Link
+          onClick={(e) => { e.stopPropagation(); navigate(`/planillas_creadas/${encodeURIComponent(val)}`); }}
+        >
+          {val}
+        </Link>
+      )
+    },
     { title: 'Prog.', dataIndex: 'programa', key: 'programa', width: 120 },
     { title: 'Asig.', dataIndex: 'cod_asig', key: 'cod_asig', width: 60 },
     { title: 'N°', dataIndex: 'num_prueba', key: 'num_prueba', width: 50 },
