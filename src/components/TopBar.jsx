@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Layout, Dropdown, Input, Menu, Spin } from 'antd';
+import { Layout, Dropdown, Input, Spin } from 'antd';
 import { HiOutlineSquares2X2 } from 'react-icons/hi2';
 import { MdOutlineTerminal } from 'react-icons/md'; // <- nuevo ícono
 import EnlacesAplicaciones from './EnlacesAplicaciones';
@@ -64,23 +64,21 @@ const TopBar = () => {
     return () => clearTimeout(delayDebounce);
   }, [search]);
 
-  const buildMenu = () => {
+  const buildMenuItems = () => {
     if (loading) {
-      return (
-        <Menu>
-          <Menu.Item disabled><Spin size="small" /> Buscando...</Menu.Item>
-        </Menu>
-      );
+      return [{ key: 'loading', label: <><Spin size="small" /> Buscando...</>, disabled: true }];
     }
 
-    if (!results) return <Menu><Menu.Item disabled>No hay resultados</Menu.Item></Menu>;
+    if (!results) {
+      return [{ key: 'empty', label: 'No hay resultados', disabled: true }];
+    }
 
     const {
       alumnos = [],
       docentes = [],
       seccionesPorId = [],
       seccionesPorNombre = []
-    } = results || {};
+    } = results;
 
     const noResults =
       alumnos.length === 0 &&
@@ -88,13 +86,17 @@ const TopBar = () => {
       seccionesPorId.length === 0 &&
       seccionesPorNombre.length === 0;
 
-    if (noResults) return <Menu><Menu.Item disabled>Sin coincidencias</Menu.Item></Menu>;
+    if (noResults) {
+      return [{ key: 'no-results', label: 'Sin coincidencias', disabled: true }];
+    }
 
-    const renderGroup = (title, items, getLabel, getHref, openInNewTab = false) =>
-      items.length > 0 && [
-        <Menu.ItemGroup key={title} title={title} />,
-        ...items.map((item, index) => (
-          <Menu.Item key={`${title}-${index}`}>
+    const buildGroup = (title, items, getLabel, getHref, openInNewTab = false) => {
+      if (items.length === 0) return [];
+      return [
+        { key: `group-${title}`, type: 'group', label: title },
+        ...items.map((item, index) => ({
+          key: `${title}-${index}`,
+          label: (
             <a
               href={getHref(item)}
               target={openInNewTab ? '_blank' : '_self'}
@@ -102,42 +104,17 @@ const TopBar = () => {
             >
               {getLabel(item)}
             </a>
-          </Menu.Item>
-        )),
+          ),
+        })),
       ];
+    };
 
-    return (
-      <Menu>
-        {renderGroup(
-          '👨‍🎓 Alumnos',
-          alumnos,
-          a => `${a.rut} — ${a.nombre}`,
-          a => `/rut/${encodeURIComponent(a.rut)}`,
-          true
-        )}
-        {renderGroup(
-          '👨‍🏫 Docentes',
-          docentes,
-          d => `${d.rut} — ${d.nombre}`,
-          d => `/carga-docente/${encodeURIComponent(d.rut)}`,
-          true
-        )}
-        {renderGroup(
-          '📘 Secciones por ID',
-          seccionesPorId,
-          s => `${s.id_seccion} — ${s.nombre_sede} ${s.seccion} (DOC: ${s.docente})`,
-          s => `/secciones/${encodeURIComponent(s.id_seccion)}`,
-          true
-        )}
-        {renderGroup(
-          '📗 Secciones por Nombre',
-          seccionesPorNombre,
-          s => `${s.seccion} — ${s.nombre_sede} (DOC: ${s.docente})`,
-          s => `/secciones/${encodeURIComponent(s.id_seccion)}`,
-          true
-        )}
-      </Menu>
-    );
+    return [
+      ...buildGroup('👨‍🎓 Alumnos', alumnos, a => `${a.rut} — ${a.nombre}`, a => `/rut/${encodeURIComponent(a.rut)}`, true),
+      ...buildGroup('👨‍🏫 Docentes', docentes, d => `${d.rut} — ${d.nombre}`, d => `/carga-docente/${encodeURIComponent(d.rut)}`, true),
+      ...buildGroup('📘 Secciones por ID', seccionesPorId, s => `${s.id_seccion} — ${s.nombre_sede} ${s.seccion} (DOC: ${s.docente})`, s => `/secciones/${encodeURIComponent(s.id_seccion)}`, true),
+      ...buildGroup('📗 Secciones por Nombre', seccionesPorNombre, s => `${s.seccion} — ${s.nombre_sede} (DOC: ${s.docente})`, s => `/secciones/${encodeURIComponent(s.id_seccion)}`, true),
+    ];
   };
 
   return (
@@ -156,9 +133,9 @@ const TopBar = () => {
     >
       {/* Izquierda: Input con resultados */}
       <Dropdown
-        overlay={buildMenu()}
-        visible={dropdownVisible}
-        onVisibleChange={setDropdownVisible}
+        menu={{ items: buildMenuItems() }}
+        open={dropdownVisible}
+        onOpenChange={setDropdownVisible}
         trigger={['click']}
       >
         <Input.Search
@@ -191,7 +168,7 @@ const TopBar = () => {
 
         <NotificacionesCamapana />
 
-        <Dropdown overlay={<EnlacesAplicaciones />} placement="bottomRight" trigger={['click']}>
+        <Dropdown dropdownRender={() => <EnlacesAplicaciones />} placement="bottomRight" trigger={['click']}>
           <div className="topbar-icon-wrapper">
             <HiOutlineSquares2X2 className="topbar-icon" />
           </div>

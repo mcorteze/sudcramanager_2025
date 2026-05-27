@@ -74,7 +74,7 @@ export default function NotificacionCampana() {
       )}
 
       <Modal
-        visible={modalVisible}
+        open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
       >

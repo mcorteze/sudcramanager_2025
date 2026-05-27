@@ -255,6 +255,8 @@ SELECT
     sd.nombre_sede,
     al.user_alum, 
     i.id_seccion, 
+    i.marca_temporal,
+    i.vigente,
     s.seccion,
     asig.asig, 
     d.rut_docente,
@@ -2627,7 +2629,9 @@ app.get('/api/historial_procesamiento', async (req, res) => {
       JOIN eval e on e.id_eval = me.id_eval
       JOIN asignaturas asig on asig.cod_asig = e.cod_asig
       LEFT JOIN imagenes i on me.imagen = i.id_imagen
-      WHERE co.lectura_fecha >= CURRENT_DATE - INTERVAL '14 days'
+      WHERE co.lectura_fecha >= CURRENT_DATE - INTERVAL '7 days'
+      ORDER BY co.lectura_fecha DESC
+      LIMIT 2000
     `;
 
     const result = await pool.query(query);
@@ -2635,6 +2639,28 @@ app.get('/api/historial_procesamiento', async (req, res) => {
   } catch (err) {
     console.error('Error al obtener calificaciones:', err);
     res.status(500).json({ error: 'Error al obtener calificaciones' });
+  }
+});
+
+app.get('/api/historial_procesamiento_resumen', async (req, res) => {
+  try {
+    const query = `
+      SELECT
+        DATE(co.lectura_fecha) AS fecha,
+        al.tipoarchivo,
+        COUNT(*) AS cantidad
+      FROM calificaciones_obtenidas co
+      JOIN matricula_eval me ON me.id_matricula_eval = co.id_matricula_eval
+      JOIN archivosleidos al ON al.id_archivoleido = me.id_archivoleido
+      WHERE co.lectura_fecha >= CURRENT_DATE - INTERVAL '7 days'
+      GROUP BY DATE(co.lectura_fecha), al.tipoarchivo
+      ORDER BY fecha DESC
+    `;
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error al obtener resumen historial:', err);
+    res.status(500).json({ error: 'Error al obtener resumen historial' });
   }
 });
 

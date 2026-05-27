@@ -44,7 +44,7 @@ const MarcaTempConsola = () => {
   }, [data]);
 
   return (
-    <Card className="marca-temp-consola" bodyStyle={{ padding: 0 }}>
+    <Card className="marca-temp-consola" styles={{ body: { padding: 0 } }}>
       <div className="marca-temp-title">
         🖥️ Informes sección enviados
       </div>

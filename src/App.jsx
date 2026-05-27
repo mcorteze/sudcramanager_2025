@@ -87,7 +87,6 @@ import './components/Dashboard/styles.css';
 
 
 const { Sider, Content } = Layout;
-const { SubMenu } = Menu;
 
 const AppContent = () => {
   const [collapsed] = useState(false);
@@ -100,123 +99,67 @@ const AppContent = () => {
       <Layout>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <CabezalSidebar />
-        <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']} className='menu-general-contenedor'>
-          <Menu.Item key="1" icon={<RiRadarLine />}>
-            <Link to="/">Monitoreo</Link>
-          </Menu.Item>
-
-          {/* ✅ Buscar */}
-          <SubMenu key="buscar-sub1" icon={<IoIosSearch />} title="Buscar">
-            <Menu.Item key="sub1-0">
-              <Link to="/informe">• Filtro Informe</Link>
-            </Menu.Item>
-            <Menu.Item key="sub1-1">
-              <Link to="/buscar-alumno">• Buscar Alumno</Link>
-            </Menu.Item>
-            <Menu.Item key="sub1-2">
-              <Link to="/buscar-docente">• Buscar Docente</Link>
-            </Menu.Item>
-            <Menu.Item key="sub1-3">
-              <Link to="/secciones">• Buscar ID Sección</Link>
-            </Menu.Item>
-            <Menu.Item key="sub1-4">
-              <Link to="/buscar_resultados">• Buscar Resultados</Link>
-            </Menu.Item>
-          </SubMenu>
-
-          {/* ✅ Reprocesar */}
-          <SubMenu key="repro-sub1" icon={<SyncOutlined />} title="Reprocesar">
-            <Menu.Item key="sub1-1">
-              <Link to="/lectura_rescatar_rut">• RUT Error</Link>
-            </Menu.Item>
-            <Menu.Item key="sub1-2">
-              <Link to="/lecturas">• RUT Correcto</Link>
-            </Menu.Item>
-            <Menu.Item key="sub1-3">
-              <Link to="/lecturas_masivo">• Lista id_upload</Link>
-            </Menu.Item>
-            <Menu.Item key="sub1-4">
-              <Link to="/reprocesar_sigla">• Rehacer inf sigla</Link>
-            </Menu.Item>
-          </SubMenu>
-
-          {/* ✅ Seguimiento */}
-          <SubMenu key="monitor-accesos" icon={<HiMiniViewfinderCircle />} title="Seguimiento">
-            <Menu.Item key="monitor-1">
-              <Link to="/buscar_archivo_leido">Archivo leído</Link>
-            </Menu.Item>
-            <Menu.Item key="monitor-1-1">
-              <Link to="/imagenes">Hoja por ID</Link>
-            </Menu.Item>
-            <Menu.Item key="monitor-1-2">
-              <Link to="/upload">Lectura por ID</Link>
-            </Menu.Item>
-            <Menu.Item key="monitor-2">
-              <Link to="/monitoreo_lista">Lecturas con filtros</Link>
-            </Menu.Item>
-            <Menu.Item key="monitor-3">
-              <Link to="/forms100">Últimas 30 lecturas</Link>
-            </Menu.Item>
-            <Menu.Item key="monitor-4">
-              <Link to="/seguimientoplanilla">Buscar planilla por nombre</Link>
-            </Menu.Item>
-            <Menu.Item key="monitor-5">
-              <Link to="/monitorasig">Navegar prog-asig</Link>
-            </Menu.Item>
-            <Menu.Item key="monitor-6">
-              <Link to="/monitorsede">Navegar prog-sede</Link>
-            </Menu.Item>
-            <Menu.Item key="monitor-7">
-              <Link to="/errores_lista">Errores detectados</Link>
-            </Menu.Item>
-            <Menu.Item key="monitor-8">
-              <Link to="/listado_cantidad_notas">Listado asig/nota</Link>
-            </Menu.Item>
-            <Menu.Item key="monitor-9">
-              <Link to="/planillasanaliza">Planillas Analiza</Link>
-            </Menu.Item>
-          </SubMenu>
-
-          {/* ✅ Crear elementos */}
-          <SubMenu key="crear-sub1" icon={<PlusOutlined />} title="Crear elemento">
-            <Menu.Item key="sub1-1">
-              <Link to="/crear_alumno">• Crear Alumno</Link>
-            </Menu.Item>
-            <Menu.Item key="sub1-2">
-              <Link to="/crear_docente">• Crear Docente</Link>
-            </Menu.Item>
-            <Menu.Item key="sub1-3">
-              <Link to="/crear_matricula">• Crear Matrícula</Link>
-            </Menu.Item>
-            <Menu.Item key="sub1-4">
-              <Link to="/subirdocenteseccionmasivo">• Carga id seccion</Link>
-            </Menu.Item>
-          </SubMenu>
-          <Menu.Item key="13" icon={<ExclamationOutlined />}>
-            <Link to="/pendientes">Pendientes</Link>
-          </Menu.Item>
-          <Menu.Item key="18" icon={<TableOutlined />}>
-            <Link to="/accesos">Otros recursos</Link>
-          </Menu.Item>
-          <Menu.Item key="19" icon={<TableOutlined />}>
-            <Link to="/configura_planilla">Configura Planilla</Link>
-          </Menu.Item>
-          <Menu.Item key="22" icon={<TableOutlined />}>
-            <Link to="/planillas_creadas">Planillas Creadas</Link>
-          </Menu.Item>
-          <Menu.Item key="23" icon={<TableOutlined />}>
-            <Link to="/mover-lectura-temp">Mover lectura → temp</Link>
-          </Menu.Item>
-          <Menu.Item key="20" icon={<HistoryOutlined />}>
-            <Link to="/log_actualizacion">Log actualización</Link>
-          </Menu.Item>
-          <Menu.Item key="21" icon={<HistoryOutlined />}>
-            <Link to="/logs">Logs Pulsos</Link>
-          </Menu.Item>
-          <Menu.Item key="sql-editor" icon={<CodeOutlined />}>
-            <Link to="/sql-editor">SQL Editor</Link>
-          </Menu.Item>
-        </Menu>
+        <Menu
+          theme="dark"
+          mode="inline"
+          defaultSelectedKeys={['1']}
+          className='menu-general-contenedor'
+          items={[
+            { key: '1', icon: <RiRadarLine />, label: <Link to="/">Monitoreo</Link> },
+            {
+              key: 'buscar-sub1', icon: <IoIosSearch />, label: 'Buscar',
+              children: [
+                { key: 'buscar-0', label: <Link to="/informe">• Filtro Informe</Link> },
+                { key: 'buscar-1', label: <Link to="/buscar-alumno">• Buscar Alumno</Link> },
+                { key: 'buscar-2', label: <Link to="/buscar-docente">• Buscar Docente</Link> },
+                { key: 'buscar-3', label: <Link to="/secciones">• Buscar ID Sección</Link> },
+                { key: 'buscar-4', label: <Link to="/buscar_resultados">• Buscar Resultados</Link> },
+              ],
+            },
+            {
+              key: 'repro-sub1', icon: <SyncOutlined />, label: 'Reprocesar',
+              children: [
+                { key: 'repro-1', label: <Link to="/lectura_rescatar_rut">• RUT Error</Link> },
+                { key: 'repro-2', label: <Link to="/lecturas">• RUT Correcto</Link> },
+                { key: 'repro-3', label: <Link to="/lecturas_masivo">• Lista id_upload</Link> },
+                { key: 'repro-4', label: <Link to="/reprocesar_sigla">• Rehacer inf sigla</Link> },
+              ],
+            },
+            {
+              key: 'monitor-accesos', icon: <HiMiniViewfinderCircle />, label: 'Seguimiento',
+              children: [
+                { key: 'monitor-1',   label: <Link to="/buscar_archivo_leido">Archivo leído</Link> },
+                { key: 'monitor-1-1', label: <Link to="/imagenes">Hoja por ID</Link> },
+                { key: 'monitor-1-2', label: <Link to="/upload">Lectura por ID</Link> },
+                { key: 'monitor-2',   label: <Link to="/monitoreo_lista">Lecturas con filtros</Link> },
+                { key: 'monitor-3',   label: <Link to="/forms100">Últimas 30 lecturas</Link> },
+                { key: 'monitor-4',   label: <Link to="/seguimientoplanilla">Buscar planilla por nombre</Link> },
+                { key: 'monitor-5',   label: <Link to="/monitorasig">Navegar prog-asig</Link> },
+                { key: 'monitor-6',   label: <Link to="/monitorsede">Navegar prog-sede</Link> },
+                { key: 'monitor-7',   label: <Link to="/errores_lista">Errores detectados</Link> },
+                { key: 'monitor-8',   label: <Link to="/listado_cantidad_notas">Listado asig/nota</Link> },
+                { key: 'monitor-9',   label: <Link to="/planillasanaliza">Planillas Analiza</Link> },
+              ],
+            },
+            {
+              key: 'crear-sub1', icon: <PlusOutlined />, label: 'Crear elemento',
+              children: [
+                { key: 'crear-1', label: <Link to="/crear_alumno">• Crear Alumno</Link> },
+                { key: 'crear-2', label: <Link to="/crear_docente">• Crear Docente</Link> },
+                { key: 'crear-3', label: <Link to="/crear_matricula">• Crear Matrícula</Link> },
+                { key: 'crear-4', label: <Link to="/subirdocenteseccionmasivo">• Carga id seccion</Link> },
+              ],
+            },
+            { key: '13',        icon: <ExclamationOutlined />, label: <Link to="/pendientes">Pendientes</Link> },
+            { key: '18',        icon: <TableOutlined />,       label: <Link to="/accesos">Otros recursos</Link> },
+            { key: '19',        icon: <TableOutlined />,       label: <Link to="/configura_planilla">Configura Planilla</Link> },
+            { key: '22',        icon: <TableOutlined />,       label: <Link to="/planillas_creadas">Planillas Creadas</Link> },
+            { key: '23',        icon: <TableOutlined />,       label: <Link to="/mover-lectura-temp">Mover lectura → temp</Link> },
+            { key: '20',        icon: <HistoryOutlined />,     label: <Link to="/log_actualizacion">Log actualización</Link> },
+            { key: '21',        icon: <HistoryOutlined />,     label: <Link to="/logs">Logs Pulsos</Link> },
+            { key: 'sql-editor',icon: <CodeOutlined />,        label: <Link to="/sql-editor">SQL Editor</Link> },
+          ]}
+        />
       </Sider>
 
       <Layout>

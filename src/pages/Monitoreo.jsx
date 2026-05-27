@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Spin, message, Typography, Divider, DatePicker,
-  Space, Select, Row, Col
+  Spin, message, Divider,
+  Select, Row, Col
 } from 'antd';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import HistorialProcesamientoChart from '../components/Monitoreo/HistorialProcesamientoChart';
-import EquiposEstado from '../components/Monitoreo/EquiposEstado';
-import NotificacionCampana from '../components/NotificacionesCampana/NotificacionesCamapana';
 import UltimasLecturasFormsTable from '../components/Monitoreo/UltimasLecturasFormsTable';
 import HistorialProcesamiento from '../components/Monitoreo/HistorialProcesamiento';
 import MarcaTempConsola from '../components/Monitoreo/MarcaTempConsola';
@@ -18,7 +16,6 @@ import { ConfigProvider } from 'antd';
 
 dayjs.locale('es');
 
-const { Title } = Typography;
 const { Option } = Select;
 
 const HistorialProcesamientoTable = () => {
@@ -105,10 +102,12 @@ const HistorialProcesamientoTable = () => {
   const filterAll = (data, date, tipo, filtros) => {
     if (!date) return;
 
+    const targetDateStr = date.format('YYYY-MM-DD');
     const filtered = data
       .filter((item) => {
-        const itemDate = dayjs(item.lectura_fecha);
-        return itemDate.isSame(date, 'day');
+        if (!item.lectura_fecha) return false;
+        // Comparación rápida de strings (YYYY-MM-DD)
+        return item.lectura_fecha.startsWith(targetDateStr);
       })
       .filter((item) => (tipo ? item.tipoarchivo === tipo : true))
       .filter((item) =>
@@ -126,13 +125,14 @@ const HistorialProcesamientoTable = () => {
   };
 
   const renderFilters = () => (
-    <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+    <Row gutter={[8, 8]} style={{ marginBottom: 8 }}>
       {['cod_programa', 'cod_asig', 'num_prueba', 'nombre_prueba'].map((field) => (
         <Col key={field}>
           <Select
             placeholder={field}
-            style={{ width: 180 }}
+            style={{ width: 160 }}
             allowClear
+            size="small"
             value={filters[field]}
             onChange={(value) => handleFilterChange(field, value)}
           >
@@ -147,8 +147,9 @@ const HistorialProcesamientoTable = () => {
       <Col>
         <Select
           placeholder="Tipo de archivo"
-          style={{ width: 180 }}
+          style={{ width: 140 }}
           allowClear
+          size="small"
           value={tipoArchivo}
           onChange={handleTipoArchivoChange}
         >
@@ -162,36 +163,33 @@ const HistorialProcesamientoTable = () => {
   return (
     <ConfigProvider locale={esES}>
     <div className='page-full'>
-      <h1>Monitoreo</h1> 
       <Spin spinning={loading}>
-        <div>
-          <Space direction="vertical" size="middle" style = {{ width: '100%' }}>
-            <Space direction="horizontal" size="middle">
-              <DatePicker
-                value={selectedDate}
-                onChange={handleDateChange}
-                format="DD-MM-YYYY"
-                allowClear={false}
-              />
-            </Space>
-            <Space direction="horizontal" size="middle" style = {{ width: '100%', height: 'fit-content',display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-              <EquiposEstado />
-              <UltimasLecturasFormsTable />
-              <HistorialProcesamiento rawData={rawData} loading={loading} />
-            </Space>
-          </Space>
-          <Divider />
+        {/* Fila de cards */}
+        <div style={{ display: 'flex', gap: 24, alignItems: 'center', marginBottom: 10 }}>
+          <UltimasLecturasFormsTable
+            selectedDate={selectedDate}
+            onDateChange={handleDateChange}
+          />
+          <HistorialProcesamiento />
+        </div>
 
-          {renderFilters()}
+        <Divider style={{ margin: '8px 0' }} />
 
-          <Title level={5} style = {{ marginBottom: '0px' }}>Procesos de lecturas con calificación</Title>
-          {lastUpdated && (
-            <Typography.Paragraph style={{ fontSize: '12px', color: 'red', marginBottom: '12px' }}>
-              Última actualización: {dayjs(lastUpdated).format('HH:mm:ss')}, Polling (20s)
-            </Typography.Paragraph>
+        {/* Filtros */}
+        {renderFilters()}
+
+        {/* Gráfico de líneas */}
+        <div style={{ marginTop: 4 }}>
+          <p style={{ fontSize: 12, color: '#888', margin: '0 0 6px 0' }}>
+            Lecturas con calificación — {selectedDate?.format('DD/MM/YYYY')}
+          </p>
+          {filteredData.length > 0 ? (
+            <HistorialProcesamientoChart filteredData={filteredData} />
+          ) : (
+            <div style={{ height: 80, display: 'flex', justifyContent: 'center', alignItems: 'center', border: '1px dashed #e0e0e0', borderRadius: 8, color: '#ccc', fontSize: 12 }}>
+              Sin datos con calificación para la fecha seleccionada
+            </div>
           )}
-          
-          <HistorialProcesamientoChart filteredData={filteredData} />
         </div>
       </Spin>
       <MarcaTempConsola />
